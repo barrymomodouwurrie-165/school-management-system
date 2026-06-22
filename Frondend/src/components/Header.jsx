@@ -11,7 +11,7 @@ const Header = () => {
         character, and discipline since 1998.
       </p>
       <div>
-        <Link className="btn btn-primary">
+        <Link to="/login" className="btn btn-primary">
           Portal login
           <FiArrowUpRight size={18} />
         </Link>
