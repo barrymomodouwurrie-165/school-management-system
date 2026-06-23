@@ -12,7 +12,7 @@ import { RiArrowGoBackLine } from "react-icons/ri";
 import { Link } from "react-router";
 const LoginPage = () => {
   return (
-    <div className="min-view-height">
+    <div className="min-h-screen">
       <div className="max-w-xl mx-auto p-4">
         <div className=" max-w-[20rem] mx-auto py-2 mb-4 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
           <FaGraduationCap size={24} />
@@ -117,17 +117,20 @@ const LoginPage = () => {
       </div>
       <div className="w-full">
         <div className="text-xs md:text-sm max-w-6xl mx-auto px-8 py-2 flex items-top justify-between border-primary/50 border-t">
-            <div>
-              <span>
-                &copy;2026 Barry's Junior and Secondary School Management. all
-                rights reserved.
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link>Privacy & Policy</Link>
-              <Link>Terms of Service</Link>
-              <Link className="flex items-center gap-1"><FaQuestionCircle/>Help Center</Link>
-            </div>
+          <div>
+            <span>
+              &copy;2026 Barry's Junior and Secondary School Management. all
+              rights reserved.
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link>Privacy & Policy</Link>
+            <Link>Terms of Service</Link>
+            <Link className="flex items-center gap-1">
+              <FaQuestionCircle />
+              Help Center
+            </Link>
+          </div>
         </div>
       </div>
     </div>

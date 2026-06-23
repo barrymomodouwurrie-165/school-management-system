@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 
 const LandingPage = () => {
   return (
-    <div className="view-min-height">
+    <div className="min-h-screen">
       <Navbar />
       <Header />
       <Statictics />
