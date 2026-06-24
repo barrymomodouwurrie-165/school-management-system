@@ -31,7 +31,7 @@ const LoginPage = () => {
             <div>
               <h2 className="font-bold mb-2">ACCESS ROLE</h2>
               <div className="grid grid-cols-2 gap-2 justify-center">
-                <button className="btn btn-outline">
+                <button className="btn btn-outline btn-active">
                   <RiAdminFill size={18} />
                   Admin
                 </button>

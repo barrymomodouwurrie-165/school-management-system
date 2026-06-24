@@ -7,6 +7,7 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import AdminStatus from "./AdminStatus";
+import AdminRecentActivity from "./AdminRecentActivity";
 
 const AdminContent = () => {
   return (
@@ -52,7 +53,10 @@ const AdminContent = () => {
               </div>
               <div className="text-green-600">On Target</div>
             </div>
-            <p className="text-xl text-base-content/70 max-w-"> TODAY'S ATTENDANCE</p>
+            <p className="text-xl text-base-content/70 max-w-">
+              {" "}
+              TODAY'S ATTENDANCE
+            </p>
             <span className="text-2xl font-bold">94%</span>
           </div>
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
@@ -66,7 +70,8 @@ const AdminContent = () => {
             <span className="text-2xl font-bold">08</span>
           </div>
         </div>
-        <AdminStatus/>
+        <AdminStatus />
+        <AdminRecentActivity />
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 import { FaRegBell, FaBars } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { Link } from "react-router";
+import logo from "../assets/logo.jpg"
 const AdminNavebar = () => {
   return (
-    <div className="fixed left-[220px] top-0 right-0 z-50 justify-between border-b border-base-content/30 bg-white px-2 py-4">
+    <div className="fixed left-[220px] top-0 right-0 z-50 justify-between border-b border-base-content/30 bg-white px-2 pt-1">
       <div className="flex items-center">
         <div className="mx-4">
-          <div>School Logo</div>
-          <h1>Admin</h1>
+          <div><img src={logo} alt="" className="w-[60px] h-[60px] rounded-full" /></div>
+          <h1 className="font-bold">Admin</h1>
         </div>
         <div className=" relative flex-1 max-w-2xl mr-8">
           <FiSearch size={18} className="absolute top-1/3 left-2" />
