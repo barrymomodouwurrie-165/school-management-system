@@ -6,7 +6,7 @@ const Mainboday = () => {
     <div className="w-full px-8 py-4">
       <div className="py-4">
         <h1 className="text-2xl font-bold font-serif mb-2">Why choose us?</h1>
-        <div className="grid grid-cols-2 gap-3 md:flex items-center justify-between">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 justify-between">
           <div className="card bg-primary/40 p-3 border-primary border-t-2">
             <FaGraduationCap size={24} className="text-primary mb-2" />
             <h2 className="font-bold">Academic excellence</h2>
@@ -37,6 +37,9 @@ const Mainboday = () => {
           </div>
         </div>
       </div>
+
+
+      
     </div>
   );
 };

@@ -20,7 +20,7 @@ const AdminNavebar = () => {
         </div>
         <div className="flex gap-1 ">
           <div className="relative">
-            <div className="absolute right-1/4 top-1 text-red-600 font-bold">0</div>
+            <div className="absolute right-1/4 top-1 text-red-600 font-bold">8</div>
             <Link className="btn btn-ghost text-blue-600">
               <FaRegBell size={24} />
             </Link>

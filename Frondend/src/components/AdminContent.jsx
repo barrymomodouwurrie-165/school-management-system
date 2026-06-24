@@ -6,6 +6,7 @@ import {
   FaExclamationTriangle,
   FaChartLine,
 } from "react-icons/fa";
+import AdminStatus from "./AdminStatus";
 
 const AdminContent = () => {
   return (
@@ -65,6 +66,7 @@ const AdminContent = () => {
             <span className="text-2xl font-bold">08</span>
           </div>
         </div>
+        <AdminStatus/>
       </div>
     </div>
   );
