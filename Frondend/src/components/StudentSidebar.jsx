@@ -73,7 +73,6 @@ const StudentSidebar = () => {
               reports
             </Link>
           </div>
-
           <div>
             <Link className=" btn btn-ghost ">
               <FaSignOutAlt size={18} />

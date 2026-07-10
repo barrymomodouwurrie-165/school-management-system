@@ -23,7 +23,7 @@ const AdminRecentActivity = () => {
             <p className="text-blue-900 font-bold">New student registered:</p>
             <p>Mustapha Barrow(Grade 10S)</p>
             <p className="text-base-content/60">
-              15 minutes ago &middot; Adm. Mr. Jarju
+              15 minutes ago <b>&middot;</b> Adm. Mr. Jarju
             </p>
           </div>
         </div>
@@ -35,7 +35,7 @@ const AdminRecentActivity = () => {
             <p className="text-blue-900 font-bold">Attendance marked:</p>
             <p>10A1 Morning Session</p>
             <p className="text-base-content/60">
-              45 minutes ago &middot; Mr. Jallow
+              45 minutes ago <b>&middot;</b> Mr. Jallow
             </p>
           </div>
         </div>
@@ -47,7 +47,7 @@ const AdminRecentActivity = () => {
             <p className="text-red-600 font-bold">Unexpected Absence:</p>
             <p>Mr. Sowe</p>
             <p className="text-base-content/60">
-              1 hour ago &middot; Automated System
+              1 hour ago <b>&middot;</b> Automated System
             </p>
           </div>
         </div>
@@ -59,7 +59,7 @@ const AdminRecentActivity = () => {
             <p className="text-blue-900 font-bold">Grades published:</p>
             <p>Mid-term Mathematics</p>
             <p className="text-base-content/60">
-              3 hours ago &middot; Mr. Barry
+              3 hours ago <b>&middot;</b> Mr. Barry
             </p>
           </div>
         </div>
@@ -72,7 +72,7 @@ const AdminRecentActivity = () => {
             <p>Mr. Samba</p>
             <p className="text-base-content/60">
               {" "}
-              1 day ago &middot; Automated System
+              1 day ago <b>&middot;</b> Automated System
             </p>
           </div>
         </div>
