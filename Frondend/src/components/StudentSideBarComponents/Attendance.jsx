@@ -28,7 +28,7 @@ const Attendance = () => {
           </div>
           <div className="flex items-center justify-between p-2 rounded-md border border-base-content/20">
             <span className="font-bold">Wed, Jul 9</span>
-            <span className="bg-red-600/60 text-red-900 rounded-md px-1">Absence</span>
+            <span className="bg-red-600/60 text-red-900 rounded-md px-1">Absent</span>
           </div>
           <div className="flex items-center justify-between p-2 rounded-md border border-base-content/20">
             <span className="font-bold">Thur, Jul 10</span>

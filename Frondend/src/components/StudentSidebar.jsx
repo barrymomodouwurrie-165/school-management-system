@@ -1,4 +1,3 @@
-
 import profile from "../assets/profile.webp";
 import { MdGrade } from "react-icons/md";
 import {
@@ -12,7 +11,17 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const StudentSidebar = () => {
+const StudentSidebar = ({ activePage, onNavigate }) => {
+  const NAV_ITEMS = [
+    { id: "announcements", label: "Announcements", icon: FaBullhorn },
+    { id: "results", label: "Results", icon: MdGrade },
+    { id: "classmates", label: "Classmates", icon: FaUsers },
+    { id: "attendance", label: "Attendance", icon: FaClipboardCheck },
+    { id: "exams", label: "Exams", icon: FaFileAlt },
+    { id: "library", label: "Library", icon: FaBook },
+    { id: "ai", label: "AI assistance", icon: FaRobot },
+    { id: "reports", label: "Reports", icon: FaFlag },
+  ];
   return (
     <div className="fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 flex flex-col">
       <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
@@ -25,54 +34,21 @@ const StudentSidebar = () => {
       </div>
       <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
         <div className="flex flex-col pl-2">
-          <div>
-            <div>
-              <button className=" btn btn-ghost btn-active">
-                <FaBullhorn size={18} />
-                Announcements
-              </button>
-            </div>
-            <div>
-              <button className=" btn btn-ghost">
-                <MdGrade size={18} />
-                Results
-              </button>
-            </div>
-            <button className=" btn btn-ghost ">
-              <FaUsers size={18} />
-              Classmates
-            </button>
-          </div>
-          <div>
-            <button className=" btn btn-ghost ">
-              <FaClipboardCheck size={18} />
-              Attendance
-            </button>
-          </div>
-          <div>
-            <button className=" btn btn-ghost ">
-              <FaFileAlt size={18} />
-              Exams
-            </button>
-          </div>
-          <div>
-            <button className=" btn btn-ghost ">
-              <FaBook size={18} />
-              Library
-            </button>
-          </div>
-          <div>
-            <button className=" btn btn-ghost ">
-              <FaRobot size={18} />
-              AI assistance
-            </button>
-          </div>
-          <div>
-            <button className=" btn btn-ghost ">
-              <FaFlag size={18} />
-              reports
-            </button>
-          </div>
+          {NAV_ITEMS &&
+            NAV_ITEMS.map((item) => {
+              return (
+                <div>
+                  <button
+                    key={item.id}
+                    onClick={() => onNavigate(item.id)}
+                    className={`btn btn-ghost ${activePage === item.id ? "btn-active" : ""}`}
+                  >
+                    <item.icon size={18} />
+                    {item.label}
+                  </button>
+                </div>
+              );
+            })}
           <div>
             <button className=" btn btn-ghost ">
               <FaSignOutAlt size={18} />
