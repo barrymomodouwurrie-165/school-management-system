@@ -1,5 +1,8 @@
 import StudentSidebar from "../components/StudentSidebar";
+// import Announcement from "../components/Announcement";
 import { FaPen } from "react-icons/fa";
+// import Classmates from "../components/StudentSideBarComponents/Classmates";
+import Attendance from "../components/StudentSideBarComponents/Attendance";
 const StudentDashboard = () => {
   return (
     <div className="min-h-screen pl-[220px] py-4">
@@ -44,6 +47,9 @@ const StudentDashboard = () => {
           </div>
         </div>
       </div>
+      {/* ? <Announcement /> */}
+      {/* <Classmates/> */}
+      <Attendance />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+
 import profile from "../assets/profile.webp";
 import { MdGrade } from "react-icons/md";
 import {
@@ -27,57 +27,57 @@ const StudentSidebar = () => {
         <div className="flex flex-col pl-2">
           <div>
             <div>
-              <Link className=" btn btn-ghost btn-active">
+              <button className=" btn btn-ghost btn-active">
                 <FaBullhorn size={18} />
                 Announcements
-              </Link>
+              </button>
             </div>
             <div>
-              <Link className=" btn btn-ghost">
+              <button className=" btn btn-ghost">
                 <MdGrade size={18} />
                 Results
-              </Link>
+              </button>
             </div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaUsers size={18} />
               Classmates
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaClipboardCheck size={18} />
               Attendance
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaFileAlt size={18} />
               Exams
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaBook size={18} />
               Library
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaRobot size={18} />
               AI assistance
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaFlag size={18} />
               reports
-            </Link>
+            </button>
           </div>
           <div>
-            <Link className=" btn btn-ghost ">
+            <button className=" btn btn-ghost ">
               <FaSignOutAlt size={18} />
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       </div>
