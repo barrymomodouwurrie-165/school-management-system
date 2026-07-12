@@ -1,4 +1,5 @@
 import { FaPaperPlane } from "react-icons/fa";
+import ChatMessages from "./ChatMessages";
 const AiAssistance = () => {
   const Suggestions = [
     { id: 1, message: "What is photosynthesis?" },
@@ -9,11 +10,8 @@ const AiAssistance = () => {
     <>
       <div className="max-w-4xl mx-auto px-4 border text-white rounded-lg [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
         <div className="py-4 px-2">
-          <h1 className="text-xl font-bold font-serif italic text-center">
-            Speak to your AI tutor to assist you. Ask AI anything you want to
-            understand!
-          </h1>
-          <div className="max-w-xl flex items-center gap-2">
+          <ChatMessages />
+          <div className="max-w-4xl flex items-center gap-2 px-2">
             <input
               type="text"
               className="input input-bordered text-black w-full rounded-md my-4"
@@ -23,6 +21,7 @@ const AiAssistance = () => {
               <FaPaperPlane size={24} />
             </button>
           </div>
+          <h2 className="italic mb-2">Quick suggestions!</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {Suggestions &&
               Suggestions.map((suggestion) => {

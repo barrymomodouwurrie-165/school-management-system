@@ -94,7 +94,8 @@ const Classmates = () => {
             className="input input-bordered w-full max-w-4xl pl-4 rounded-md"
           />
         </div>
-        <div className="max-w-4xl py-8 px-4">
+        <h2 className="mt-4 mb-2 font-bold">KNOW YOUR CLASSMATES</h2>
+        <div className="max-w-4xl px-4">
           {students &&
             students.map((student) => {
               return (

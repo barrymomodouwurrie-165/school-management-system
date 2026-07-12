@@ -28,7 +28,7 @@ const StudentsData = ({ student }) => {
                 setIsOpen(!isOpen);
               }}
             >
-              {isOpen ? <FaChevronDown /> : <FaChevronRight />}
+              {isOpen ? < FaChevronDown />: <FaChevronRight />}
             </button>
           </div>
           {isOpen && (
