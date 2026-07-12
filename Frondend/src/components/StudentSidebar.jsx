@@ -19,7 +19,7 @@ const StudentSidebar = ({ activePage, onNavigate }) => {
     { id: "attendance", label: "Attendance", icon: FaClipboardCheck },
     { id: "exams", label: "Exams", icon: FaFileAlt },
     { id: "library", label: "Library", icon: FaBook },
-    { id: "ai", label: "AI assistance", icon: FaRobot },
+    { id: "ai", label: "AiAssistance", icon: FaRobot },
     { id: "reports", label: "Reports", icon: FaFlag },
   ];
   return (

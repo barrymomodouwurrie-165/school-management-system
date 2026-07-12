@@ -4,6 +4,7 @@ import Announcement from "../components/Announcement";
 import { FaPen } from "react-icons/fa";
 import Classmates from "../components/StudentSideBarComponents/Classmates";
 import Attendance from "../components/StudentSideBarComponents/Attendance";
+import AiAssistance from "../components/StudentSideBarComponents/AiAssistance";
 const StudentDashboard = () => {
   const [activePage, setActivePage] = useState("announcements");
 
@@ -11,6 +12,7 @@ const StudentDashboard = () => {
     announcements: Announcement,
     classmates: Classmates,
     attendance: Attendance,
+    ai: AiAssistance
   };
 
   const ActivePage = PAGES[activePage];
