@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import logo from "../assets/logo.jpg"
 const AdminNavebar = () => {
   return (
-    <div className="fixed left-[220px] top-0 right-0 z-50 justify-between border-b border-base-content/30 bg-white px-2 pt-1">
+    <div className="fixed md:left-[220px] top-0 right-0 z-50 justify-between border-b border-base-content/30 bg-white px-2 pt-1">
       <div className="flex items-center">
         <div className="mx-4">
           <div><img src={logo} alt="" className="w-[60px] h-[60px] rounded-full" /></div>

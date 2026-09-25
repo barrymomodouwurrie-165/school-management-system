@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router";
+import { FaPen, FaBars } from "react-icons/fa";
 import StudentSidebar from "../components/StudentSidebar";
 import Announcement from "../components/Announcement";
-import { FaPen } from "react-icons/fa";
 import Classmates from "../components/StudentSideBarComponents/Classmates";
 import Attendance from "../components/StudentSideBarComponents/Attendance";
 import AiAssistance from "../components/StudentSideBarComponents/AiAssistance";
+
 const StudentDashboard = () => {
   const [activePage, setActivePage] = useState("announcements");
 
@@ -12,18 +14,23 @@ const StudentDashboard = () => {
     announcements: Announcement,
     classmates: Classmates,
     attendance: Attendance,
-    ai: AiAssistance
+    ai: AiAssistance,
   };
 
   const ActivePage = PAGES[activePage];
 
   return (
-    <div className="min-h-screen pl-[220px] py-4">
+    <div className="min-h-screen md:pl-[220px] py-4">
       <StudentSidebar activePage={activePage} onNavigate={setActivePage} />
       <div className="max-w-4xl mx-auto p-4">
         <div className="p-2 grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr_auto] border-t-2 border-primary rounded-lg shadow-sm">
-          <div className=" w-[50px] h-[50px] flex items-center justify-center bg-blue-950/70 rounded-lg text-white font-bold">
-            KS
+          <div className="flex items-center justify-between">
+            <div className=" w-[50px] h-[50px] flex items-center justify-center bg-blue-950/70 rounded-lg text-white font-bold">
+              KS
+            </div>
+            <Link className="md:hidden btn btn-ghost">
+              <FaBars size={24} />
+            </Link>
           </div>
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-bold">Welcome Back, Kebba Samba</h1>
