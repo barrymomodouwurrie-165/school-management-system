@@ -14,10 +14,7 @@ const StudentsData = ({ student }) => {
   return (
     <div>
       <Link>
-        <div
-          key={student.id}
-          className="flex flex-col border-b-2 border-b-primary/20 py-2"
-        >
+        <div className="flex flex-col border-b-2 border-b-primary/20 py-2">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center justify-center w-10 h-10 text-white rounded-full bg-primary p-1">
               {student.initials}
@@ -28,7 +25,7 @@ const StudentsData = ({ student }) => {
                 setIsOpen(!isOpen);
               }}
             >
-              {isOpen ? < FaChevronDown />: <FaChevronRight />}
+              {isOpen ? <FaChevronDown /> : <FaChevronRight />}
             </button>
           </div>
           {isOpen && (

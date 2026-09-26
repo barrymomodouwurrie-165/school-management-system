@@ -99,7 +99,7 @@ const Classmates = () => {
           {students &&
             students.map((student) => {
               return (
-                <StudentsData student={student} />
+                <StudentsData key={student.id} student={student} />
               );
             })}
         </div>

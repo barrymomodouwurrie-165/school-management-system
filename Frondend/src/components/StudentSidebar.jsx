@@ -1,25 +1,13 @@
 import profile from "../assets/profile.webp";
 import {
-  FaBullhorn,
-  FaClipboardCheck,
-  FaFileAlt,
-  FaRobot,
-  FaFlag,
-  FaUsers,
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const StudentSidebar = ({ activePage, onNavigate }) => {
-  const NAV_ITEMS = [
-    { id: "announcements", label: "Announcements", icon: FaBullhorn },
-    { id: "classmates", label: "Classmates", icon: FaUsers },
-    { id: "attendance", label: "Attendance", icon: FaClipboardCheck },
-    { id: "exams", label: "Exams", icon: FaFileAlt },
-    { id: "ai", label: "AiAssistance", icon: FaRobot },
-    { id: "reports", label: "Reports", icon: FaFlag },
-  ];
+const StudentSidebar = ({ activePage, onNavigate, NAV_ITEMS }) => {
   return (
-    <div className="hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 md:flex flex-col">
+    <div
+      className={`md:flex flex-col hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2`}
+    >
       <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
         <div className="flex flex-col items-center text-white">
           <p className="font-bold text-xl">
@@ -33,9 +21,8 @@ const StudentSidebar = ({ activePage, onNavigate }) => {
           {NAV_ITEMS &&
             NAV_ITEMS.map((item) => {
               return (
-                <div>
+                <div key={item.id}>
                   <button
-                    key={item.id}
                     onClick={() => onNavigate(item.id)}
                     className={`btn btn-ghost ${activePage === item.id ? "btn-active" : ""}`}
                   >
