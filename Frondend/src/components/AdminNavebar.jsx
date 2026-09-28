@@ -3,7 +3,6 @@ import { FiSearch } from "react-icons/fi";
 import { Link } from "react-router";
 import logo from "../assets/logo.jpg";
 const AdminNavebar = ({ isOpen, setIsOpen }) => {
-  console.log(isOpen);
   return isOpen ? (
     ""
   ) : (

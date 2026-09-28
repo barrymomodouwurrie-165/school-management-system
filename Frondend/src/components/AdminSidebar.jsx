@@ -1,11 +1,9 @@
 import { Link } from "react-router";
 import profile from "../assets/profile.webp";
-import {
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
+import AdminSidebarNav from "./AdminSidebarNav";
 
 const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
-
   return (
     <div className="hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 md:flex flex-col">
       <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
@@ -18,26 +16,16 @@ const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
       </div>
       <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
         <div className="flex flex-col pl-2">
+          <AdminSidebarNav
+            activePage={activePage}
+            onNavigate={onNavigate}
+            NAV_PAGES={NAV_PAGES}
+          />
           <div>
-            {NAV_PAGES &&
-              NAV_PAGES.map((page) => {
-                return (
-                  <button
-                    onClick={() => onNavigate(page.id)}
-                    className={`btn btn-ghost ${activePage === page.id ? "btn-active" : ""}`}
-                    key={page.id}
-                  >
-                    <page.logo size={18} />
-                    {page.label}
-                  </button>
-                );
-              })}
-            <div>
-              <Link className=" btn btn-ghost ">
-                <FaSignOutAlt size={18} />
-                Logout
-              </Link>
-            </div>
+            <Link className=" btn btn-ghost ">
+              <FaSignOutAlt size={18} />
+              Logout
+            </Link>
           </div>
         </div>
         <div className=" z-50 w-[210px] py-4 border-t border-base-content/70 flex-shrink-0">

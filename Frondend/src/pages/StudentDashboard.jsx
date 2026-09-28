@@ -48,7 +48,16 @@ const StudentDashboard = () => {
       ],
     },
     { id: "ai", label: "AiAssistance", icon: FaRobot },
-    { id: "reports", label: "Reports", icon: FaFlag },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: FaFlag,
+      children: [
+        { id: "complain", label: "Complain" },
+        { id: "report-student", label: "Report Student" },
+        { id: "suggestion", label: "Suggestion" },
+      ],
+    },
   ];
 
   return (

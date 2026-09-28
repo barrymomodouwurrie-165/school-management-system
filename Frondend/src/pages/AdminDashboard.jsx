@@ -1,6 +1,7 @@
 import AdminSidebar from "../components/AdminSidebar";
 import AdminNavebar from "../components/AdminNavebar";
 import AdminContent from "../components/AdminContent";
+import AdminSidebarNav from "../components/AdminSidebarNav";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -21,30 +22,40 @@ const AdminDashboard = () => {
   const PAGES = {
     admin: AdminContent,
     // students: StudentsContent,
+    // adminPage: AdminPage,
     // staff: StaffContent,
     // academics: AcademicsContent,
     // attendance: AttendanceContent,
     // communication: CommunicationContent,
-    // adminPage: AdminPage,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaUsers },
+    {
+      id: "adminPage",
+      label: "Admin",
+      logo: FaCog,
+      children: [
+        { id: "register-staff", label: "Register Staff" },
+        { id: "register-student", label: "Register Student" },
+      ],
+    },
     { id: "students", label: "Students", logo: FaUsers },
     { id: "staff", label: "Staff", logo: FaUserTie },
     { id: "academics", label: "Academics", logo: FaBookOpen },
     { id: "attendance", label: "Attendance", logo: FaClipboardCheck },
     { id: "communication", label: "Communication", logo: FaComments },
-    { id: "adminPage", label: "Admin", logo: FaCog },
   ];
   const ActivePage = PAGES[activePage];
   return (
-    <div className={`${isOpen? "fixed inset-0 z-40 bg-black/50 md:hidden":""}min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}>
+    <div
+      className={`${isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""}min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}
+    >
       <AdminSidebar
         activePage={activePage}
         onNavigate={setActivePage}
         NAV_PAGES={NAV_PAGES}
       />
-     
+
       {isOpen ? (
         <div className="fixed left-0 top-0 bottom-0 z-50 bg-blue-950 w-[220px] px-2 flex flex-col">
           <div className="w-[210px] py-2  text-center flex-shrink-0">
@@ -63,28 +74,18 @@ const AdminDashboard = () => {
           </div>
           <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
             <div className="flex flex-col pl-2">
+              <AdminSidebarNav
+                activePage={activePage}
+                onNavigate={setActivePage}
+                NAV_PAGES={NAV_PAGES}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
               <div>
-                {NAV_PAGES &&
-                  NAV_PAGES.map((page) => {
-                    return (
-                      <button
-                        onClick={() => {
-                          (setActivePage(page.id), setIsOpen(false));
-                        }}
-                        className={`btn btn-ghost ${activePage === page.id ? "btn-active" : ""}`}
-                        key={page.id}
-                      >
-                        <page.logo size={18} />
-                        {page.label}
-                      </button>
-                    );
-                  })}
-                <div>
-                  <Link className=" btn btn-ghost ">
-                    <FaSignOutAlt size={18} />
-                    Logout
-                  </Link>
-                </div>
+                <Link className=" btn btn-ghost ">
+                  <FaSignOutAlt size={18} />
+                  Logout
+                </Link>
               </div>
             </div>
             <div className=" z-50 w-[210px] py-4 border-t border-base-content/70 flex-shrink-0">
