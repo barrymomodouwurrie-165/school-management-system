@@ -1,25 +1,10 @@
 import { Link } from "react-router";
 import profile from "../assets/profile.webp";
 import {
-  FaUserTie,
-  FaBookOpen,
-  FaClipboardCheck,
-  FaComments,
-  FaCog,
-  FaUsers,
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const AdminSidebar = ({ activePage, onNavigate }) => {
-  const NAV_PAGES = [
-    { id: "admin", label: "Dashboard", logo: FaUsers },
-    { id: "students", label: "Students", logo: FaUsers },
-    { id: "staff", label: "Staff", logo: FaUserTie },
-    { id: "academics", label: "Academics", logo: FaBookOpen },
-    { id: "attendance", label: "Attendance", logo: FaClipboardCheck },
-    { id: "communication", label: "Communication", logo: FaComments },
-    { id: "adminPage", label: "Admin", logo: FaCog },
-  ];
+const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
 
   return (
     <div className="hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 md:flex flex-col">

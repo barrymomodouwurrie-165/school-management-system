@@ -1,7 +1,6 @@
 import profile from "../assets/profile.webp";
-import {
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
+import SideBarNav from "./StudentSideBarComponents/SideBarNav";
 
 const StudentSidebar = ({ activePage, onNavigate, NAV_ITEMS }) => {
   return (
@@ -18,20 +17,11 @@ const StudentSidebar = ({ activePage, onNavigate, NAV_ITEMS }) => {
       </div>
       <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
         <div className="flex flex-col pl-2">
-          {NAV_ITEMS &&
-            NAV_ITEMS.map((item) => {
-              return (
-                <div key={item.id}>
-                  <button
-                    onClick={() => onNavigate(item.id)}
-                    className={`btn btn-ghost ${activePage === item.id ? "btn-active" : ""}`}
-                  >
-                    <item.icon size={18} />
-                    {item.label}
-                  </button>
-                </div>
-              );
-            })}
+          <SideBarNav
+            NAV_ITEMS={NAV_ITEMS}
+            activePage={activePage}
+            onNavigate={onNavigate}
+          />
           <div>
             <button className=" btn btn-ghost ">
               <FaSignOutAlt size={18} />

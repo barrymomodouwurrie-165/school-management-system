@@ -17,6 +17,8 @@ import Announcement from "../components/Announcement";
 import Classmates from "../components/StudentSideBarComponents/Classmates";
 import Attendance from "../components/StudentSideBarComponents/Attendance";
 import AiAssistance from "../components/StudentSideBarComponents/AiAssistance";
+import ResultCheck from "../components/StudentSideBarComponents/ResultCheck";
+import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 
 const StudentDashboard = () => {
   const [activePage, setActivePage] = useState("announcements");
@@ -27,15 +29,24 @@ const StudentDashboard = () => {
     classmates: Classmates,
     attendance: Attendance,
     ai: AiAssistance,
+    "check-result": ResultCheck,
   };
 
-  const ActivePage = PAGES[activePage];
+  const ActivePage = PAGES[activePage] && PAGES[activePage];
 
   const NAV_ITEMS = [
     { id: "announcements", label: "Announcements", icon: FaBullhorn },
     { id: "classmates", label: "Classmates", icon: FaUsers },
     { id: "attendance", label: "Attendance", icon: FaClipboardCheck },
-    { id: "exams", label: "Exams", icon: FaFileAlt },
+    {
+      id: "exams",
+      label: "Exams",
+      icon: FaFileAlt,
+      children: [
+        { id: "check-result", label: "Check Result" },
+        { id: "exam-details", label: "Check Exam Details" },
+      ],
+    },
     { id: "ai", label: "AiAssistance", icon: FaRobot },
     { id: "reports", label: "Reports", icon: FaFlag },
   ];
@@ -74,22 +85,13 @@ const StudentDashboard = () => {
               </div>
               <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
                 <div className="flex flex-col pl-2">
-                  {NAV_ITEMS &&
-                    NAV_ITEMS.map((item) => {
-                      return (
-                        <div key={item.id}>
-                          <button
-                            onClick={() => {
-                              (setActivePage(item.id), setOpen(false));
-                            }}
-                            className={`btn btn-ghost ${activePage === item.id ? "btn-active" : ""}`}
-                          >
-                            <item.icon size={18} />
-                            {item.label}
-                          </button>
-                        </div>
-                      );
-                    })}
+                  <SideBarNav
+                    NAV_ITEMS={NAV_ITEMS}
+                    activePage={activePage}
+                    onNavigate={setActivePage}
+                    open={open}
+                    setOpen={setOpen}
+                  />
                   <div>
                     <button className=" btn btn-ghost ">
                       <FaSignOutAlt size={18} />
@@ -144,48 +146,13 @@ const StudentDashboard = () => {
               </div>
             </div>
           )}
-          {/* <div className="md:flex items-center justify-between">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-bold">Welcome Back, Kebba Samba</h1>
-              <button className="btn btn-primary btn-xs max-w-28">
-                <FaPen />
-                Edit Profile
-              </button>
-              <div className="flex flex-col">
-                <div className="grid grid-cols-3 ">
-                  <span className="text-xs text-base-content/70">
-                    STUDENT ID
-                  </span>
-                  <span className="text-xs text-base-content/70">
-                    CURRENT CLASS
-                  </span>
-                  <span className="text-xs text-base-content/70">
-                    DATE ENROLLED
-                  </span>
-                </div>
-                <div className="grid grid-cols-3">
-                  <span className="text-sm">2024001</span>
-                  <span className="text-sm">10 Science One</span>
-                  <span className="text-sm">Sept 12, 2024</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col border-l border-base-content/50 p-4">
-                <span className="text-xl font-bold">3.88</span>
-                <span className="text-xs text-base-content/70">
-                  CURRENT GPA
-                </span>
-              </div>
-              <div className="flex flex-col border-l border-base-content/50 p-4">
-                <span className="text-xl font-bold">94%</span>
-                <span className="text-xs text-base-content/70">ATTENDANCE</span>
-              </div>
-            </div>
-          </div> */}
         </div>
       </div>
-      <ActivePage />
+      <ActivePage
+        onBack={() => {
+          (setActivePage("announcements"), setOpen(!open));
+        }}
+      />
     </div>
   );
 };
