@@ -32,48 +32,6 @@ const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
                   </button>
                 );
               })}
-            {/* <div>
-              <Link className=" btn btn-ghost">
-                <FaUsers size={18} />
-                Dashboard
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost">
-                <FaUsers size={18} />
-                Students
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost">
-                <FaUserTie size={18} />
-                Staff
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost ">
-                <FaBookOpen size={18} />
-                Academics
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost ">
-                <FaClipboardCheck size={18} />
-                Attendance
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost ">
-                <FaComments size={18} />
-                Communication
-              </Link>
-            </div>
-            <div>
-              <Link className=" btn btn-ghost ">
-                <FaCog size={18} />
-                Admin
-              </Link>
-            </div> */}
             <div>
               <Link className=" btn btn-ghost ">
                 <FaSignOutAlt size={18} />

@@ -56,9 +56,11 @@ const AdminStatus = () => {
             <BsThreeDots />
           </Link>
         </div>
-        <div className="grid grid-cols-5 gap-6 md:gap-1 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
+        <div className="grid grid-cols-5 gap-10 md:gap-1 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
           <span className="text-[10px] md:text-base font-bold">DEPARTMENT</span>
-          <span className="text-[10px] md:text-base font-bold">HEAD OF DEPARTMENT</span>
+          <span className="text-[10px] md:text-base font-bold ml-2 md:ml-0">
+            HEAD OF DEPT
+          </span>
           <span className="text-[10px] md:text-base font-bold">COUNT</span>
           <span className="text-[10px] md:text-base font-bold">STATUS</span>
           <span className="text-[10px] md:text-base font-bold">ACTION</span>

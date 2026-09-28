@@ -38,15 +38,16 @@ const AdminDashboard = () => {
   ];
   const ActivePage = PAGES[activePage];
   return (
-    <div className="min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ">
+    <div className={`${isOpen? "fixed inset-0 z-40 bg-black/50 md:hidden":""}min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}>
       <AdminSidebar
         activePage={activePage}
         onNavigate={setActivePage}
         NAV_PAGES={NAV_PAGES}
       />
+     
       {isOpen ? (
-        <div className="fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 flex flex-col">
-          <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
+        <div className="fixed left-0 top-0 bottom-0 z-50 bg-blue-950 w-[220px] px-2 flex flex-col">
+          <div className="w-[210px] py-2  text-center flex-shrink-0">
             <div className="flex flex-col items-center text-white">
               <p className="font-bold text-xl">
                 Junior and Senior School Management

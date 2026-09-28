@@ -25,11 +25,11 @@ const AdminContent = () => {
         </div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 items-stretch justify-between mt-4">
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-1 md:gap-0">
               <div className="p-3 rounded-md bg-base-content/10">
                 <FaUsers size={18} />
               </div>
-              <div className="flex items-center gap-1 text-green-600">
+              <div className="flex items-center gap-2 md:gap-1 text-green-600">
                 +2.4% <FaChartLine />
               </div>
             </div>
@@ -47,7 +47,7 @@ const AdminContent = () => {
             <span className="text-2xl font-bold">85</span>
           </div>
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4 md:gap-0">
               <div className="p-3 rounded-md bg-base-content/10">
                 <FaCheckDouble size={18} />
               </div>
@@ -60,7 +60,7 @@ const AdminContent = () => {
             <span className="text-2xl font-bold">94%</span>
           </div>
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4 md:gap-0">
               <div className="p-3 rounded-md bg-red-300">
                 <FaExclamationTriangle size={18} className="text-red-600" />
               </div>

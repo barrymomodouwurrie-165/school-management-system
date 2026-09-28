@@ -52,7 +52,9 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen md:pl-[220px] py-4">
+    <div
+      className={`${open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""} min-h-screen md:pl-[220px] py-4`}
+    >
       <StudentSidebar
         activePage={activePage}
         onNavigate={setActivePage}
@@ -71,6 +73,7 @@ const StudentDashboard = () => {
               {open ? <MdExitToApp size={24} /> : <FaBars size={24} />}
             </Link>
           </div>
+
           {open ? (
             <div
               className={`md:flex flex-col fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2`}
