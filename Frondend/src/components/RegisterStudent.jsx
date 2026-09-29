@@ -40,6 +40,24 @@ const RegisterStudent = () => {
               </div>
               <div className="form-control">
                 <label className="label" htmlFor="">
+                  <span className="label-text font-bold">Nationality</span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered input-sm rounded-md"
+                />
+              </div>
+              <div className="form-control">
+                <label className="label" htmlFor="">
+                  <span className="label-text font-bold">Ethnicity</span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered input-sm rounded-md"
+                />
+              </div>
+              <div className="form-control">
+                <label className="label" htmlFor="">
                   <span className="label-text font-bold">Phone</span>
                 </label>
 
@@ -159,7 +177,7 @@ const RegisterStudent = () => {
                   </button>
                 </div>
                 <button className="btn btn-primary rounded-lg btn-">
-                  Register Staff
+                  Register Student
                 </button>
               </div>
           </form>

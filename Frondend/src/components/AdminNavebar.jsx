@@ -3,7 +3,6 @@ import { FiSearch } from "react-icons/fi";
 import { Link } from "react-router";
 import logo from "../assets/logo.jpg";
 const AdminNavebar = ({ isOpen, setIsOpen, isClick }) => {
-  console.log(isClick)
   return isOpen ? (
     ""
   ) : isClick ? "" : (
@@ -37,8 +36,7 @@ const AdminNavebar = ({ isOpen, setIsOpen, isClick }) => {
           <Link
             className="btn btn-ghost md:hidden"
             onClick={() => {
-              (setIsOpen(!isOpen),
-                console.log("clicked! current isOpen:", isOpen));
+              setIsOpen(!isOpen)
             }}
           >
             <FaBars size={24} />

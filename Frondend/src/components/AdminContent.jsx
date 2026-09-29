@@ -9,10 +9,10 @@ import {
 import AdminStatus from "./AdminStatus";
 import AdminRecentActivity from "./AdminRecentActivity";
 
-const AdminContent = () => {
+const AdminContent = ({ isOpen }) => {
   return (
-    <div className="pt-[82px]">
-      <div className="px-4 py-8">
+    <div className={`${isOpen ? "" : "pt-[82px]"}`}>
+      <div className={`${isOpen ? "px-4 py-2" : "px-4 py-8"}`}>
         <h1 className="text-l md:text-xl font-bold">Dashboard Overview</h1>
         <div className="flex items-center justify-between">
           <p className="text-base-content/70">
@@ -33,7 +33,9 @@ const AdminContent = () => {
                 +2.4% <FaChartLine />
               </div>
             </div>
-            <p className="text-l md:text-xl text-base-content/70">TOTAL STUDENTS</p>
+            <p className="text-l md:text-xl text-base-content/70">
+              TOTAL STUDENTS
+            </p>
             <span className="text-2xl font-bold">1,200</span>
           </div>
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
@@ -43,7 +45,9 @@ const AdminContent = () => {
               </div>
               <div>Stable</div>
             </div>
-            <p className="text-l md:text-xl text-base-content/70">TOTAL STAFF</p>
+            <p className="text-l md:text-xl text-base-content/70">
+              TOTAL STAFF
+            </p>
             <span className="text-2xl font-bold">85</span>
           </div>
           <div className="card p-6 border-t-4 border-x-2 border-primary flex flex-col gap-2 flex-1 h-full">
@@ -66,7 +70,9 @@ const AdminContent = () => {
               </div>
               <div className="text-red-600">Action Req.</div>
             </div>
-            <p className="text-l md:text-xl text-base-content/70">RECENT ALERTS</p>
+            <p className="text-l md:text-xl text-base-content/70">
+              RECENT ALERTS
+            </p>
             <span className="text-2xl font-bold">08</span>
           </div>
         </div>

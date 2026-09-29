@@ -4,6 +4,7 @@ import AdminContent from "../components/AdminContent";
 import AdminSidebarNav from "../components/AdminSidebarNav";
 import RegisterStaff from "../components/RegisterStaff";
 import RegisterStudent from "../components/RegisterStudent";
+import StudentsContent from "../components/StudentsContent";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -26,7 +27,7 @@ const AdminDashboard = () => {
     admin: AdminContent,
     "register-staff": RegisterStaff,
     "register-student": RegisterStudent,
-    // students: StudentsContent,
+    students: StudentsContent,
     // adminPage: AdminPage,
     // staff: StaffContent,
     // academics: AcademicsContent,
@@ -115,7 +116,7 @@ const AdminDashboard = () => {
       ) : (
         <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
       )}
-      <ActivePage />
+      <ActivePage isOpen={isOpen } />
     </div>
   );
 };
