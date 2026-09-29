@@ -2,6 +2,7 @@ import AdminSidebar from "../components/AdminSidebar";
 import AdminNavebar from "../components/AdminNavebar";
 import AdminContent from "../components/AdminContent";
 import AdminSidebarNav from "../components/AdminSidebarNav";
+import RegisterStaff from "../components/RegisterStaff";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -19,8 +20,10 @@ import {
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("admin");
   const [isOpen, setIsOpen] = useState(false);
+  const [isClick, setIsClick] = useState(false)
   const PAGES = {
     admin: AdminContent,
+    "register-staff": RegisterStaff,
     // students: StudentsContent,
     // adminPage: AdminPage,
     // staff: StaffContent,
@@ -48,12 +51,13 @@ const AdminDashboard = () => {
   const ActivePage = PAGES[activePage];
   return (
     <div
-      className={`${isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""}min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}
+      className={`${isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""} min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}
     >
       <AdminSidebar
         activePage={activePage}
         onNavigate={setActivePage}
         NAV_PAGES={NAV_PAGES}
+        setIsClick={setIsClick}
       />
 
       {isOpen ? (
@@ -80,6 +84,7 @@ const AdminDashboard = () => {
                 NAV_PAGES={NAV_PAGES}
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
+                setIsClick={setIsClick}
               />
               <div>
                 <Link className=" btn btn-ghost ">
@@ -106,7 +111,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       ) : (
-        <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
       )}
       <ActivePage />
     </div>

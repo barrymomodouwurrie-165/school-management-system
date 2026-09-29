@@ -2,10 +2,11 @@ import { FaRegBell, FaBars } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { Link } from "react-router";
 import logo from "../assets/logo.jpg";
-const AdminNavebar = ({ isOpen, setIsOpen }) => {
+const AdminNavebar = ({ isOpen, setIsOpen, isClick }) => {
+  console.log(isClick)
   return isOpen ? (
     ""
-  ) : (
+  ) : isClick ? "" : (
     <div className="fixed md:left-[220px] top-0 right-0 z-50 justify-between border-b border-base-content/30 bg-white px-2 pt-1">
       <div className="flex items-center">
         <div className="mx-4">

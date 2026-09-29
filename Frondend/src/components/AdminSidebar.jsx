@@ -3,7 +3,12 @@ import profile from "../assets/profile.webp";
 import { FaSignOutAlt } from "react-icons/fa";
 import AdminSidebarNav from "./AdminSidebarNav";
 
-const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
+const AdminSidebar = ({
+  activePage,
+  onNavigate,
+  NAV_PAGES,
+  setIsClick,
+}) => {
   return (
     <div className="hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 md:flex flex-col">
       <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
@@ -20,6 +25,7 @@ const AdminSidebar = ({ activePage, onNavigate, NAV_PAGES }) => {
             activePage={activePage}
             onNavigate={onNavigate}
             NAV_PAGES={NAV_PAGES}
+            setIsClick={setIsClick}
           />
           <div>
             <Link className=" btn btn-ghost ">

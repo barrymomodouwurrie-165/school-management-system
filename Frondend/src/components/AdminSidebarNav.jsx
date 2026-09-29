@@ -6,9 +6,15 @@ const AdminSidebarNav = ({
   activePage,
   onNavigate,
   setIsOpen,
-  isOpen,
+  setIsClick,
 }) => {
   const [openMenu, setOpenMenu] = useState(null);
+
+  const HandleNavigate = (id) => {
+    onNavigate(id);
+    setIsClick(id !== "admin"); 
+    setIsOpen?.(false);
+  };
 
   return (
     <>
@@ -21,7 +27,9 @@ const AdminSidebarNav = ({
             return (
               <div key={item.id}>
                 <button
-                  onClick={() => setOpenMenu(open ? null : item.id)}
+                  onClick={() => {
+                    setOpenMenu(open ? null : item.id);
+                  }}
                   className={`btn btn-ghost w-full justify-start ${childActive ? "btn-active" : ""}`}
                 >
                   <item.logo size={18} />
@@ -37,9 +45,9 @@ const AdminSidebarNav = ({
                     {item.children.map((child) => (
                       <button
                         key={child.id}
-                        onClick={() => {
-                          (onNavigate(child.id), setIsOpen(!isOpen));
-                        }}
+                        onClick={() => HandleNavigate(child.id)
+                          
+                        }
                         className={`btn btn-ghost btn-sm justify-start ${
                           activePage === child.id ? "btn-active" : ""
                         }`}
@@ -56,9 +64,7 @@ const AdminSidebarNav = ({
           return (
             <div key={item.id}>
               <button
-                onClick={() => {
-                  (onNavigate(item.id), setIsOpen(!isOpen));
-                }}
+                onClick={() => HandleNavigate(item.id)}
                 className={`btn btn-ghost w-full justify-start ${
                   activePage === item.id ? "btn-active" : ""
                 }`}

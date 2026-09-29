@@ -20,7 +20,7 @@ const AdminStatus = () => {
       name: "Mr. Samba",
       count: "10 Memebers",
       schedule: "PENDING REPORTS",
-      color: "amber",
+      color: "red",
     },
     {
       id: "3",
