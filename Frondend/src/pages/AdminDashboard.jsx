@@ -3,6 +3,7 @@ import AdminNavebar from "../components/AdminNavebar";
 import AdminContent from "../components/AdminContent";
 import AdminSidebarNav from "../components/AdminSidebarNav";
 import RegisterStaff from "../components/RegisterStaff";
+import RegisterStudent from "../components/RegisterStudent";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -20,10 +21,11 @@ import {
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("admin");
   const [isOpen, setIsOpen] = useState(false);
-  const [isClick, setIsClick] = useState(false)
+  const [isClick, setIsClick] = useState(false);
   const PAGES = {
     admin: AdminContent,
     "register-staff": RegisterStaff,
+    "register-student": RegisterStudent,
     // students: StudentsContent,
     // adminPage: AdminPage,
     // staff: StaffContent,
