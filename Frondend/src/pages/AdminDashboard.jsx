@@ -5,6 +5,7 @@ import AdminSidebarNav from "../components/AdminSidebarNav";
 import RegisterStaff from "../components/RegisterStaff";
 import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
+import StaffContent from "../components/StaffContent";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -28,8 +29,7 @@ const AdminDashboard = () => {
     "register-staff": RegisterStaff,
     "register-student": RegisterStudent,
     students: StudentsContent,
-    // adminPage: AdminPage,
-    // staff: StaffContent,
+    staff: StaffContent,
     // academics: AcademicsContent,
     // attendance: AttendanceContent,
     // communication: CommunicationContent,
