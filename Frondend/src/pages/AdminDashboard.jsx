@@ -7,6 +7,7 @@ import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
 import AcademicsContent from "../components/AcademicsContent";
+import CommunicationsContent from "../components/CommunicationsContent";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -32,8 +33,8 @@ const AdminDashboard = () => {
     students: StudentsContent,
     staff: StaffContent,
     academics: AcademicsContent,
+    communication: CommunicationsContent,
     // attendance: AttendanceContent,
-    // communication: CommunicationContent,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaUsers },
@@ -117,7 +118,7 @@ const AdminDashboard = () => {
       ) : (
         <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
       )}
-      <ActivePage isOpen={isOpen } />
+      <ActivePage isOpen={isOpen} />
     </div>
   );
 };
