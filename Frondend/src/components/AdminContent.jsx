@@ -13,7 +13,7 @@ const AdminContent = ({ isOpen }) => {
   return (
     <div className={`${isOpen ? "" : "pt-[82px]"}`}>
       <div className={`${isOpen ? "px-4 py-2" : "px-4 py-8"}`}>
-        <h1 className="text-l md:text-xl font-bold">Dashboard Overview</h1>
+        <h1 className="text-l md:text-xl font-bold font-sans">DASHBOARD OVERVIEW</h1>
         <div className="flex items-center justify-between">
           <p className="text-base-content/70">
             Academic year 2025/26 &middot; Term 2, Week 8

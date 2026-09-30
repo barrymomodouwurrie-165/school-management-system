@@ -1,9 +1,6 @@
-import { useState } from "react";
 import StaffContentCard from "./StaffContentCard";
 
-
 const StaffContent = () => {
-    const [view, setView] = useState(false)
   const STAFF_DATA = [
     {
       id: "1",
@@ -16,7 +13,7 @@ const StaffContent = () => {
       email: "a.jallow@school.com",
       phone: "+220833986565",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "2",
@@ -29,7 +26,7 @@ const StaffContent = () => {
       email: "n.faye@school.com",
       phone: "+220833512298",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "3",
@@ -42,7 +39,7 @@ const StaffContent = () => {
       email: "k.darboe@school.com",
       phone: "+220877123845",
       section: "Senior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "4",
@@ -55,7 +52,7 @@ const StaffContent = () => {
       email: "f.camara@school.com",
       phone: "+220866237761",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "5",
@@ -68,7 +65,7 @@ const StaffContent = () => {
       email: "s.njie@school.com",
       phone: "+2208335687921",
       section: "Both",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "6",
@@ -81,7 +78,7 @@ const StaffContent = () => {
       email: "b.colley@school.com",
       phone: "+2208776659874",
       section: "Both",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "7",
@@ -94,7 +91,7 @@ const StaffContent = () => {
       email: "m.jobe@school.com",
       phone: "+220872543219",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "8",
@@ -107,7 +104,7 @@ const StaffContent = () => {
       email: "a.touray@school.com",
       phone: "+220833281347",
       section: "Senior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "9",
@@ -120,7 +117,7 @@ const StaffContent = () => {
       email: "o.sowe@school.com",
       phone: "+220866298534",
       section: "Both",
-      data: "05/08/2026"
+      data: "05/08/2026",
     },
     {
       id: "10",
@@ -133,7 +130,7 @@ const StaffContent = () => {
       email: "i.ceesay@school.com",
       phone: "+220833476190",
       section: "Senior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "11",
@@ -146,7 +143,7 @@ const StaffContent = () => {
       email: "l.manneh@school.com",
       phone: "+220877845213",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
     {
       id: "12",
@@ -159,14 +156,14 @@ const StaffContent = () => {
       email: "h.bah@school.com",
       phone: "+220866297481",
       section: "Junior",
-      start_date: "05/08/2026"
+      start_date: "05/08/2026",
     },
   ];
   return (
     <div className="p-3">
       <div className="flex flex-col">
-        <h2 className="text-lg font-bold">Staff Data</h2>
-        <p className="text-base-content/70">9 staff members shown</p>
+        <h2 className="text-lg font-bold">STAFF DATA</h2>
+        <p className="text-base-content/70">12 staff members shown</p>
       </div>
       <div className="flex items-center">
         <div className="flex-1 max-w-[500px] mr-2">
@@ -179,7 +176,10 @@ const StaffContent = () => {
         <button className="btn btn-outline rounded-lg">Show all</button>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-4">
-        <StaffContentCard STAFF_DATA={STAFF_DATA} view={view} setView={setView} />
+        {STAFF_DATA &&
+          STAFF_DATA.map((data) => {
+            return <StaffContentCard data={data} />;
+          })}
       </div>
     </div>
   );

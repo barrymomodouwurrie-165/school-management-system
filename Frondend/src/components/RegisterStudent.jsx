@@ -2,7 +2,7 @@ const RegisterStudent = () => {
   return (
     <div className="mx-4 py-4">
       <div className="flex flex-col gap-2 px-4">
-        <h2 className="text-lg font-bold">Register Student</h2>
+        <h2 className="text-lg font-bold">REGISTER STUDENT</h2>
         <p className="text-base-content/70">
           Enrol a new student and add guardian details
         </p>

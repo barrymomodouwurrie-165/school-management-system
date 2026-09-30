@@ -2,7 +2,7 @@ const RegisterStaff = () => {
   return (
     <div className="mx-4 py-4">
       <div className="flex flex-col gap-2 mb-4">
-        <h2 className="text-lg font-bold">Register Staff</h2>
+        <h2 className="text-lg font-bold font-sans">RESGISTER STAFF</h2>
         <p className="text-base-content/70">
           Add a new staff member to the school
         </p>

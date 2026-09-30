@@ -6,6 +6,7 @@ import RegisterStaff from "../components/RegisterStaff";
 import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
+import AcademicsContent from "../components/AcademicsContent";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -30,7 +31,7 @@ const AdminDashboard = () => {
     "register-student": RegisterStudent,
     students: StudentsContent,
     staff: StaffContent,
-    // academics: AcademicsContent,
+    academics: AcademicsContent,
     // attendance: AttendanceContent,
     // communication: CommunicationContent,
   };

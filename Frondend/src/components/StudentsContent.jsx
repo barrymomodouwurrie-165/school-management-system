@@ -108,7 +108,7 @@ const StudentsContent = () => {
   return (
     <div className="p-4">
       <div className="flex flex-col mb-4">
-        <h2 className="text-lg font-bold">Students</h2>
+        <h2 className="text-lg font-bold font-sans">STUDENTS DATA</h2>
         <p className="text-base-content/70">10 students shown</p>
       </div>
       <div className="flex items-center">
