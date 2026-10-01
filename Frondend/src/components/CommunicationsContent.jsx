@@ -1,6 +1,8 @@
 import { FaPaperPlane } from "react-icons/fa";
 import SentMessages from "./SentMessages";
-const CommunicationsContent = () => {
+import { Link } from "react-router";
+import { FaBars } from "react-icons/fa";
+const CommunicationsContent = ({ isOpen, setIsOpen }) => {
   const MESSAGES = [
     {
       id: "1",
@@ -29,11 +31,21 @@ const CommunicationsContent = () => {
   ];
   return (
     <div className="p-3">
-      <div className="flex flex-col">
-        <h2 className="text-lg font-bold font-sans">COMMUNICATIONS</h2>
-        <p className="text-sm text-base-content/70">
-          Send announcements to guardians, staff and students
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold font-sans">COMMUNICATIONS</h2>
+          <p className="text-sm text-base-content/70">
+            Send announcements to guardians, staff and students
+          </p>
+        </div>
+        <Link
+          className="btn btn-ghost md:hidden"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        >
+          <FaBars size={24} />
+        </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <div className="rounded-md shadow-md p-2 self-start">

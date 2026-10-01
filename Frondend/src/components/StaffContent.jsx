@@ -1,6 +1,8 @@
+import { Link } from "react-router";
 import StaffContentCard from "./StaffContentCard";
+import { FaBars } from "react-icons/fa";
 
-const StaffContent = () => {
+const StaffContent = ({isOpen, setIsOpen}) => {
   const STAFF_DATA = [
     {
       id: "1",
@@ -161,9 +163,19 @@ const StaffContent = () => {
   ];
   return (
     <div className="p-3">
-      <div className="flex flex-col">
-        <h2 className="text-lg font-bold">STAFF DATA</h2>
-        <p className="text-base-content/70">12 staff members shown</p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold">STAFF DATA</h2>
+          <p className="text-base-content/70">12 staff members shown</p>
+        </div>
+        <Link
+          className="btn btn-ghost md:hidden"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        >
+          <FaBars size={24} />
+        </Link>
       </div>
       <div className="flex items-center">
         <div className="flex-1 max-w-[500px] mr-2">

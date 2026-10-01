@@ -5,7 +5,7 @@ import { useState } from "react";
 const StudentData = ({ data }) => {
   const [isView, setIsView] = useState(false);
   return (
-    <div key={data.id} className="grid grid-cols-6 gap-2 px-2 py-3 border-t">
+    <div key={data.id} className="grid grid-cols-6 gap-4 text-xs md:text-base px-2 py-3 border-t">
       <span className="">{data.student_name}</span>
       <span className="ml-3 md:ml-0">{data.class}</span>
       <span>{data.section}</span>
@@ -15,7 +15,7 @@ const StudentData = ({ data }) => {
       >
         {data.status}
       </div>
-      <div className="flex items-start justify-end gap-4 md:flex-col md:justify-start">
+      <div className="flex items-end md:items-start justify-end gap-4 flex-col md:justify-start">
         <Link onClick={() => setIsView(!isView)} className="max-w-[20px]">
           {isView ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
         </Link>

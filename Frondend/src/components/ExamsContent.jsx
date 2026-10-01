@@ -60,7 +60,11 @@ const ExamsContent = () => {
               <span>{data.exam}</span>
               <span>{data.exam_date}</span>
               <span>{data.section}</span>
-                  <span className={`bg-${data.color}-600 max-w-24 max-h-6 flex justify-center items-center rounded-md text-white`}>{data.status}</span>
+              <span
+                className={`bg-${data.color}-600 max-w-24 max-h-6 flex justify-center items-center rounded-md text-white`}
+              >
+                {data.status}
+              </span>
             </div>
           );
         })}

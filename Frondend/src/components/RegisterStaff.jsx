@@ -1,11 +1,24 @@
-const RegisterStaff = () => {
+import { Link } from "react-router";
+import { FaBars } from "react-icons/fa";
+
+const RegisterStaff = ({ isOpen, setIsOpen }) => {
   return (
     <div className="mx-4 py-4">
-      <div className="flex flex-col gap-2 mb-4">
-        <h2 className="text-lg font-bold font-sans">RESGISTER STAFF</h2>
-        <p className="text-base-content/70">
-          Add a new staff member to the school
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold font-sans">RESGISTER STAFF</h2>
+          <p className="text-base-content/70">
+            Add a new staff member to the school
+          </p>
+        </div>
+        <Link
+          className="btn btn-ghost md:hidden"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        >
+          <FaBars size={24} />
+        </Link>
       </div>
       <div className="max-w-4xl p-4 border rounded-lg shadow-md ">
         <div className="p-2">
@@ -15,7 +28,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">First Name</span>
               </label>
               <input
-              required
+                required
                 type="text"
                 className="input input-bordered input-sm  rounded-md "
               />
@@ -25,7 +38,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Last Name</span>
               </label>
               <input
-              required
+                required
                 type="text"
                 className="input input-bordered input-sm rounded-md"
               />
@@ -35,7 +48,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Gender</span>
               </label>
               <select
-              required
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="gender"
                 id=""
@@ -50,7 +63,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Email</span>
               </label>
               <input
-              required
+                required
                 type="email"
                 placeholder="email@gmail.com"
                 className="input input-bordered input-sm rounded-md"
@@ -61,7 +74,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Nationality</span>
               </label>
               <input
-              required
+                required
                 type="text"
                 placeholder="eg. Gambian"
                 className="input input-bordered input-sm rounded-md"
@@ -73,7 +86,7 @@ const RegisterStaff = () => {
               </label>
 
               <input
-              required
+                required
                 type="tel"
                 placeholder="+220XXXXXXXXX"
                 className="input input-bordered input-sm rounded-md"
@@ -84,7 +97,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Role</span>
               </label>
               <select
-              required
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="role"
                 id=""
@@ -100,7 +113,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Section</span>
               </label>
               <select
-              required
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="section"
                 id=""
@@ -114,7 +127,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Department</span>
               </label>
               <input
-              required
+                required
                 type="text"
                 placeholder="eg. Mathematics"
                 className="input input-bordered input-sm rounded-md"
@@ -125,7 +138,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Start Date</span>
               </label>
               <input
-              required
+                required
                 type="date"
                 className="input input-bordered input-sm rounded-md"
               />

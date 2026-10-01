@@ -1,6 +1,8 @@
+import { Link } from "react-router";
 import StudentData from "./StudentData";
+import { FaBars } from "react-icons/fa";
 
-const StudentsContent = () => {
+const StudentsContent = ({ isOpen, setIsOpen }) => {
   const STUDENT_DATA = [
     {
       id: "1",
@@ -176,9 +178,19 @@ const StudentsContent = () => {
 
   return (
     <div className="p-4">
-      <div className="flex flex-col mb-4">
-        <h2 className="text-lg font-bold font-sans">STUDENTS DATA</h2>
-        <p className="text-base-content/70">10 students shown</p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold font-sans">STUDENTS DATA</h2>
+          <p className="text-base-content/70">10 students shown</p>
+        </div>
+        <Link
+          className="btn btn-ghost md:hidden"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        >
+          <FaBars size={24} />
+        </Link>
       </div>
       <div className="flex items-center">
         <div className="flex-1 max-w-[500px] mr-2">
@@ -191,7 +203,7 @@ const StudentsContent = () => {
         <button className="btn btn-outline rounded-lg">Show all</button>
       </div>
       <div className=" rounded-lg shadow-md my-4">
-        <div className="grid grid-cols-6 text-base-content/60 px-2 py-2">
+        <div className="grid grid-cols-6 gap-4 md:gap-0 text-xs md:text-base text-base-content/60 px-2 py-2">
           <span>Student</span>
           <span>Class</span>
           <span>Section</span>
@@ -201,9 +213,7 @@ const StudentsContent = () => {
         </div>
         {STUDENT_DATA &&
           STUDENT_DATA.map((data) => {
-            return (
-              <StudentData data={ data} />
-            );
+            return <StudentData data={data} />;
           })}
       </div>
     </div>

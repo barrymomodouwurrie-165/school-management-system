@@ -45,7 +45,7 @@ const ClassesContent = () => {
                     <span>{data.class}</span>
                     <span>{data.section}</span>
                     <span>{data.class_teacher}</span>
-                    <span>{data.total_students}</span>
+                    <span className="flex justify-center md:justify-start">{data.total_students}</span>
                   </div>
                 );
             })}

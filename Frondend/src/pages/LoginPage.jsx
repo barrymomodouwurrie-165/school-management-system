@@ -2,6 +2,7 @@ import {
   FaGraduationCap,
   FaAt,
   FaLock,
+  FaEye,
   FaEyeSlash,
   FaChalkboardTeacher,
   FaQuestionCircle,
@@ -10,7 +11,9 @@ import { RiAdminFill } from "react-icons/ri";
 import { FiLogIn } from "react-icons/fi";
 import { RiArrowGoBackLine } from "react-icons/ri";
 import { Link } from "react-router";
+import { useState } from "react";
 const LoginPage = () => {
+  const [seePassword, setSeePassword] = useState(false);
   return (
     <div className="min-h-screen">
       <div className="max-w-xl mx-auto p-4">
@@ -76,14 +79,21 @@ const LoginPage = () => {
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/70"
                   />
-                  <button>
-                    <FaEyeSlash
-                      size={18}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70"
-                    />
+                  <button onClick={() => setSeePassword(!seePassword)}>
+                    {seePassword ? (
+                      <FaEyeSlash
+                        size={18}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70"
+                      />
+                    ) : (
+                      <FaEye
+                        size={18}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70"
+                      />
+                    )}
                   </button>
                   <input
-                    type="password"
+                    type={seePassword ? "text" : "password"}
                     id="password"
                     name="password"
                     className="input input-bordered pl-10 w-full"

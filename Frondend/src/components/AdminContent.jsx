@@ -18,7 +18,7 @@ const AdminContent = ({ isOpen }) => {
           <p className="text-base-content/70">
             Academic year 2025/26 &middot; Term 2, Week 8
           </p>
-          <button className="btn btn-primary rounded-lg">
+          <button className="btn btn-primary rounded-lg btn-sm">
             <FaPlus />
             New Report
           </button>

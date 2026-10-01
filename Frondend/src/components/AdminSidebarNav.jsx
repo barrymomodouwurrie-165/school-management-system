@@ -6,6 +6,7 @@ const AdminSidebarNav = ({
   activePage,
   onNavigate,
   setIsOpen,
+  isOpen,
   setIsClick,
 }) => {
   const [openMenu, setOpenMenu] = useState(null);
@@ -13,7 +14,7 @@ const AdminSidebarNav = ({
   const HandleNavigate = (id) => {
     onNavigate(id);
     setIsClick(id !== "admin"); 
-    setIsOpen?.(false);
+    setIsOpen?.(!isOpen);
   };
 
   return (

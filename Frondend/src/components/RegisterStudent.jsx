@@ -1,12 +1,25 @@
-const RegisterStudent = () => {
+import { FaBars } from "react-icons/fa";
+import { Link } from "react-router";
+const RegisterStudent = ({ isOpen, setIsOpen }) => {
   return (
     <div className="mx-4 py-4">
-      <div className="flex flex-col gap-2 px-4">
-        <h2 className="text-lg font-bold">REGISTER STUDENT</h2>
-        <p className="text-base-content/70">
-          Enrol a new student and add guardian details
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold">REGISTER STUDENT</h2>
+          <p className="text-base-content/70">
+            Enrol a new student and add guardian details
+          </p>
+        </div>
+        <Link
+          className="btn btn-ghost md:hidden"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        >
+          <FaBars size={24} />
+        </Link>
       </div>
+      <div className="flex flex-col gap-2 px-4"></div>
       <div className="max-w-4xl p-4">
         <h2 className="text-lg font-bold">Student Details</h2>
         <form className="" action="">
@@ -181,8 +194,9 @@ const RegisterStudent = () => {
           </div>
           <div className="flex items-center justify-between mt-8">
             <div className="flex items-center justify-between gap-4">
-              <button className="btn btn-outline rounded-lg btn-sm">Back</button>
-              <button className="btn btn-outline rounded-lg btn-sm">Clear</button>
+              <button className="btn btn-outline rounded-lg btn-sm">
+                Clear
+              </button>
             </div>
             <button className="btn btn-primary rounded-lg btn-sm">
               Register Student

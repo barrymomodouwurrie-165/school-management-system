@@ -116,7 +116,7 @@ const AdminDashboard = () => {
       ) : (
         <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
       )}
-      <ActivePage isOpen={isOpen} />
+      <ActivePage isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>
   );
 };

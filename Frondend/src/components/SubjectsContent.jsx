@@ -54,7 +54,9 @@ const SubjectsContent = () => {
                 <span>{data.subject}</span>
                 <span>{data.subject_code}</span>
                 <span>{data.lead_teacher}</span>
-                <span>{data.offered_at}</span>
+                <span className="flex justify-center md:justify-start">
+                  {data.offered_at}
+                </span>
               </div>
             );
           })}
