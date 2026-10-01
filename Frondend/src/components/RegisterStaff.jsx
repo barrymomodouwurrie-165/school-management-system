@@ -15,6 +15,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">First Name</span>
               </label>
               <input
+                required
                 type="text"
                 className="input input-bordered input-sm  rounded-md "
               />
@@ -24,6 +25,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Last Name</span>
               </label>
               <input
+                required
                 type="text"
                 className="input input-bordered input-sm rounded-md"
               />
@@ -33,6 +35,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Gender</span>
               </label>
               <select
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="gender"
                 id=""
@@ -47,6 +50,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Email</span>
               </label>
               <input
+                required
                 type="email"
                 placeholder="email@gmail.com"
                 className="input input-bordered input-sm rounded-md"
@@ -57,6 +61,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Nationality</span>
               </label>
               <input
+                required
                 type="text"
                 placeholder="eg. Gambian"
                 className="input input-bordered input-sm rounded-md"
@@ -68,6 +73,7 @@ const RegisterStaff = () => {
               </label>
 
               <input
+                required
                 type="tel"
                 placeholder="+220XXXXXXXXX"
                 className="input input-bordered input-sm rounded-md"
@@ -78,6 +84,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Role</span>
               </label>
               <select
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="role"
                 id=""
@@ -93,6 +100,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Section</span>
               </label>
               <select
+                required
                 className="select select-bordered select-sm rounded-md"
                 name="section"
                 id=""
@@ -106,6 +114,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Department</span>
               </label>
               <input
+                required
                 type="text"
                 placeholder="eg. Mathematics"
                 className="input input-bordered input-sm rounded-md"
@@ -116,6 +125,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Start Date</span>
               </label>
               <input
+                required
                 type="date"
                 className="input input-bordered input-sm rounded-md"
               />

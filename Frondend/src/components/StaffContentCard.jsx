@@ -2,8 +2,8 @@ import { FaPhone, FaRegEnvelope } from "react-icons/fa";
 import StaffContenButton from "./StaffContenButton";
 import { useState } from "react";
 
-const StaffContentCard = ({data}) => {
-     const [view, setView] = useState(false);
+const StaffContentCard = ({ data }) => {
+  const [view, setView] = useState(false);
   return (
     <div key={data.id} className="card self-start shadow-md p-3">
       <div className="flex items-center gap-2">
@@ -35,14 +35,30 @@ const StaffContentCard = ({data}) => {
       </div>
       {view && (
         <div className="flex flex-col border-t pt-2">
-          <span>Name: {data.staff_name} </span>
-          <span>Gender: {data.gender} </span>
-          <span>Email: {data.email} </span>
-          <span>Phone No: {data.phone} </span>
-          <span>Nationality: {data.nationality} </span>
-          <span>Role: {data.role} </span>
-          <span>Department: {data.department} </span>
-          <span>Start Date: {data.start_date} </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Name:</p> {data.staff_name}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Gender:</p> {data.gender}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Email:</p> {data.email}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Phone No:</p> {data.phone}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Nationality:</p> {data.nationality}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Role:</p> {data.role}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Department:</p> {data.department}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Start Date:</p> {data.start_date}{" "}
+          </span>
         </div>
       )}
     </div>

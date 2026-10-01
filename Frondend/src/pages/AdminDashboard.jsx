@@ -15,7 +15,6 @@ import { Link } from "react-router";
 import {
   FaUserTie,
   FaBookOpen,
-  FaClipboardCheck,
   FaComments,
   FaCog,
   FaUsers,
@@ -34,7 +33,6 @@ const AdminDashboard = () => {
     staff: StaffContent,
     academics: AcademicsContent,
     communication: CommunicationsContent,
-    // attendance: AttendanceContent,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaUsers },
@@ -50,7 +48,7 @@ const AdminDashboard = () => {
     { id: "students", label: "Students", logo: FaUsers },
     { id: "staff", label: "Staff", logo: FaUserTie },
     { id: "academics", label: "Academics", logo: FaBookOpen },
-    { id: "attendance", label: "Attendance", logo: FaClipboardCheck },
+
     { id: "communication", label: "Communication", logo: FaComments },
   ];
   const ActivePage = PAGES[activePage];

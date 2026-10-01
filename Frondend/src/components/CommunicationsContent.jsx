@@ -32,7 +32,7 @@ const CommunicationsContent = () => {
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-        <div className="rounded-md shadow-md p-2">
+        <div className="rounded-md shadow-md p-2 self-start">
           <h2 className="font-bold">New announcement</h2>
           <form action="">
             <div className="form-control">
@@ -85,7 +85,7 @@ const CommunicationsContent = () => {
           </div>
         </div>
         <div className="p-2">
-          <h2 className="font-bold">Recently sent announcements</h2>
+          <h2 className="font-bold">Most recently sent announcements</h2>
           {MESSAGES &&
             MESSAGES.map((message) => {
               return (

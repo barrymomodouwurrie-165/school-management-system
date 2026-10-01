@@ -1,5 +1,4 @@
-import { FaEye, FaPen } from "react-icons/fa";
-import { Link } from "react-router";
+import StudentData from "./StudentData";
 
 const StudentsContent = () => {
   const STUDENT_DATA = [
@@ -7,9 +6,16 @@ const StudentsContent = () => {
       id: "1",
       student_name: "Aminate Bah",
       student_id: "20252026001",
+      gender: "Female",
+      nationality: "Gambian",
+      ethnicity: "Mandinka",
+      dob: "14/03/2013",
       class: "Grade 7A",
       section: "Junior",
+      date_enrolled: "02/09/2019",
       guardian_name: "Fatou Bah",
+      guardian_tel: "+220789451203",
+      address: "Bakau, Kanifing",
       status: "Active",
       color: "green",
     },
@@ -17,9 +23,16 @@ const StudentsContent = () => {
       id: "2",
       student_name: "Ebrima Sanneh",
       student_id: "20252026002",
+      gender: "Male",
+      nationality: "Gambian",
+      ethnicity: "Fula",
+      dob: "22/07/2013",
       class: "Grade 7A",
       section: "Junior",
+      date_enrolled: "02/09/2019",
       guardian_name: "Ousman Sanneh",
+      guardian_tel: "+220671298456",
+      address: "Serrekunda, Kanifing",
       status: "Active",
       color: "green",
     },
@@ -27,9 +40,16 @@ const StudentsContent = () => {
       id: "3",
       student_name: "Haddy Jallow",
       student_id: "20252026003",
+      gender: "Female",
+      nationality: "Gambian",
+      ethnicity: "Fula",
+      dob: "09/11/2012",
       class: "Grade 7B",
       section: "Junior",
+      date_enrolled: "03/09/2018",
       guardian_name: "Mariama Jallow",
+      guardian_tel: "+220834567129",
+      address: "Latrikunda, Kanifing",
       status: "Active",
       color: "green",
     },
@@ -37,9 +57,16 @@ const StudentsContent = () => {
       id: "4",
       student_name: "Momodou Ceesay",
       student_id: "20252026004",
+      gender: "Male",
+      nationality: "Gambian",
+      ethnicity: "Jola",
+      dob: "17/01/2013",
       class: "Grade 7B",
       section: "Junior",
+      date_enrolled: "03/09/2018",
       guardian_name: "Alieu Ceesay",
+      guardian_tel: "+220912345678",
+      address: "Brikama, West Coast",
       status: "Suspended",
       color: "yellow",
     },
@@ -47,9 +74,16 @@ const StudentsContent = () => {
       id: "5",
       student_name: "Fatoumata Jobe",
       student_id: "20252026005",
+      gender: "Female",
+      nationality: "Gambian",
+      ethnicity: "Wolof",
+      dob: "28/05/2010",
       class: "Grade 10A",
       section: "Senior",
+      date_enrolled: "04/09/2016",
       guardian_name: "Binta Jobe",
+      guardian_tel: "+220765432198",
+      address: "Fajara, Kanifing",
       status: "Active",
       color: "green",
     },
@@ -57,9 +91,16 @@ const StudentsContent = () => {
       id: "6",
       student_name: "Karamo Touray",
       student_id: "20252026006",
+      gender: "Male",
+      nationality: "Gambian",
+      ethnicity: "Mandinka",
+      dob: "03/02/2010",
       class: "Grade 10A",
       section: "Senior",
+      date_enrolled: "04/09/2016",
       guardian_name: "Sarjo Touray",
+      guardian_tel: "+220698712345",
+      address: "Brufut, West Coast",
       status: "Active",
       color: "green",
     },
@@ -67,19 +108,33 @@ const StudentsContent = () => {
       id: "7",
       student_name: "Ndey Faal",
       student_id: "20252026007",
+      gender: "Female",
+      nationality: "Gambian",
+      ethnicity: "Jola",
+      dob: "19/09/2009",
       class: "Grade 11B",
       section: "Senior",
+      date_enrolled: "05/09/2015",
       guardian_name: "Lamin Faal",
+      guardian_tel: "+220823456719",
+      address: "Gunjur, West Coast",
       status: "Transferred",
-      color: "",
+      color: "gray",
     },
     {
       id: "8",
       student_name: "Pa Modou Njie",
       student_id: "20252026008",
+      gender: "Male",
+      nationality: "Gambian",
+      ethnicity: "Wolof",
+      dob: "11/12/2008",
       class: "Grade 12A",
       section: "Senior",
+      date_enrolled: "06/09/2014",
       guardian_name: "Isatou Njie",
+      guardian_tel: "+220756891234",
+      address: "Banjul, Banjul City",
       status: "Active",
       color: "green",
     },
@@ -87,9 +142,16 @@ const StudentsContent = () => {
       id: "9",
       student_name: "Yassin Colley",
       student_id: "20252026009",
+      gender: "Male",
+      nationality: "Gambian",
+      ethnicity: "Serahule",
+      dob: "25/04/2010",
       class: "Grade 10C",
       section: "Senior",
+      date_enrolled: "04/09/2016",
       guardian_name: "Adama Colley",
+      guardian_tel: "+220887654321",
+      address: "Sukuta, Kanifing",
       status: "Suspended",
       color: "yellow",
     },
@@ -97,9 +159,16 @@ const StudentsContent = () => {
       id: "10",
       student_name: "Sirra Manneh",
       student_id: "20252026010",
+      gender: "Female",
+      nationality: "Gambian",
+      ethnicity: "Mandinka",
+      dob: "06/08/2008",
       class: "Grade 12B",
       section: "Senior",
+      date_enrolled: "06/09/2014",
       guardian_name: "Buba Manneh",
+      guardian_tel: "+220734128965",
+      address: "Lamin, West Coast",
       status: "Active",
       color: "green",
     },
@@ -129,38 +198,13 @@ const StudentsContent = () => {
           <span>Guardian</span>
           <span>Status</span>
           <span>Action</span>
-              </div>
-              {STUDENT_DATA && STUDENT_DATA.map((data) => {
-                      return (
-                        <div
-                          key={data.id}
-                          className="grid grid-cols-6 gap-2 px-2 py-3 border-t"
-                        >
-                          <div className="flex flex-col">
-                            <span className="">{data.student_name}</span>
-                            <span className="text-base-content/70">
-                              {data.student_id}
-                            </span>
-                          </div>
-                          <span className="ml-3 md:ml-0">{data.class}</span>
-                          <span>{data.section}</span>
-                          <span>{data.guardian_name}</span>
-                          <div
-                            className={`${data.color === "green" ? "bg-green-600" : "bg-red-600"} flex justify-center w-[80px] h-[25px] md:w-[100px]  md:h-[25px] rounded-md text-sm text-white`}
-                          >
-                            {data.status}
-                          </div>
-                          <div className="flex items-start justify-end gap-4 md:flex-col md:justify-start">
-                            <Link className="max-w-[20px]">
-                              <FaEye size={12} />
-                            </Link>
-                            <Link className="max-w-[20px]">
-                              <FaPen size={12} />
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                  })}
+        </div>
+        {STUDENT_DATA &&
+          STUDENT_DATA.map((data) => {
+            return (
+              <StudentData data={ data} />
+            );
+          })}
       </div>
     </div>
   );
