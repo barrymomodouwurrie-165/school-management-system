@@ -172,7 +172,7 @@ const RegisterStudent = () => {
               <label className="label" htmlFor="">
                 <span className="label-text font-bold">Home Address</span>
               </label>
-              <textarea
+              <input
                 required
                 type="text"
                 className="input input-bordered input-sm  rounded-md "
@@ -181,10 +181,10 @@ const RegisterStudent = () => {
           </div>
           <div className="flex items-center justify-between mt-8">
             <div className="flex items-center justify-between gap-4">
-              <button className="btn btn-outline rounded-lg btn-">Back</button>
-              <button className="btn btn-outline rounded-lg btn-">Clear</button>
+              <button className="btn btn-outline rounded-lg btn-sm">Back</button>
+              <button className="btn btn-outline rounded-lg btn-sm">Clear</button>
             </div>
-            <button className="btn btn-primary rounded-lg btn-">
+            <button className="btn btn-primary rounded-lg btn-sm">
               Register Student
             </button>
           </div>

@@ -15,7 +15,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">First Name</span>
               </label>
               <input
-                required
+              required
                 type="text"
                 className="input input-bordered input-sm  rounded-md "
               />
@@ -25,7 +25,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Last Name</span>
               </label>
               <input
-                required
+              required
                 type="text"
                 className="input input-bordered input-sm rounded-md"
               />
@@ -35,7 +35,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Gender</span>
               </label>
               <select
-                required
+              required
                 className="select select-bordered select-sm rounded-md"
                 name="gender"
                 id=""
@@ -50,7 +50,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Email</span>
               </label>
               <input
-                required
+              required
                 type="email"
                 placeholder="email@gmail.com"
                 className="input input-bordered input-sm rounded-md"
@@ -61,7 +61,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Nationality</span>
               </label>
               <input
-                required
+              required
                 type="text"
                 placeholder="eg. Gambian"
                 className="input input-bordered input-sm rounded-md"
@@ -73,7 +73,7 @@ const RegisterStaff = () => {
               </label>
 
               <input
-                required
+              required
                 type="tel"
                 placeholder="+220XXXXXXXXX"
                 className="input input-bordered input-sm rounded-md"
@@ -84,7 +84,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Role</span>
               </label>
               <select
-                required
+              required
                 className="select select-bordered select-sm rounded-md"
                 name="role"
                 id=""
@@ -100,7 +100,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Section</span>
               </label>
               <select
-                required
+              required
                 className="select select-bordered select-sm rounded-md"
                 name="section"
                 id=""
@@ -114,7 +114,7 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Department</span>
               </label>
               <input
-                required
+              required
                 type="text"
                 placeholder="eg. Mathematics"
                 className="input input-bordered input-sm rounded-md"
@@ -125,21 +125,21 @@ const RegisterStaff = () => {
                 <span className="label-text font-bold">Start Date</span>
               </label>
               <input
-                required
+              required
                 type="date"
                 className="input input-bordered input-sm rounded-md"
               />
             </div>
             <div className="flex items-center justify-between mt-8">
               <div className="flex items-center justify-between gap-4">
-                <button className="btn btn-outline rounded-lg btn-">
+                <button className="btn btn-outline rounded-lg btn-sm">
                   Back
                 </button>
-                <button className="btn btn-outline rounded-lg btn-">
+                <button className="btn btn-outline rounded-lg btn-sm">
                   Clear
                 </button>
               </div>
-              <button className="btn btn-primary rounded-lg btn-">
+              <button className="btn btn-primary rounded-lg btn-sm">
                 Register Staff
               </button>
             </div>

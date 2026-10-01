@@ -101,7 +101,7 @@ const StaffContent = () => {
       nationality: "Gambian",
       role: "Teacher",
       department: "French",
-      email: "a.touray@school.com",
+      email: "barrywurrytouray@gmail.com",
       phone: "+220833281347",
       section: "Senior",
       start_date: "05/08/2026",
@@ -175,7 +175,7 @@ const StaffContent = () => {
         </div>
         <button className="btn btn-outline rounded-lg">Show all</button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 my-4">
         {STAFF_DATA &&
           STAFF_DATA.map((data) => {
             return <StaffContentCard data={data} />;

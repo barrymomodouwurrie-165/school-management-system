@@ -1,8 +1,10 @@
 import { FaPaperPlane } from "react-icons/fa";
+import SentMessages from "./SentMessages";
 const CommunicationsContent = () => {
   const MESSAGES = [
     {
       id: "1",
+      send_from: "Admin",
       subject: "Parent meeting for the junior school",
       text: "Please join us on Friday 4 pm to discuss term progress.",
       send_to: "Guardians",
@@ -10,6 +12,7 @@ const CommunicationsContent = () => {
     },
     {
       id: "2",
+      send_from: "Admin",
       subject: "School closed on public holiday",
       text: "School will be closed on Monday and will reopen on Tuesday.",
       send_to: "All",
@@ -17,6 +20,7 @@ const CommunicationsContent = () => {
     },
     {
       id: "3",
+      send_from: "Admin",
       subject: "Staff briefing before first period",
       text: "A short briefing will be held in the hall before first period on Wednesday.",
       send_to: "Staff",
@@ -88,28 +92,7 @@ const CommunicationsContent = () => {
           <h2 className="font-bold">Most recently sent announcements</h2>
           {MESSAGES &&
             MESSAGES.map((message) => {
-              return (
-                <div
-                  key={message.id}
-                  className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm">{message.subject}</span>
-                    <span className="text-base-content/70 text-sm">
-                      {message.date}
-                    </span>
-                  </div>
-                  <p className="text-base-content/70">{message.text}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="border-2 rounded-3xl min-w-24 max-w-32 flex justify-center items-center text-sm">
-                      {message.send_to}
-                    </span>
-                    <button className="btn btn-outline btn-sm rounded-md">
-                      Edit Message
-                    </button>
-                  </div>
-                </div>
-              );
+              return <SentMessages message={message} />;
             })}
         </div>
       </div>

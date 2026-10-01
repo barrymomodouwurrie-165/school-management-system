@@ -18,6 +18,7 @@ import Classmates from "../components/StudentSideBarComponents/Classmates";
 import Attendance from "../components/StudentSideBarComponents/Attendance";
 import AiAssistance from "../components/StudentSideBarComponents/AiAssistance";
 import ResultCheck from "../components/StudentSideBarComponents/ResultCheck";
+import ExamsContent from "../components/ExamsContent";
 import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 
 const StudentDashboard = () => {
@@ -30,6 +31,7 @@ const StudentDashboard = () => {
     attendance: Attendance,
     ai: AiAssistance,
     "check-result": ResultCheck,
+    "exam-details": ExamsContent,
   };
 
   const ActivePage = PAGES[activePage] && PAGES[activePage];

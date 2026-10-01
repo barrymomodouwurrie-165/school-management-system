@@ -34,30 +34,30 @@ const StaffContentCard = ({ data }) => {
         <StaffContenButton view={view} setView={setView} />
       </div>
       {view && (
-        <div className="flex flex-col border-t pt-2">
+        <div className="flex flex-col border-t pt-2 text-xs md:text-md">
           <span className="flex items-center gap-2">
-            <p className="font-bold">Name:</p> {data.staff_name}{" "}
+            <p className="font-bold">Name:</p>{data.staff_name}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Gender:</p> {data.gender}{" "}
+            <p className="font-bold">Gender:</p>{data.gender}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Email:</p> {data.email}{" "}
+            <p className="font-bold">Email:</p>{data.email}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Phone No:</p> {data.phone}{" "}
+            <p className="font-bold">Phone:</p>{data.phone}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Nationality:</p> {data.nationality}{" "}
+            <p className="font-bold">Nationality:</p>{data.nationality}{" "}
           </span>
           <span className="flex items-center gap-2">
             <p className="font-bold">Role:</p> {data.role}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Department:</p> {data.department}{" "}
+            <p className="font-bold">Department:</p>{data.department}{" "}
           </span>
           <span className="flex items-center gap-2">
-            <p className="font-bold">Start Date:</p> {data.start_date}{" "}
+            <p className="font-bold">Start Date:</p>{data.start_date}{" "}
           </span>
         </div>
       )}
