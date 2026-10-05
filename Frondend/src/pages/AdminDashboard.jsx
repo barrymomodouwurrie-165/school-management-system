@@ -8,6 +8,7 @@ import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
 import AcademicsContent from "../components/AcademicsContent";
 import CommunicationsContent from "../components/CommunicationsContent";
+import AsignStaffRole from "../components/AsignStaffRole";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
 import { useState } from "react";
@@ -19,12 +20,17 @@ import {
   FaCog,
   FaUsers,
   FaSignOutAlt,
+  FaTachometerAlt,
 } from "react-icons/fa";
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("admin");
   const [isOpen, setIsOpen] = useState(false);
   const [isClick, setIsClick] = useState(false);
+  const [assign, setAssign] = useState(false);
+  const [staffName, setStaffName] = useState(null);
+  const [staffId, setStaffId] = useState(null);
+
   const PAGES = {
     admin: AdminContent,
     "register-staff": RegisterStaff,
@@ -35,7 +41,7 @@ const AdminDashboard = () => {
     communication: CommunicationsContent,
   };
   const NAV_PAGES = [
-    { id: "admin", label: "Dashboard", logo: FaUsers },
+    { id: "admin", label: "Dashboard", logo: FaTachometerAlt },
     {
       id: "adminPage",
       label: "Admin",
@@ -116,7 +122,24 @@ const AdminDashboard = () => {
       ) : (
         <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
       )}
-      <ActivePage isOpen={isOpen} setIsOpen={setIsOpen} />
+      {assign ? (
+        <AsignStaffRole
+          assign={assign}
+          setAssign={setAssign}
+          staffName={staffName}
+          staffId={staffId}
+        />
+      ) : (
+        <ActivePage
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          assign={assign}
+          setAssign={setAssign}
+          staffName={staffName}
+          setStaffName={setStaffName}
+          setStaffId={setStaffId}
+        />
+      )}
     </div>
   );
 };

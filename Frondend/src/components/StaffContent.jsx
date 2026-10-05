@@ -2,10 +2,18 @@ import { Link } from "react-router";
 import StaffContentCard from "./StaffContentCard";
 import { FaBars } from "react-icons/fa";
 
-const StaffContent = ({isOpen, setIsOpen}) => {
+const StaffContent = ({
+  isOpen,
+  setIsOpen,
+  assign,
+  setAssign,
+  setStaffName,
+  setStaffId,
+}) => {
   const STAFF_DATA = [
     {
       id: "1",
+      staff_id: "100001",
       initials: "AJ",
       staff_name: "Mr. A.Jallow",
       gender: "Male",
@@ -19,6 +27,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "2",
+      staff_id: "100002",
       initials: "NF",
       staff_name: "Mrs. N.Faye",
       gender: "Female",
@@ -32,6 +41,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "3",
+      staff_id: "100003",
       initials: "KD",
       staff_name: "Mr. K.Darboe",
       gender: "Male",
@@ -45,6 +55,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "4",
+      staff_id: "100004",
       initials: "FC",
       staff_name: "Ms. F.Camara",
       gender: "Female",
@@ -58,6 +69,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "5",
+      staff_id: "100005",
       initials: "SN",
       staff_name: "Mr. S.Njie",
       gender: "Male",
@@ -71,6 +83,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "6",
+      staff_id: "100006",
       initials: "BC",
       staff_name: "Mr. B.Colley",
       gender: "Male",
@@ -84,6 +97,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "7",
+      staff_id: "100007",
       initials: "MJ",
       staff_name: "Mrs. M.Jobe",
       gender: "Female",
@@ -97,6 +111,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "8",
+      staff_id: "100008",
       initials: "AT",
       staff_name: "Ms. A.Touray",
       gender: "Female",
@@ -110,6 +125,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "9",
+      staff_id: "100009",
       initials: "OS",
       staff_name: "Mr. O.Sowe",
       gender: "Male",
@@ -123,6 +139,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "10",
+      staff_id: "100010",
       initials: "IC",
       staff_name: "Mrs. I.Ceesay",
       gender: "Female",
@@ -136,6 +153,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "11",
+      staff_id: "100011",
       initials: "LM",
       staff_name: "Mr. L.Manneh",
       gender: "Male",
@@ -149,6 +167,7 @@ const StaffContent = ({isOpen, setIsOpen}) => {
     },
     {
       id: "12",
+      staff_id: "100012",
       initials: "HB",
       staff_name: "Mrs. H.Bah",
       gender: "Female",
@@ -190,7 +209,17 @@ const StaffContent = ({isOpen, setIsOpen}) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 my-4">
         {STAFF_DATA &&
           STAFF_DATA.map((data) => {
-            return <StaffContentCard data={data} />;
+            return (
+              <div key={data.id} className="card self-start shadow-md p-3">
+                <StaffContentCard
+                  data={data}
+                  assign={assign}
+                  setAssign={setAssign}
+                  setStaffName={setStaffName}
+                  setStaffId={setStaffId}
+                />
+              </div>
+            );
           })}
       </div>
     </div>
