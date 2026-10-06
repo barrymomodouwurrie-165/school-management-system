@@ -1,4 +1,4 @@
-const ExamsContent = () => {
+const ExamsContent = ({ addButton }) => {
   const EXAMS_DATA = [
     {
       id: "1",
@@ -42,7 +42,11 @@ const ExamsContent = () => {
       color: "green",
     },
   ];
-  return (
+  return addButton === "addExam" ? (
+    <div className="rounded-md shadow-md p-2 m-2">
+      
+    </div>
+  ) : (
     <div className="rounded-md shadow-md p-2 m-2">
       <div className="grid grid-cols-4 text-base-content/70 text-sm m-2">
         <span>EXAM</span>

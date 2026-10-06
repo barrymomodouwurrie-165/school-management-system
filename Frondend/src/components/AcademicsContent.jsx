@@ -7,7 +7,20 @@ import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 
 const AcademicsContent = ({ isOpen, setIsOpen }) => {
+  const [addButton, setAddButton] = useState("");
   const [isActive, setIsActive] = useState("classes");
+
+  const handleAddButton = () => {
+    if (isActive === "classes") {
+      setAddButton("addClass");
+    }
+    if (isActive === "subjects") {
+      setAddButton("addSubject");
+    }
+    if (isActive === "exams") {
+      setAddButton("addExam");
+    }
+  };
   return (
     <div className="p-4">
       <div className="flex items-center justify-between">
@@ -19,7 +32,10 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
             </p>
           </div>
         </div>
-        <button className="btn btn-primary btn-sm rounded-md flex justify-center">
+        <button
+          onClick={handleAddButton}
+          className="btn btn-primary btn-sm rounded-md flex justify-center"
+        >
           {isActive === "classes" ? (
             <span className="flex items-center gap-1">
               <FaPlus />
@@ -67,11 +83,11 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
         </button>
       </div>
       {isActive === "classes" ? (
-        <ClassesContent />
+        <ClassesContent addButton={addButton} setAddButton={setAddButton} />
       ) : isActive === "subjects" ? (
-        <SubjectsContent />
+        <SubjectsContent addButton={addButton} setAddButton={setAddButton} />
       ) : (
-        <ExamsContent />
+        <ExamsContent addButton={addButton} setAddButton={setAddButton} />
       )}
     </div>
   );
