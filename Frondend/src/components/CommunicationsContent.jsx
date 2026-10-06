@@ -3,6 +3,7 @@ import SentMessages from "./SentMessages";
 import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import { useState } from "react";
+import dayjs from "dayjs";
 const CommunicationsContent = ({ isOpen, setIsOpen }) => {
   const [sentBy, setSentBy] = useState("");
   const [subject, setSubject] = useState("");
@@ -38,13 +39,14 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
 
   const handleSendButton = (e) => {
     e.preventDefault();
+    const date = dayjs().format("MMMM DD");
     const newMessage = {
       id: crypto.randomUUID(),
       send_from: sentBy,
       send_to: sentTo,
       subject: subject,
       text: text,
-      date: "",
+      date: date,
     };
     setMessages((prev) => [newMessage, ...prev]);
     setSentBy("");
@@ -142,7 +144,14 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
           <h2 className="font-bold">Most recently sent announcements</h2>
           {messages &&
             messages.map((message) => {
-              return <SentMessages message={message} />;
+              return (
+                <div
+                  key={message.id}
+                  className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
+                >
+                  <SentMessages message={message} />;
+                </div>
+              );
             })}
         </div>
       </div>

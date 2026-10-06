@@ -13,10 +13,7 @@ const SentMessages = ({ message }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
   return (
-    <div
-      key={message.id}
-      className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
-    >
+    <>
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <span className="font-bold">{message.send_from}</span>
@@ -95,7 +92,7 @@ const SentMessages = ({ message }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
