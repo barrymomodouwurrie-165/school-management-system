@@ -56,7 +56,7 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                     name="gender"
                     id=""
                   >
-                    <option value="">select</option>
+                    <option value="">--select--</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
@@ -167,7 +167,7 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                     name="gender"
                     id=""
                   >
-                    <option value="">Select</option>
+                    <option value="">--Select--</option>
                     <option value="ECD">ECD</option>
                     <option value="PTC">PTC</option>
                     <option value="HTC">HTC</option>
@@ -203,7 +203,7 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                     name="gender"
                     id=""
                   >
-                    <option value="">select</option>
+                    <option value="">--Select--</option>
                     <option value="English Language">English Language</option>
                     <option value="Mathematics">Mathematics</option>
                     <option value="Financial Accounting">

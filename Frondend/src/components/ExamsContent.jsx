@@ -51,7 +51,8 @@ const ExamsContent = ({ addButton, setAddButton }) => {
     },
   ]);
 
-  const handleSubmitExam = () => {
+  const handleSubmitExam = (e) => {
+    e.preventDefault();
     const newExam = {
       id: crypto.randomUUID(),
       exam: examTitle,

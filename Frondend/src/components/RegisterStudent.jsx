@@ -76,6 +76,21 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
             </div>
             <div className="form-control">
               <label className="label" htmlFor="">
+                <span className="label-text font-bold">Religion</span>
+              </label>
+              <select
+                className="select-bordered select-sm rounded-md"
+                name=""
+                id=""
+              >
+                <option value="">--Select--</option>
+                <option value="Muslim">Muslim</option>
+                <option value="Christian">Christian</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div className="form-control">
+              <label className="label" htmlFor="">
                 <span className="label-text font-bold">Previous School</span>
               </label>
 
@@ -95,7 +110,7 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
                 name="gender"
                 id=""
               >
-                <option value="">Select</option>
+                <option value="">--Select--</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
@@ -124,7 +139,7 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
                 name="class"
                 id=""
               >
-                <option value="">Select</option>
+                <option value="">--Select--</option>
                 <option value="Grade 7 A">Grade 7 A</option>
                 <option value="Grade 7 B">Grade 7 B</option>
                 <option value="Grade 7 C">Grade 7 C</option>
