@@ -53,7 +53,7 @@ const ClassesContent = ({ addButton, setAddButton }) => {
       class_teacher: teacher,
       total_students: students,
     };
-    setClasses((prev) => [...prev, newClass]);
+    setClasses((prev) => [newClass, ...prev]);
     setClasss("");
     setSection("");
     setTeacher("");
@@ -71,7 +71,7 @@ const ClassesContent = ({ addButton, setAddButton }) => {
           <input
             onChange={(e) => setClasss(e.target.value)}
             value={classs}
-            className="input input-bordered rounded-md input-sm w-1/3"
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
             type="text"
           />
         </div>
@@ -84,7 +84,7 @@ const ClassesContent = ({ addButton, setAddButton }) => {
               setSection(e.target.value);
             }}
             value={section}
-            className="select select-bordered rounded-md select-sm w-1/3"
+            className="select select-bordered rounded-md select-sm w-full md:w-1/3"
             name=""
             id=""
           >
@@ -100,7 +100,7 @@ const ClassesContent = ({ addButton, setAddButton }) => {
           <input
             onChange={(e) => setTeacher(e.target.value)}
             value={teacher}
-            className="input input-bordered rounded-md input-sm w-1/3"
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
             type="text"
           />
         </div>
@@ -111,16 +111,22 @@ const ClassesContent = ({ addButton, setAddButton }) => {
           <input
             onChange={(e) => setStudents(e.target.value)}
             value={students}
-            className="input input-bordered rounded-md input-sm w-1/3"
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
             type="number"
           />
         </div>
-        <div className="my-2">
+        <div className="flex items-center justify-between md:justify-normal gap-28 my-2">
           <button
             onClick={handleSubit}
             className="btn btn-primary btn-sm rounded-md"
           >
             Add to Classes
+          </button>
+          <button
+            onClick={() => setAddButton("")}
+            className="btn btn-primary btn-sm rounded-md"
+          >
+            Back
           </button>
         </div>
       </form>

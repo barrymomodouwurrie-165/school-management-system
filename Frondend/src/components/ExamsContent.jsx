@@ -1,5 +1,13 @@
-const ExamsContent = ({ addButton }) => {
-  const EXAMS_DATA = [
+import { useState } from "react";
+
+const ExamsContent = ({ addButton, setAddButton }) => {
+  const [examTitle, setExamTitle] = useState("");
+  const [examDate, setExamDate] = useState("");
+  const [section, setSection] = useState("");
+
+  const status = "Scheduled";
+
+  const [exams, setExams] = useState([
     {
       id: "1",
       exam: "First term Exam",
@@ -41,10 +49,99 @@ const ExamsContent = ({ addButton }) => {
       status: "Completed",
       color: "green",
     },
-  ];
+  ]);
+
+  const handleSubmitExam = () => {
+    const newExam = {
+      id: crypto.randomUUID(),
+      exam: examTitle,
+      exam_date: examDate,
+      section: section,
+      status: status,
+      color: "blue",
+    };
+    setExams((prev) => [newExam, ...prev]);
+    setExamTitle("");
+    setExamDate("");
+    setSection("");
+    setAddButton("");
+  };
+
   return addButton === "addExam" ? (
     <div className="rounded-md shadow-md p-2 m-2">
-      
+      <form action="">
+        <div className="form-control">
+          <label className="label" htmlFor="">
+            <span className="label-text">Exam Title</span>
+          </label>
+          <input
+            onChange={(e) => setExamTitle(e.target.value)}
+            value={examTitle}
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
+            type="text"
+            name=""
+            id=""
+          />
+        </div>
+        <div className="form-control">
+          <label className="label" htmlFor="">
+            <span className="label-text">Exam duration</span>
+          </label>
+          <input
+            onChange={(e) => setExamDate(e.target.value)}
+            value={examDate}
+            placeholder="eg. May 2nd to June 30th"
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
+            type="text"
+            name=""
+            id=""
+          />
+        </div>
+        <div className="form-control">
+          <label className="label" htmlFor="">
+            <span className="label-text">Section</span>
+          </label>
+          <select
+            onChange={(e) => setSection(e.target.value)}
+            value={section}
+            className="select select-bordered rounded-md select-sm w-full md:w-1/3"
+            name=""
+            id=""
+          >
+            <option value="">--Select--</option>
+            <option value="Junior">Junior</option>
+            <option value="Senior">Senior</option>
+            <option value="Both">Both</option>
+          </select>
+        </div>
+        <div className="form-control">
+          <label className="label" htmlFor="">
+            <span className="label-text">Exam status</span>
+          </label>
+          <input
+            readOnly
+            value={status}
+            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
+            type="text"
+            name=""
+            id=""
+          />
+        </div>
+        <div className="flex items-center justify-between md:justify-normal gap-28 my-2">
+          <button
+            onClick={handleSubmitExam}
+            className="btn btn-primary btn-sm rounded-md"
+          >
+            Add to Exams
+          </button>
+          <button
+            onClick={() => setAddButton("")}
+            className="btn btn-primary btn-sm rounded-md"
+          >
+            Back
+          </button>
+        </div>
+      </form>
     </div>
   ) : (
     <div className="rounded-md shadow-md p-2 m-2">
@@ -54,8 +151,8 @@ const ExamsContent = ({ addButton }) => {
         <span>SECTION</span>
         <span>STATUS</span>
       </div>
-      {EXAMS_DATA &&
-        EXAMS_DATA.map((data) => {
+      {exams &&
+        exams.map((data) => {
           return (
             <div
               key={data.id}
