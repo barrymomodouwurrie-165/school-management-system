@@ -9,7 +9,7 @@ const Announcement = ({ messages }) => {
         <div className="flex flex-col py-4 gap-6 md:gap-1">
           {messages &&
             messages.map((message) => {
-              return <AnnouncementButton message={message} />;
+              return <AnnouncementButton key={message.id} message={message} />;
             })}
         </div>
       </div>

@@ -24,6 +24,7 @@ import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 const StudentDashboard = ({ messages, setMessages }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
+  const [viewDetail, setViewDetail] = useState(false);
 
   const PAGES = {
     announcements: Announcement,
@@ -118,7 +119,7 @@ const StudentDashboard = ({ messages, setMessages }) => {
           ) : (
             <div className="md:flex items-center justify-between">
               <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-bold text-blue-600">
                   Welcome Back, Kebba Samba
                 </h1>
                 <button className="btn btn-primary btn-xs max-w-28">
@@ -142,6 +143,29 @@ const StudentDashboard = ({ messages, setMessages }) => {
                     <span className="text-sm">10 Science One</span>
                     <span className="text-sm">Sept 12, 2024</span>
                   </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-sans text-base-content/70">
+                      Class Teacher: Mr. M.Jallow
+                    </span>
+                    <button
+                      onClick={() => setViewDetail(!viewDetail)}
+                      className="btn btn-outline btn-sm rounded-md"
+                    >
+                      {viewDetail ? "Close details" : "Show details"}
+                    </button>
+                  </div>
+                  {viewDetail && (
+                    <span>
+                      <p>
+                        <b>Tel: </b>+220833986565
+                      </p>
+                      <p>
+                        <b>Email: </b>barrymomodouwurry165@gmail.com
+                      </p>
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-4">
