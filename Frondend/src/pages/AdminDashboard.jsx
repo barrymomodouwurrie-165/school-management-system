@@ -8,6 +8,7 @@ import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
 import AcademicsContent from "../components/AcademicsContent";
 import CommunicationsContent from "../components/CommunicationsContent";
+import NewsComposePage from "../components/NewsComposePage";
 import AsignStaffRole from "../components/AsignStaffRole";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
@@ -23,7 +24,12 @@ import {
   FaTachometerAlt,
 } from "react-icons/fa";
 
-const AdminDashboard = () => {
+const AdminDashboard = ({
+  latestNews,
+  setLatestNews,
+  messages,
+  setMessages,
+}) => {
   const [activePage, setActivePage] = useState("admin");
   const [isOpen, setIsOpen] = useState(false);
   const [isClick, setIsClick] = useState(false);
@@ -38,7 +44,8 @@ const AdminDashboard = () => {
     students: StudentsContent,
     staff: StaffContent,
     academics: AcademicsContent,
-    communication: CommunicationsContent,
+    "private-message": CommunicationsContent,
+    "public-news": NewsComposePage,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaTachometerAlt },
@@ -55,7 +62,15 @@ const AdminDashboard = () => {
     { id: "staff", label: "Staff", logo: FaUserTie },
     { id: "academics", label: "Academics", logo: FaBookOpen },
 
-    { id: "communication", label: "Communication", logo: FaComments },
+    {
+      id: "message",
+      label: "Message",
+      logo: FaComments,
+      children: [
+        { id: "public-news", label: "Compose News" },
+        { id: "private-message", label: "Compose Message" },
+      ],
+    },
   ];
   const ActivePage = PAGES[activePage];
   return (
@@ -131,6 +146,8 @@ const AdminDashboard = () => {
         />
       ) : (
         <ActivePage
+          latestNews={latestNews}
+          setLatestNews={setLatestNews}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           assign={assign}
@@ -138,6 +155,8 @@ const AdminDashboard = () => {
           staffName={staffName}
           setStaffName={setStaffName}
           setStaffId={setStaffId}
+          messages={messages}
+          setMessages={setMessages}
         />
       )}
     </div>

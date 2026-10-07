@@ -21,7 +21,7 @@ import ResultCheck from "../components/StudentSideBarComponents/ResultCheck";
 import ExamsContent from "../components/ExamsContent";
 import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 
-const StudentDashboard = () => {
+const StudentDashboard = ({ messages, setMessages }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
 
@@ -163,6 +163,8 @@ const StudentDashboard = () => {
         </div>
       </div>
       <ActivePage
+        messages={messages}
+        setMessages={setMessages}
         onBack={() => {
           (setActivePage("announcements"), setOpen(!open));
         }}

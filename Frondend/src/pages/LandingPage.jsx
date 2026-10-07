@@ -5,14 +5,14 @@ import Mainboday from "../components/Mainboday";
 import LatestNews from "../components/LatestNews";
 import Footer from "../components/Footer";
 
-const LandingPage = () => {
+const LandingPage = ({latestNews, setLatestNews}) => {
   return (
     <div className="min-h-screen">
       <Navbar />
       <Header />
       <Statictics />
       <Mainboday />
-      <LatestNews />
+      <LatestNews latestNews={latestNews} setLatestNews={setLatestNews} />
       <Footer />
     </div>
   );

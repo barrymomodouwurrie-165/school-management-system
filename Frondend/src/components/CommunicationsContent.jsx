@@ -4,38 +4,17 @@ import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import { useState } from "react";
 import dayjs from "dayjs";
-const CommunicationsContent = ({ isOpen, setIsOpen }) => {
+const CommunicationsContent = ({
+  isOpen,
+  setIsOpen,
+  messages,
+  setMessages,
+}) => {
   const [sentBy, setSentBy] = useState("");
   const [subject, setSubject] = useState("");
   const [text, setText] = useState("");
   const [sentTo, setSentTo] = useState("");
-  // const [date, setDate] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      id: "1",
-      send_from: "Admin",
-      send_to: "Guardians",
-      subject: "Parent meeting for the junior school",
-      text: "Please join us on Friday 4 pm to discuss term progress.",
-      date: "Sep 24",
-    },
-    {
-      id: "2",
-      send_from: "Admin",
-      send_to: "All",
-      subject: "School closed on public holiday",
-      text: "School will be closed on Monday and will reopen on Tuesday.",
-      date: "Sep 20",
-    },
-    {
-      id: "3",
-      send_from: "Admin",
-      send_to: "Staff",
-      subject: "Staff briefing before first period",
-      text: "A short briefing will be held in the hall before first period on Wednesday.",
-      date: "Sep 18",
-    },
-  ]);
+  
 
   const handleSendButton = (e) => {
     e.preventDefault();
@@ -44,9 +23,9 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
       id: crypto.randomUUID(),
       send_from: sentBy,
       send_to: sentTo,
-      subject: subject,
-      text: text,
-      date: date,
+      subject,
+      text,
+      date,
     };
     setMessages((prev) => [newMessage, ...prev]);
     setSentBy("");
