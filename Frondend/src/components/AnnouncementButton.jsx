@@ -8,7 +8,8 @@ const AnnouncementButton = ({ message }) => {
         onClick={() => setView(!view)}
         className="btn btn-ghost w-full flex justify-start py-2 border-t-2 border-r-2 border-t-primary border-r-primary"
       >
-        <b>{message.subject}</b>... {message.date}, 2026. (read more...)
+        <b>{message.subject}</b>... {message.date}, 2026.{" "}
+        {view ? " " : "(read more...)"}
       </button>
       {view && (
         <div className="mt-4">
@@ -30,7 +31,7 @@ const AnnouncementButton = ({ message }) => {
               {message.subject}
             </p>
           </div>
-          <div className="mt-4 pt-2">
+          <div className="mt-4 mb-8 pt-2">
             <p>{message.text}</p>
           </div>
         </div>

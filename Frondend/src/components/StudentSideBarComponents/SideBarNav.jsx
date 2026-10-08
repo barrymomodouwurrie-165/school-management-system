@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
 
-const SideBarNav = ({ NAV_ITEMS, activePage, onNavigate, open, setOpen }) => {
+const SideBarNav = ({
+  NAV_ITEMS,
+  activePage,
+  onNavigate,
+  open,
+  setOpen,
+  setViewResult,
+}) => {
   const [openMenu, setOpenMenu] = useState(null);
+  const HandleNavigate = (id) => {
+    onNavigate(id);
+    (setViewResult?.(false), setOpen?.(!open));
+  };
 
   return (
     <>
@@ -30,7 +41,9 @@ const SideBarNav = ({ NAV_ITEMS, activePage, onNavigate, open, setOpen }) => {
                   {item.children.map((child) => (
                     <button
                       key={child.id}
-                          onClick={() => { onNavigate(child.id), setOpen(!open) }}
+                      onClick={() => {
+                        HandleNavigate(child.id);
+                      }}
                       className={`btn btn-ghost btn-sm justify-start ${
                         activePage === child.id ? "btn-active" : ""
                       }`}
@@ -47,7 +60,9 @@ const SideBarNav = ({ NAV_ITEMS, activePage, onNavigate, open, setOpen }) => {
         return (
           <div key={item.id}>
             <button
-                    onClick={() => { onNavigate(item.id), setOpen(!open) }}
+              onClick={() => {
+                HandleNavigate(item.id);
+              }}
               className={`btn btn-ghost w-full justify-start ${
                 activePage === item.id ? "btn-active" : ""
               }`}

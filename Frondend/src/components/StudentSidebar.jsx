@@ -2,7 +2,13 @@ import profile from "../assets/profile.webp";
 import { FaSignOutAlt } from "react-icons/fa";
 import SideBarNav from "./StudentSideBarComponents/SideBarNav";
 
-const StudentSidebar = ({ activePage, onNavigate, NAV_ITEMS }) => {
+const StudentSidebar = ({
+  activePage,
+  onNavigate,
+  NAV_ITEMS,
+  viewResult,
+  setViewResult,
+}) => {
   return (
     <div
       className={`md:flex flex-col hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2`}
@@ -21,6 +27,8 @@ const StudentSidebar = ({ activePage, onNavigate, NAV_ITEMS }) => {
             NAV_ITEMS={NAV_ITEMS}
             activePage={activePage}
             onNavigate={onNavigate}
+            viewResult={viewResult}
+            setViewResult={setViewResult}
           />
           <div>
             <button className=" btn btn-ghost ">

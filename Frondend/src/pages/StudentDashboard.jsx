@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import {
-  FaPen,
   FaBars,
   FaBullhorn,
   FaClipboardCheck,
@@ -20,11 +19,13 @@ import AiAssistance from "../components/StudentSideBarComponents/AiAssistance";
 import ResultCheck from "../components/StudentSideBarComponents/ResultCheck";
 import ExamsContent from "../components/ExamsContent";
 import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
+import ViewResult from "../components/StudentSideBarComponents/ViewResult";
 
 const StudentDashboard = ({ messages, setMessages }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
+  const [viewResult, setViewResult] = useState(false);
 
   const PAGES = {
     announcements: Announcement,
@@ -71,6 +72,8 @@ const StudentDashboard = ({ messages, setMessages }) => {
         activePage={activePage}
         onNavigate={setActivePage}
         NAV_ITEMS={NAV_ITEMS}
+        viewResult={viewResult}
+        setViewResult={setViewResult}
       />
       <div className="max-w-4xl mx-auto p-4">
         <div className="p-2 grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr_auto] border-t-2 border-primary rounded-lg shadow-sm">
@@ -106,6 +109,8 @@ const StudentDashboard = ({ messages, setMessages }) => {
                     onNavigate={setActivePage}
                     open={open}
                     setOpen={setOpen}
+                    viewResult={viewResult}
+                    setViewResult={setViewResult}
                   />
                   <div>
                     <button className=" btn btn-ghost ">
@@ -116,16 +121,14 @@ const StudentDashboard = ({ messages, setMessages }) => {
                 </div>
               </div>
             </div>
+          ) : viewResult ? (
+            ""
           ) : (
             <div className="md:flex items-center justify-between">
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-bold text-blue-600">
                   Welcome Back, Kebba Samba
                 </h1>
-                <button className="btn btn-primary btn-xs max-w-28">
-                  <FaPen />
-                  Edit Profile
-                </button>
                 <div className="flex flex-col">
                   <div className="grid grid-cols-3 ">
                     <span className="text-xs text-base-content/70">
@@ -172,13 +175,13 @@ const StudentDashboard = ({ messages, setMessages }) => {
                 <div className="flex flex-col border-l border-base-content/50 p-4">
                   <span className="text-xl font-bold">3.88</span>
                   <span className="text-xs text-base-content/70">
-                    CURRENT GPA
+                    CURRENT CGPA
                   </span>
                 </div>
                 <div className="flex flex-col border-l border-base-content/50 p-4">
                   <span className="text-xl font-bold">94%</span>
                   <span className="text-xs text-base-content/70">
-                    ATTENDANCE
+                    OVERALL ATTENDANCE
                   </span>
                 </div>
               </div>
@@ -186,13 +189,19 @@ const StudentDashboard = ({ messages, setMessages }) => {
           )}
         </div>
       </div>
-      <ActivePage
-        messages={messages}
-        setMessages={setMessages}
-        onBack={() => {
-          (setActivePage("announcements"), setOpen(!open));
-        }}
-      />
+      {viewResult ? (
+        <ViewResult viewResult={viewResult} setViewResult={setViewResult} />
+      ) : (
+        <ActivePage
+          messages={messages}
+          setMessages={setMessages}
+          setViewResult={setViewResult}
+          viewResult={viewResult}
+          onBack={() => {
+            (setActivePage("announcements"), setOpen(!open));
+          }}
+        />
+      )}
     </div>
   );
 };

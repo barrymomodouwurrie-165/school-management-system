@@ -1,4 +1,4 @@
-const ResultCheck = ({ onBack }) => {
+const ResultCheck = ({ onBack, setViewResult, viewResult }) => {
   return (
     <div className="max-w-4xl mx-auto px-4 border rounded-md bg-slate-200/70">
       <div className="max-w-lg mx-auto flex flex-col px-4 py-8">
@@ -45,7 +45,10 @@ const ResultCheck = ({ onBack }) => {
               >
                 Back
               </button>
-              <button className="btn btn-outline border border-white text-white">
+              <button
+                onClick={() => setViewResult(!viewResult)}
+                className="btn btn-outline border border-white text-white"
+              >
                 Display Result
               </button>
             </div>
