@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import "./App.css";
 import { useState } from "react";
 import admission from "./assets/admission.avif";
@@ -42,32 +43,32 @@ function App() {
       date: "May 15, 2026",
     },
   ]);
-   const [messages, setMessages] = useState([
-     {
-       id: "1",
-       send_from: "Admin",
-       send_to: "Guardians",
-       subject: "Parent meeting for the junior school",
-       text: "Please join us on Friday 4 pm to discuss term progress.",
-       date: "Sep 24",
-     },
-     {
-       id: "2",
-       send_from: "Admin",
-       send_to: "All",
-       subject: "School closed on public holiday",
-       text: "School will be closed on Monday and will reopen on Tuesday.",
-       date: "Sep 20",
-     },
-     {
-       id: "3",
-       send_from: "Admin",
-       send_to: "Staff",
-       subject: "Staff briefing before first period",
-       text: "A short briefing will be held in the hall before first period on Wednesday.",
-       date: "Sep 18",
-     },
-   ]);
+  const [messages, setMessages] = useState([
+    {
+      id: "1",
+      send_from: "Admin",
+      send_to: "Guardians",
+      subject: "Parent meeting for the junior school",
+      text: "Please join us on Friday 4 pm to discuss term progress.",
+      date: "Sep 24",
+    },
+    {
+      id: "2",
+      send_from: "Admin",
+      send_to: "All",
+      subject: "School closed on public holiday",
+      text: "School will be closed on Monday and will reopen on Tuesday.",
+      date: "Sep 20",
+    },
+    {
+      id: "3",
+      send_from: "Admin",
+      send_to: "Staff",
+      subject: "Staff briefing before first period",
+      text: "A short briefing will be held in the hall before first period on Wednesday.",
+      date: "Sep 18",
+    },
+  ]);
   return (
     <div data-theme="corporate" className="bg-base-content/5">
       <Routes>
@@ -96,6 +97,12 @@ function App() {
           path="/student-portal"
           element={
             <StudentDashboard messages={messages} setMessages={setMessages} />
+          }
+        />
+        <Route
+          path="/teacher-dashboard"
+          element={
+            <TeacherDashboard messages={messages} setMessages={setMessages} />
           }
         />
       </Routes>
