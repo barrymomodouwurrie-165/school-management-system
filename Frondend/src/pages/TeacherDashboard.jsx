@@ -2,6 +2,7 @@ import TeacherSideBar from "../components/TeacherComponents/TeacherSideBar";
 import TeacherSideBarNav from "../components/TeacherComponents/TeacherSideBarNav";
 import Announcement from "../components/Announcement";
 import TeacherProfilePage from "../components/TeacherComponents/TeacherProfilePage";
+import MarkAttendance from "../components/TeacherComponents/MarkAttendance";
 import { MdExitToApp } from "react-icons/md";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -24,6 +25,7 @@ const TeacherDashboard = ({ messages, setMessages }) => {
   const PAGES = {
     announcements: Announcement,
     profile: TeacherProfilePage,
+    "mark-attendance": MarkAttendance,
   };
   const NAV_PAGES = [
     { id: "announcements", label: "Announcements", logo: FaBullhorn },
