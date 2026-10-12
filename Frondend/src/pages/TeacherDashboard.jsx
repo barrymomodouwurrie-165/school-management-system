@@ -1,6 +1,7 @@
 import TeacherSideBar from "../components/TeacherComponents/TeacherSideBar";
 import TeacherSideBarNav from "../components/TeacherComponents/TeacherSideBarNav";
 import Announcement from "../components/Announcement";
+import TeacherProfilePage from "../components/TeacherComponents/TeacherProfilePage";
 import { MdExitToApp } from "react-icons/md";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -22,12 +23,21 @@ const TeacherDashboard = ({ messages, setMessages }) => {
 
   const PAGES = {
     announcements: Announcement,
+    profile: TeacherProfilePage,
   };
   const NAV_PAGES = [
     { id: "announcements", label: "Announcements", logo: FaBullhorn },
     { id: "my-classes", label: "My Classes", logo: FaChalkboardTeacher },
     { id: "students", label: "Students", logo: FaUserGraduate },
-    { id: "attendance", label: "Attendance", logo: FaClipboardCheck },
+    {
+      id: "attendance",
+      label: "Attendance",
+      logo: FaClipboardCheck,
+      children: [
+        { id: "mark-attendance", label: "Mark Attendance" },
+        { id: "Check-attention", label: "Check Attendance" },
+      ],
+    },
     {
       id: "grades",
       label: "Grades",
