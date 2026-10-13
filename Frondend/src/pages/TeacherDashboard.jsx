@@ -3,13 +3,15 @@ import TeacherSideBarNav from "../components/TeacherComponents/TeacherSideBarNav
 import Announcement from "../components/Announcement";
 import TeacherProfilePage from "../components/TeacherComponents/TeacherProfilePage";
 import MarkAttendance from "../components/TeacherComponents/MarkAttendance";
+import ExamsContent from "../components/ExamsContent";
+import EnterResults from "../components/TeacherComponents/EnterResults";
 import { MdExitToApp } from "react-icons/md";
 import { useState } from "react";
 import { Link } from "react-router";
 import {
   FaBullhorn,
-  FaChalkboardTeacher,
-  FaUserGraduate,
+  // FaChalkboardTeacher,
+  // FaUserGraduate,
   FaClipboardCheck,
   FaPenAlt,
   FaFlag,
@@ -26,11 +28,13 @@ const TeacherDashboard = ({ messages, setMessages }) => {
     announcements: Announcement,
     profile: TeacherProfilePage,
     "mark-attendance": MarkAttendance,
+    "enter-results": EnterResults,
+    "exam-details": ExamsContent,
   };
   const NAV_PAGES = [
     { id: "announcements", label: "Announcements", logo: FaBullhorn },
-    { id: "my-classes", label: "My Classes", logo: FaChalkboardTeacher },
-    { id: "students", label: "Students", logo: FaUserGraduate },
+    // { id: "my-classes", label: "My Classes", logo: FaChalkboardTeacher },
+    // { id: "students", label: "Students", logo: FaUserGraduate },
     {
       id: "attendance",
       label: "Attendance",
