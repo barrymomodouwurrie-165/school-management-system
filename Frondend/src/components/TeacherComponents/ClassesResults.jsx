@@ -11,7 +11,7 @@ const ClassesResults = ({ data }) => {
 
   const total = (Number(test) || 0) + (Number(exam) || 0);
   return (
-    <div className="grid grid-cols-5 text-xs md:text-base px-2 py-2 border-b">
+    <div className="grid grid-cols-5 text-xs md:text-base px-2 py-2 border-b hover:bg-blue-600/10">
       <span>{data.id}</span>
       <span>{data.name}</span>
       <input

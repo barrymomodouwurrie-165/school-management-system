@@ -6,6 +6,7 @@ import MarkAttendance from "../components/TeacherComponents/MarkAttendance";
 import ExamsContent from "../components/ExamsContent";
 import EnterResults from "../components/TeacherComponents/EnterResults";
 import ReportStudent from "../components/TeacherComponents/ReportStudent";
+import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
 import { MdExitToApp } from "react-icons/md";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -32,6 +33,7 @@ const TeacherDashboard = ({ messages, setMessages }) => {
     "enter-results": EnterResults,
     "exam-details": ExamsContent,
     "report-student": ReportStudent,
+    suggestion: SendSuggestion,
   };
   const NAV_PAGES = [
     { id: "announcements", label: "Announcements", logo: FaBullhorn },
