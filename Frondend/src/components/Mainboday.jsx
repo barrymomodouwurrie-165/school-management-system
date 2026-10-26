@@ -3,43 +3,56 @@ import { HiUserGroup } from "react-icons/hi2";
 
 const Mainboday = () => {
   return (
-    <div className="w-full px-8 py-4">
-      <div className="py-4">
-        <h1 className="text-2xl font-bold font-serif mb-2">Why choose us?</h1>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 justify-between">
-          <div className="card bg-primary/40 p-3 border-primary border-t-2">
-            <FaGraduationCap size={24} className="text-primary mb-2" />
-            <h2 className="font-bold">Academic excellence</h2>
-            <span className="text-base-content/70">
-              Consistently strong WASSCE results
-            </span>
-          </div>
-          <div className="card bg-primary/40 p-3 border-primary border-t-2">
-            <HiUserGroup size={24} className="text-primary mb-2" />
-            <h2 className="font-bold">Experienced faculty</h2>
-            <span className="text-base-content/70">
-              Qualified, dedicated teaching staff
-            </span>
-          </div>
-          <div className="card bg-primary/40 p-3 border-primary border-t-2">
-            <FaBuilding size={24} className="text-primary mb-2" />
-            <h2 className="font-bold">Modern facilities</h2>
-            <span className="text-base-content/70">
-              Labs, library, and ICT center
-            </span>
-          </div>
-          <div className="card bg-primary/40 p-3 border-primary border-t-2">
-            <FaRegHeart size={24} className="text-primary mb-2" />
-            <h2 className="font-bold">Holistic development</h2>
-            <span className="text-base-content/70">
-              Sports, clubs, and mentorship
-            </span>
+    <div className="w-full px-4 py-8 md:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">
+              Why choose us
+            </p>
+            <h1 className="mt-2 font-serif text-3xl font-bold text-slate-800 md:text-4xl">
+              A school built for progress.
+            </h1>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              icon: FaGraduationCap,
+              title: "Academic excellence",
+              text: "Consistently strong WASSCE results",
+            },
+            {
+              icon: HiUserGroup,
+              title: "Experienced faculty",
+              text: "Qualified, dedicated teaching staff",
+            },
+            {
+              icon: FaBuilding,
+              title: "Modern facilities",
+              text: "Labs, library, and ICT center",
+            },
+            {
+              icon: FaRegHeart,
+              title: "Holistic development",
+              text: "Sports, clubs, and mentorship",
+            },
+          ].map((item, index) => (
+            <div
+              key={item.title}
+              className="card-animate rounded-[1.5rem] border border-primary/10 bg-primary/5 p-5 shadow-[0_16px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:bg-primary/10 hover:shadow-[0_24px_40px_rgba(37,99,235,0.12)]"
+              style={{ animationDelay: `${index * 120}ms` }}
+            >
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm ring-1 ring-primary/10">
+                <item.icon size={22} />
+              </div>
+              <h2 className="mb-2 text-lg font-bold text-slate-800">{item.title}</h2>
+              <span className="text-sm leading-6 text-slate-600">{item.text}</span>
+            </div>
+          ))}
+        </div>
       </div>
-
-
-      
     </div>
   );
 };

@@ -1,0 +1,36 @@
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.hero-animate {
+  animation: fadeUp 0.8s ease-out both;
+}
+
+.card-animate {
+  animation: fadeUp 0.8s ease-out both;
+}
+
+.card-animate:nth-child(odd) {
+  animation-delay: 0.1s;
+}
+
+.hero-animate > div {
+  animation: softFloat 6s ease-in-out infinite;
+}
