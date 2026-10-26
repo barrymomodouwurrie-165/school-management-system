@@ -20,7 +20,6 @@ const STUDENTS_BY_CLASS = {
   ],
 };
 
-
 const getRecentSchoolDays = (count) => {
   const days = [];
   let cursor = dayjs().subtract(1, "day");
@@ -127,7 +126,7 @@ const CheckStudentAttendance = () => {
                 <input
                   type="date"
                   className="input input-ghost input-sm rounded-md max-w-36"
-                  max={dayjs().format("DD/MM/YYYY")}
+                  max={dayjs().format("YYYY-MM-DD")}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   value={selectedDate}
                   name=""

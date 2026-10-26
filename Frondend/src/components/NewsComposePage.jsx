@@ -19,7 +19,7 @@ const NewsComposePage = ({ isOpen, setIsOpen, setLatestNews }) => {
     const newNews = {
       id: crypto.randomUUID(),
       image: preview,
-      headeline: headeline,
+      headline: headline,
       news: news,
       date: date,
     };

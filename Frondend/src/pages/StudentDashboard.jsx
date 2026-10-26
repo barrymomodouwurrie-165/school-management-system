@@ -198,7 +198,8 @@ const StudentDashboard = ({ messages, setMessages }) => {
           setViewResult={setViewResult}
           viewResult={viewResult}
           onBack={() => {
-            (setActivePage("announcements"), setOpen(!open));
+            setActivePage("announcements");
+            setOpen(false);
           }}
         />
       )}

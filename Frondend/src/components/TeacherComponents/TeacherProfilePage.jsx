@@ -9,34 +9,26 @@ import {
 
 const TeacherProfilePage = () => {
   const [preview, setPreview] = useState(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [profile, setProfile] = useState({
+    id: "100001",
+    name: "N.A Mendy",
+    email: "nicola@gmail.com",
+    phone: "+220833986565",
+    department: "Mathematics",
+    subject: "Mathematics",
+  });
 
-  const [profile, setProfile] = useState([
-    {
-      id: "100001",
-      name: "N.A Mendy",
-      email: "nicola@gmail.com",
-      phone: "+220833986565",
-      department: "Mathematics",
-      subject: "Mathematics",
-    },
-  ]);
+  const handleFieldChange = (field) => (e) => {
+    const value = e.target.value;
+    setProfile((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
-    const update = {
-      id: "100001",
-      image: preview,
-      name: name,
-      email: email,
-      phone: phone,
-      department: "Mathematics",
-      subject: "Mathematics",
-    };
-
-    setProfile(update);
+    setProfile((prev) => ({
+      ...prev,
+      image: preview || prev.image,
+    }));
   };
 
   const handleImage = (e) => {
@@ -63,7 +55,7 @@ const TeacherProfilePage = () => {
                   {preview ? (
                     <div className="relative">
                       <img
-                        className=" rounded-full h-[80px] w-[80px] border-4 border-blue-600/20"
+                        className="rounded-full h-[80px] w-[80px] border-4 border-blue-600/20"
                         src={preview}
                         alt={preview}
                       />
@@ -92,16 +84,16 @@ const TeacherProfilePage = () => {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold">Mr. {profile[0].name}</span>
+                <span className="font-bold">Mr. {profile.name}</span>
                 <p className="text-base-content/70">
-                  {profile[0].subject} Teacher
+                  {profile.subject} Teacher
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="bg-blue-600/10 text-blue-600/70 p-1 rounded-md">
-                    {profile[0].department} Department
+                    {profile.department} Department
                   </span>
                   <span className="bg-blue-600/10 text-blue-600/70 p-1 rounded-md">
-                    ID: {profile[0].id}
+                    ID: {profile.id}
                   </span>
                 </div>
               </div>
@@ -112,8 +104,8 @@ const TeacherProfilePage = () => {
               </label>
               <div className="relative">
                 <input
-                  onChange={(e) => setName(e.target.value)}
-                  value={profile[0].name}
+                  onChange={handleFieldChange("name")}
+                  value={profile.name}
                   className="input input-ghost input-sm w-1/2 rounded-md pl-8"
                   type="text"
                   id="name"
@@ -127,26 +119,26 @@ const TeacherProfilePage = () => {
               </label>
               <div className="relative">
                 <input
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={profile[0].email}
+                  onChange={handleFieldChange("email")}
+                  value={profile.email}
                   className="input input-ghost input-sm w-1/2 rounded-md pl-8"
                   type="text"
-                  id="name"
+                  id="email"
                 />
                 <FaEnvelope className="relative bottom-6 left-2" />
               </div>
             </div>
             <div className="form-control rounded-md shadow-sm">
-              <label className="label" htmlFor="name">
+              <label className="label" htmlFor="phone">
                 <span className="label-text">Tel Number</span>
               </label>
               <div className="relative">
                 <input
-                  onChange={(e) => setPhone(e.target.value)}
-                  value={profile[0].phone}
+                  onChange={handleFieldChange("phone")}
+                  value={profile.phone}
                   className="input input-ghost input-sm w-1/2 rounded-md pl-8"
                   type="text"
-                  id="name"
+                  id="phone"
                 />
                 <FaPhone className="relative bottom-6 left-2" />
               </div>
@@ -169,7 +161,6 @@ const TeacherProfilePage = () => {
                     11 Science one
                   </span>
                   <span className="p-1 rounded-md bg-white">
-                    {" "}
                     12 science one
                   </span>
                 </div>
@@ -180,6 +171,7 @@ const TeacherProfilePage = () => {
                 Discard Changes
               </button>
               <button
+                type="button"
                 onClick={handleSave}
                 className="btn btn-primary btn-sm rounded-md"
               >
