@@ -7,6 +7,7 @@ import ExamsContent from "../components/ExamsContent";
 import EnterResults from "../components/TeacherComponents/EnterResults";
 import ReportStudent from "../components/TeacherComponents/ReportStudent";
 import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
+import CheckStudentAttendance from "../components/TeacherComponents/CheckStudentAttendance";
 import { MdExitToApp } from "react-icons/md";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -30,10 +31,11 @@ const TeacherDashboard = ({ messages, setMessages }) => {
     announcements: Announcement,
     profile: TeacherProfilePage,
     "mark-attendance": MarkAttendance,
+    "view-attention": CheckStudentAttendance,
     "enter-results": EnterResults,
     "exam-details": ExamsContent,
     "report-student": ReportStudent,
-    suggestion: SendSuggestion,
+    "send-suggestion": SendSuggestion,
   };
   const NAV_PAGES = [
     { id: "announcements", label: "Announcements", logo: FaBullhorn },
@@ -45,7 +47,7 @@ const TeacherDashboard = ({ messages, setMessages }) => {
       logo: FaClipboardCheck,
       children: [
         { id: "mark-attendance", label: "Mark Attendance" },
-        { id: "Check-attention", label: "Check Attendance" },
+        { id: "view-attention", label: "View Attendance" },
       ],
     },
     {
@@ -63,7 +65,7 @@ const TeacherDashboard = ({ messages, setMessages }) => {
       logo: FaFlag,
       children: [
         { id: "report-student", label: "Report Student" },
-        { id: "suggestion", label: "Suggestion" },
+        { id: "send-suggestion", label: "Suggestion" },
       ],
     },
     { id: "profile", label: "My Profile", logo: FaUserCircle },

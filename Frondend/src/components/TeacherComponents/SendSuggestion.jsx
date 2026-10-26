@@ -1,5 +1,38 @@
+import { useState } from "react";
 import { FaPen, FaQuestion, FaLockOpen, FaPaperPlane } from "react-icons/fa";
+import dayjs from "dayjs";
 const SendSuggestion = () => {
+  const [category, setCategory] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [suggestion, setSuggestion] = useState("");
+  const [isChecked, setIsChecked] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  //   console.log(category);
+  //   console.log(headline);
+  //   console.log(suggestion);
+  //   console.log(isChecked);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const date = dayjs().format("ddd, D MMM YYYY hh:mm A");
+    const newSuggestion = {
+      id: crypto.randomUUID(),
+      date,
+      category,
+      headline,
+      suggestion,
+      isChecked: isChecked ? "Mr. N.A Mendy" : "",
+    };
+    setSuggestions((prev) => [newSuggestion, ...prev]);
+    setCategory("");
+    setHeadline("");
+    setSuggestion("");
+    setIsChecked(false);
+  };
+
+  console.log(suggestions);
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex flex-col gap-1 rounded-md shadow-md px-2 pb-2">
@@ -25,6 +58,8 @@ const SendSuggestion = () => {
               <span className="label-text">Category / Topic Area</span>
             </label>
             <select
+              onChange={(e) => setCategory(e.target.value)}
+              value={category}
               className="select select-ghost bg-blue-600/10 text-blue-600 select-sm"
               name=""
               id=""
@@ -43,6 +78,8 @@ const SendSuggestion = () => {
               <span className="label-text">Initiative Headline</span>
             </label>
             <input
+              onChange={(e) => setHeadline(e.target.value)}
+              value={headline}
               placeholder="e.g., Extended Library Operating Hours During Mid-Terms"
               className="input input-bordered input-sm rounded-md"
               type="text"
@@ -58,6 +95,8 @@ const SendSuggestion = () => {
               </span>
             </label>
             <textarea
+              onChange={(e) => setSuggestion(e.target.value)}
+              value={suggestion}
               placeholder="Share an idea to improve the school(e.e., Proposed resource upgrades, timetable adjustments, extracurricular programs)..."
               className="textarea textarea-bordered rounded-md max-w-lg min-h-52"
               name=""
@@ -81,6 +120,8 @@ const SendSuggestion = () => {
                 </p>
               </div>
               <input
+                onChange={(e) => setIsChecked(e.target.checked)}
+                value={isChecked}
                 className="checkbox-lg md:checkbox-md mr-4"
                 type="checkbox"
               />
@@ -95,7 +136,10 @@ const SendSuggestion = () => {
               <button className="btn btn-outline btn-sm rounded-md">
                 Discard
               </button>
-              <button className="btn btn-primary btn-sm rounded-md">
+              <button
+                onClick={handleSubmit}
+                className="btn btn-primary btn-sm rounded-md"
+              >
                 Send Suggestion <FaPaperPlane />
               </button>
             </div>
