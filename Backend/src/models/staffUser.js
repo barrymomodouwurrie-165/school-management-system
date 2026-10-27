@@ -92,6 +92,14 @@ const staffSchema = new mongoose.Schema(
       enum: ["Teacher", "H.O.D", "H.O.B", "Admin"],
       required: true,
     },
+    profile_image: {
+      type: String,
+      trim: true,
+    },
+    assigned_classes: {
+      type: [String],
+      default: undefined,
+    },
     role: {
       type: String,
       enum: ["teacher"],
