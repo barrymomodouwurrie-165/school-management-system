@@ -45,10 +45,6 @@ const staffSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  role: {
-    type: String,
-    required: true,
-  },
   subject_taught: {
     type: String,
     required: true,
@@ -77,7 +73,13 @@ const staffSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-});
+  role: {
+    type: String,
+    enum: ["teacher"],
+    default: ["teacher"],
+  },
+},
+{ timestamps: true });
 
 const StaffUser = mongoose.model("StaffUser", staffSchema);
 
