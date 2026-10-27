@@ -16,9 +16,9 @@ const Header = () => {
             </h1>
 
             <p className="mt-5 max-w-lg text-base text-slate-600 md:text-lg">
-              A junior and senior secondary school dedicated to academic excellence,
-              character, and discipline — empowering every learner to thrive with
-              confidence and purpose.
+              A junior and senior secondary school dedicated to academic
+              excellence, character, and discipline — empowering every learner
+              to thrive with confidence and purpose.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:justify-start">
@@ -46,7 +46,9 @@ const Header = () => {
                     <p className="text-xs uppercase tracking-[0.2em] text-primary/70">
                       Academic Standard
                     </p>
-                    <h2 className="mt-2 text-3xl font-bold text-slate-800">93%</h2>
+                    <h2 className="mt-2 text-3xl font-bold text-slate-800">
+                      93%
+                    </h2>
                   </div>
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-xl text-white shadow-lg shadow-primary/20">
                     ✦
@@ -63,8 +65,12 @@ const Header = () => {
                       key={item.label}
                       className="flex items-center justify-between rounded-2xl border border-primary/10 bg-white px-4 py-3"
                     >
-                      <span className="text-sm text-slate-600">{item.label}</span>
-                      <span className="font-bold text-slate-800">{item.value}</span>
+                      <span className="text-sm text-slate-600">
+                        {item.label}
+                      </span>
+                      <span className="font-bold text-slate-800">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>

@@ -47,8 +47,12 @@ const Mainboday = () => {
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm ring-1 ring-primary/10">
                 <item.icon size={22} />
               </div>
-              <h2 className="mb-2 text-lg font-bold text-slate-800">{item.title}</h2>
-              <span className="text-sm leading-6 text-slate-600">{item.text}</span>
+              <h2 className="mb-2 text-lg font-bold text-slate-800">
+                {item.title}
+              </h2>
+              <span className="text-sm leading-6 text-slate-600">
+                {item.text}
+              </span>
             </div>
           ))}
         </div>

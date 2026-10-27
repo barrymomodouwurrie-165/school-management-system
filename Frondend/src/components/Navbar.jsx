@@ -9,7 +9,11 @@ const Navbar = () => {
           <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/5 p-1 shadow-sm">
-                <img src={logo} alt="School logo" className="h-full w-full rounded-full object-cover" />
+                <img
+                  src={logo}
+                  alt="School logo"
+                  className="h-full w-full rounded-full object-cover"
+                />
               </div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary/80">
