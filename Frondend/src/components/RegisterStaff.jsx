@@ -97,17 +97,6 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                 </div>
                 <div className="form-control">
                   <label className="label" htmlFor="">
-                    <span className="label-text font-bold">Nationality</span>
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="eg. Gambian"
-                    className="input input-bordered input-sm rounded-md"
-                  />
-                </div>
-                <div className="form-control">
-                  <label className="label" htmlFor="">
                     <span className="label-text font-bold">Address</span>
                   </label>
                   <input

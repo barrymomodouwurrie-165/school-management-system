@@ -79,8 +79,8 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
                 <span className="label-text font-bold">Religion</span>
               </label>
               <select
-                className="select-bordered select-sm rounded-md"
-                name=""
+                className="select select-bordered select-sm rounded-md"
+                name="religion"
                 id=""
               >
                 <option value="">--Select--</option>
@@ -114,6 +114,17 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
+            </div>
+            <div className="form-control">
+              <label className="label" htmlFor="">
+                <span className="label-text font-bold">Phone</span>
+              </label>
+              <input
+                required
+                type="tel"
+                placeholder="+220XXXXXXXXX"
+                className="input input-bordered input-sm  rounded-md "
+              />
             </div>
             <div className="form-control">
               <label className="label" htmlFor="">
