@@ -21,6 +21,10 @@ const adminUserSchema = new mongoose.Schema(
       enum: ["admin"],
       default: "admin",
     },
+    refreshTokenHash: {
+      type: String,
+      select: false,
+    },
   },
   { timestamps: true },
 );

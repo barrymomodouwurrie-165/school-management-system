@@ -2,12 +2,18 @@ import mongoose from "mongoose";
 import AdminUser from "../models/adminUser.js";
 import connectDB from "../config/db.js";
 
-const username = process.env.ADMIN_username?.trim().toLowerCase();
+const username = (
+  process.env.ADMIN_USERNAME ??
+  process.env.ADMIN_username ??
+  process.env.ADMIN_EMAIL
+)
+  ?.trim()
+  .toLowerCase();
 const password = process.env.ADMIN_PASSWORD;
 
 if (!username || !password) {
   console.error(
-    "Set ADMIN_username and ADMIN_PASSWORD before seeding the admin account.",
+    "Set ADMIN_USERNAME (or ADMIN_EMAIL) and ADMIN_PASSWORD before seeding the admin account.",
   );
   process.exit(1);
 }

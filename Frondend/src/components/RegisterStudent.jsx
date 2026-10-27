@@ -136,8 +136,8 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
                 name="section"
                 id=""
               >
-                <option value="Teacher">Junior</option>
-                <option value="H.O.D">Senior</option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
               </select>
             </div>
             <div className="form-control">
