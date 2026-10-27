@@ -12,10 +12,23 @@ import { FiLogIn } from "react-icons/fi";
 import { RiArrowGoBackLine } from "react-icons/ri";
 import { Link } from "react-router";
 import { useState } from "react";
-const LoginPage = () => {
+const LoginPage = ({ theme, toggleTheme }) => {
   const [seePassword, setSeePassword] = useState(false);
   return (
-    <div className="min-h-screen">
+    <div
+      className={`min-h-screen ${
+        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+      }`}
+    >
+      <div className="flex justify-end p-4">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="btn btn-sm rounded-full border border-primary/20 bg-primary/5 text-primary"
+        >
+          {theme === "corporate" ? "Dark mode" : "Light mode"}
+        </button>
+      </div>
       <div className="max-w-xl mx-auto p-4">
         <div className=" max-w-[20rem] mx-auto py-2 mb-4 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
           <FaGraduationCap size={24} />

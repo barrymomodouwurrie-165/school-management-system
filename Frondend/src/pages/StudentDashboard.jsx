@@ -21,7 +21,7 @@ import ExamsContent from "../components/ExamsContent";
 import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 import ViewResult from "../components/StudentSideBarComponents/ViewResult";
 
-const StudentDashboard = ({ messages, setMessages }) => {
+const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
@@ -66,7 +66,11 @@ const StudentDashboard = ({ messages, setMessages }) => {
 
   return (
     <div
-      className={`${open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""} min-h-screen md:pl-[220px] py-4`}
+      className={`${
+        open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
+      } min-h-screen md:pl-[220px] py-4 ${
+        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+      }`}
     >
       <StudentSidebar
         activePage={activePage}
@@ -76,6 +80,15 @@ const StudentDashboard = ({ messages, setMessages }) => {
         setViewResult={setViewResult}
       />
       <div className="max-w-4xl mx-auto p-4">
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="btn btn-sm rounded-full border border-primary/20 bg-primary/5 text-primary"
+          >
+            {theme === "corporate" ? "Dark mode" : "Light mode"}
+          </button>
+        </div>
         <div className="p-2 grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr_auto] border-t-2 border-primary rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div className=" w-[50px] h-[50px] flex items-center justify-center bg-blue-950/70 rounded-lg text-white font-bold">

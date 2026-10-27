@@ -1,7 +1,8 @@
 import { Link } from "react-router";
 import logo from "../assets/logo.jpg";
+import { FaMoon, FaSun } from "react-icons/fa";
 
-const Navbar = () => {
+const Navbar = ({ theme, toggleTheme }) => {
   return (
     <div className="w-full px-4 pt-4">
       <div className="fixed inset-x-0 top-0 z-50">
@@ -25,23 +26,37 @@ const Navbar = () => {
               </div>
             </div>
 
-            <nav className="flex flex-wrap items-center justify-center gap-1 text-primary">
-              {[
-                "Home",
-                "About",
-                "Academics",
-                "Admissions",
-                "News",
-                "Contact",
-              ].map((item) => (
-                <Link
-                  key={item}
-                  className="btn btn-ghost btn-sm rounded-full px-3 text-sm font-medium transition-all duration-300 hover:bg-primary/5 hover:shadow-sm"
-                >
-                  {item}
-                </Link>
-              ))}
-            </nav>
+            <div className="flex items-center gap-2">
+              <nav className="flex flex-wrap items-center justify-center gap-1 text-primary">
+                {[
+                  "Home",
+                  "About",
+                  "Academics",
+                  "Admissions",
+                  "News",
+                  "Contact",
+                ].map((item) => (
+                  <Link
+                    key={item}
+                    className="btn btn-ghost btn-sm rounded-full px-3 text-sm font-medium transition-all duration-300 hover:bg-primary/5 hover:shadow-sm"
+                  >
+                    {item}
+                  </Link>
+                ))}
+              </nav>
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="btn btn-ghost btn-sm rounded-full border border-primary/20 bg-primary/5 px-3 text-primary shadow-sm transition-all duration-300 hover:bg-primary/10"
+                aria-label="Toggle theme"
+              >
+                {theme === "corporate" ? <FaMoon size={14} /> : <FaSun size={14} />}
+                <span className="hidden sm:inline">
+                  {theme === "corporate" ? "Dark" : "Light"}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

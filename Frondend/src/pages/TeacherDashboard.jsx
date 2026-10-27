@@ -23,7 +23,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const TeacherDashboard = ({ messages, setMessages }) => {
+const TeacherDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
 
@@ -73,7 +73,11 @@ const TeacherDashboard = ({ messages, setMessages }) => {
   const ActivePage = PAGES[activePage];
   return (
     <div
-      className={`${open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""} min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}
+      className={`${
+        open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
+      } min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ${
+        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+      }`}
     >
       <TeacherSideBar
         activePage={activePage}
@@ -81,6 +85,15 @@ const TeacherDashboard = ({ messages, setMessages }) => {
         NAV_PAGES={NAV_PAGES}
       />
       <div className="max-w-4xl mx-auto p-4">
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="btn btn-sm rounded-full border border-primary/20 bg-primary/5 text-primary"
+          >
+            {theme === "corporate" ? "Dark mode" : "Light mode"}
+          </button>
+        </div>
         <div className="p-4 border-t-2 border-primary rounded-lg shadow-sm">
           <div className="flex items-center justify-end">
             <Link

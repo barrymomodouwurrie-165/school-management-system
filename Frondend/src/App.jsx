@@ -5,13 +5,27 @@ import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import admission from "./assets/admission.avif";
 import athletic from "./assets/athletic.jpg";
 import exam from "./assets/exam.jpg";
 import graduation from "./assets/graduation.avif";
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem("school-theme");
+    return savedTheme || "corporate";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("school-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === "corporate" ? "dark" : "corporate"));
+  };
+
   const [latestNews, setLatestNews] = useState([
     {
       id: "1",
@@ -70,7 +84,7 @@ function App() {
     },
   ]);
   return (
-    <div data-theme="corporate" className="bg-base-content/5">
+    <div data-theme={theme} className="bg-base-content/5 min-h-screen">
       <Routes>
         <Route
           path="/"
@@ -78,10 +92,15 @@ function App() {
             <LandingPage
               latestNews={latestNews}
               setLatestNews={setLatestNews}
+              theme={theme}
+              toggleTheme={toggleTheme}
             />
           }
         />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={<LoginPage theme={theme} toggleTheme={toggleTheme} />}
+        />
         <Route
           path="/admin-dashboard"
           element={
@@ -90,19 +109,31 @@ function App() {
               setLatestNews={setLatestNews}
               messages={messages}
               setMessages={setMessages}
+              theme={theme}
+              toggleTheme={toggleTheme}
             />
           }
         />
         <Route
           path="/student-portal"
           element={
-            <StudentDashboard messages={messages} setMessages={setMessages} />
+            <StudentDashboard
+              messages={messages}
+              setMessages={setMessages}
+              theme={theme}
+              toggleTheme={toggleTheme}
+            />
           }
         />
         <Route
           path="/teacher-dashboard"
           element={
-            <TeacherDashboard messages={messages} setMessages={setMessages} />
+            <TeacherDashboard
+              messages={messages}
+              setMessages={setMessages}
+              theme={theme}
+              toggleTheme={toggleTheme}
+            />
           }
         />
       </Routes>

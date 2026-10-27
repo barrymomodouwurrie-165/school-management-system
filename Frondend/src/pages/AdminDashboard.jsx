@@ -29,6 +29,8 @@ const AdminDashboard = ({
   setLatestNews,
   messages,
   setMessages,
+  theme,
+  toggleTheme,
 }) => {
   const [activePage, setActivePage] = useState("admin");
   const [isOpen, setIsOpen] = useState(false);
@@ -75,13 +77,19 @@ const AdminDashboard = ({
   const ActivePage = PAGES[activePage];
   return (
     <div
-      className={`${isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""} min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide `}
+      className={`${
+        isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
+      } min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ${
+        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+      }`}
     >
       <AdminSidebar
         activePage={activePage}
         onNavigate={setActivePage}
         NAV_PAGES={NAV_PAGES}
         setIsClick={setIsClick}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {isOpen ? (
@@ -135,8 +143,15 @@ const AdminDashboard = ({
           </div>
         </div>
       ) : (
-        <AdminNavebar isOpen={isOpen} setIsOpen={setIsOpen} isClick={isClick} />
+        <AdminNavebar
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          isClick={isClick}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
       )}
+
       {assign ? (
         <AsignStaffRole
           assign={assign}
