@@ -51,7 +51,11 @@ const Navbar = ({ theme, toggleTheme }) => {
                 className="btn btn-ghost btn-sm rounded-full border border-primary/20 bg-primary/5 px-3 text-primary shadow-sm transition-all duration-300 hover:bg-primary/10"
                 aria-label="Toggle theme"
               >
-                {theme === "corporate" ? <FaMoon size={14} /> : <FaSun size={14} />}
+                {theme === "corporate" ? (
+                  <FaMoon size={14} />
+                ) : (
+                  <FaSun size={14} />
+                )}
                 <span className="hidden sm:inline">
                   {theme === "corporate" ? "Dark" : "Light"}
                 </span>

@@ -76,7 +76,9 @@ const TeacherDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
       className={`${
         open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
       } min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ${
-        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+        theme === "dark"
+          ? "bg-slate-950 text-slate-100"
+          : "bg-slate-50 text-slate-800"
       }`}
     >
       <TeacherSideBar

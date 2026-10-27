@@ -17,7 +17,9 @@ const LoginPage = ({ theme, toggleTheme }) => {
   return (
     <div
       className={`min-h-screen ${
-        theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+        theme === "dark"
+          ? "bg-slate-950 text-slate-100"
+          : "bg-slate-50 text-slate-800"
       }`}
     >
       <div className="flex justify-end p-4">
