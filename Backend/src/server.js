@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import connectDB from "./config/db.js";
 import userRouter from "./routers/userRouter.js";
+import communicationRouter from "./routers/communicationRouter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/users", userRouter);
+app.use("/api/communications", communicationRouter);
 
 connectDB().then(() => {
   app.listen(PORT, () => {

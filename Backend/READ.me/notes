@@ -1,0 +1,13 @@
+Models needed for the dashboard workflows
+
+AcademicYear / Term: the dashboards hard-code academic sessions and results are selected by year and term.
+<!-- Class: class name, section, and class teacher. Student counts should be derived from enrolled students rather than stored as a manually entered count. -->
+Subject: subject name/code and the section(s) it is offered to.
+TeachingAssignment: links a staff member to a subject and class for an academic year. Teacher profiles display assigned classes.
+Exam: title, dates, section, term/year, and status.
+Result: student, subject, exam/term, test and exam marks, total/grade, and whether results are published.
+AttendanceSession: class, date, academic year, marking teacher, and student attendance entries. The teacher workflow records first and second calls; dashboard totals can be calculated from these records.
+Announcement / Message: author, subject/content, recipients (guardians, staff, students, or all), and sent time.
+NewsArticle: public headline, story, publication date, and image URL/storage reference.
+StudentReport: student, category, urgency, description, guardian/counselor flags, reporter, and submission time.
+Suggestion: category, headline, description, whether the sender is identified, and submission time.
