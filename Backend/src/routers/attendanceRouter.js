@@ -24,6 +24,23 @@ const getTeacherClaims = (req, res) => {
   return claims;
 };
 
+const getAdminClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (claims.role !== "admin") {
+    res.status(403).json({ message: "Only administrators can access attendance." });
+    return null;
+  }
+
+  return claims;
+};
+
 const getClassDate = (value) => {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null;
@@ -45,7 +62,7 @@ const getTeacherClass = async (classId, teacherId) => {
 
 const getClassStudents = (className) =>
   StudentUser.find({ class: className, status: { $ne: "Transferred" } })
-    .select("_id student_id first_name last_name")
+    .select("_id student_id first_name last_name gender")
     .sort({ last_name: 1, first_name: 1 })
     .lean();
 
@@ -75,6 +92,7 @@ const buildAttendanceEntries = (students, entries, call) => {
     student: student._id,
     studentId: student.student_id,
     studentName: `${student.first_name} ${student.last_name}`,
+    studentGender: student.gender,
     firstCall:
       call === "firstCall"
         ? marksByStudent.get(String(student._id))
@@ -85,6 +103,69 @@ const buildAttendanceEntries = (students, entries, call) => {
         : false,
   }));
 };
+
+const getPercentage = (count, total) =>
+  total === 0 ? 0 : Math.round((count / total) * 1000) / 10;
+
+const getEntryGender = (entry) =>
+  (entry.studentGender || entry.student?.gender || "").toLowerCase();
+
+const getGenderAnalysis = (entries, gender) => {
+  const students = entries.filter((entry) => getEntryGender(entry) === gender);
+  const present = students.filter((entry) => entry.firstCall).length;
+  const late = students.filter(
+    (entry) => !entry.firstCall && entry.secondCall,
+  ).length;
+  const absent = students.length - present - late;
+
+  return {
+    total: students.length,
+    present: { count: present, percentage: getPercentage(present, students.length) },
+    late: { count: late, percentage: getPercentage(late, students.length) },
+    absent: { count: absent, percentage: getPercentage(absent, students.length) },
+  };
+};
+
+attendanceRouter.get("/admin/sessions", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const [sessions, classrooms] = await Promise.all([
+      AttendanceSession.find()
+        .sort({ date: -1, createdAt: -1 })
+        .populate("markingTeacher", "first_name last_name")
+        .populate("entries.student", "gender")
+        .lean(),
+      ClassRoom.find().select("name").sort({ name: 1 }).lean(),
+    ]);
+
+    return res.status(200).json({
+      classes: [
+        ...new Set([
+          ...classrooms.map((classroom) => classroom.name),
+          ...sessions.map((session) => session.className),
+        ]),
+      ].sort(),
+      sessions: sessions.map((session) => ({
+        ...session,
+        analysis: {
+          totalStudents: session.entries.length,
+          male: getGenderAnalysis(session.entries, "male"),
+          female: getGenderAnalysis(session.entries, "female"),
+          unclassified: session.entries.filter(
+            (entry) => !["male", "female"].includes(getEntryGender(entry)),
+          ).length,
+        },
+      })),
+    });
+  } catch (error) {
+    console.error("Admin attendance retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve attendance right now." });
+  }
+});
 
 attendanceRouter.get("/classes", async (req, res) => {
   const claims = getTeacherClaims(req, res);

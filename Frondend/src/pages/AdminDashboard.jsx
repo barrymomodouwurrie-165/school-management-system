@@ -10,6 +10,7 @@ import AcademicsContent from "../components/AcademicsContent";
 import AdminSubmissions from "../components/AdminSubmissions";
 import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
+import AdminAttendance from "../components/AdminAttendance";
 import AsignStaffRole from "../components/AsignStaffRole";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
@@ -24,6 +25,7 @@ import {
   FaSignOutAlt,
   FaTachometerAlt,
   FaFlag,
+  FaCalendarCheck,
 } from "react-icons/fa";
 
 const AdminDashboard = ({
@@ -51,6 +53,7 @@ const AdminDashboard = ({
     submissions: AdminSubmissions,
     "private-message": CommunicationsContent,
     "public-news": NewsComposePage,
+    attendance: AdminAttendance,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaTachometerAlt },
@@ -67,6 +70,7 @@ const AdminDashboard = ({
     { id: "staff", label: "Staff", logo: FaUserTie },
     { id: "academics", label: "Academics", logo: FaBookOpen },
     { id: "submissions", label: "Submissions", logo: FaFlag },
+    { id: "attendance", label: "Attendance", logo: FaCalendarCheck },
 
     {
       id: "message",

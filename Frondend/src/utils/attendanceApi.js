@@ -65,3 +65,18 @@ export const saveClassAttendanceCall = async (classId, attendance) => {
     );
   }
 };
+
+export const getAdminAttendanceSessions = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/attendance/admin/sessions`,
+      requestConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve attendance."),
+      { cause: error },
+    );
+  }
+};

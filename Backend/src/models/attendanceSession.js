@@ -15,6 +15,9 @@ const attendanceEntrySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    studentGender: {
+      type: String,
+    },
     firstCall: {
       type: Boolean,
       default: false,
