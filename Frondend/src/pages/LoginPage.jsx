@@ -10,10 +10,52 @@ import {
 import { RiAdminFill } from "react-icons/ri";
 import { FiLogIn } from "react-icons/fi";
 import { RiArrowGoBackLine } from "react-icons/ri";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+
 const LoginPage = ({ theme, toggleTheme }) => {
   const [seePassword, setSeePassword] = useState(false);
+  const [role, setRole] = useState("admin");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const { data } = await axios.post(`${API_URL}/users/login`, {
+        role,
+        username: identifier,
+        password,
+      });
+
+      localStorage.setItem("accessToken", data.accessToken);
+      navigate(
+        role === "admin"
+          ? "/admin-dashboard"
+          : role === "teacher"
+            ? "/teacher-dashboard"
+            : "/student-portal",
+      );
+    } catch (loginError) {
+      setError(
+        loginError.response?.data?.message ||
+          loginError.message ||
+          "Unable to sign in.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div
       className={`min-h-screen ${
@@ -49,22 +91,34 @@ const LoginPage = ({ theme, toggleTheme }) => {
             <div>
               <h2 className="font-bold mb-2">ACCESS ROLE</h2>
               <div className="grid grid-cols-2 gap-2 justify-center">
-                <button className="btn btn-outline btn-active">
+                <button
+                  type="button"
+                  onClick={() => setRole("admin")}
+                  className={`btn btn-outline ${role === "admin" ? "btn-active" : ""}`}
+                >
                   <RiAdminFill size={18} />
                   Admin
                 </button>
-                <button className="btn btn-outline">
+                <button
+                  type="button"
+                  onClick={() => setRole("teacher")}
+                  className={`btn btn-outline ${role === "teacher" ? "btn-active" : ""}`}
+                >
                   <FaChalkboardTeacher size={18} />
                   Teacher
                 </button>
-                <button className="btn btn-outline">
+                <button
+                  type="button"
+                  onClick={() => setRole("student")}
+                  className={`btn btn-outline ${role === "student" ? "btn-active" : ""}`}
+                >
                   {" "}
                   <FaGraduationCap size={18} />
                   Student
                 </button>
               </div>
             </div>
-            <div className="card">
+            <form className="card" onSubmit={handleLogin}>
               <div className="form-control">
                 <label className="label" htmlFor="email">
                   <span className="label-text font-bold">
@@ -82,6 +136,9 @@ const LoginPage = ({ theme, toggleTheme }) => {
                     name="email"
                     className="input input-bordered pl-10 w-full"
                     placeholder="Enter your credentials"
+                    value={identifier}
+                    onChange={(event) => setIdentifier(event.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -94,7 +151,10 @@ const LoginPage = ({ theme, toggleTheme }) => {
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/70"
                   />
-                  <button onClick={() => setSeePassword(!seePassword)}>
+                  <button
+                    type="button"
+                    onClick={() => setSeePassword(!seePassword)}
+                  >
                     {seePassword ? (
                       <FaEyeSlash
                         size={18}
@@ -113,24 +173,35 @@ const LoginPage = ({ theme, toggleTheme }) => {
                     name="password"
                     className="input input-bordered pl-10 w-full"
                     placeholder="············"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
                   />
                 </div>
               </div>
               <Link className="flex justify-end text-primary">
                 Forgot Password?
               </Link>
-            </div>
-            <div className="card-actions justify-between my-4">
-              <Link className="btn btn-primary">
-                <FiLogIn size={18} />
-                Sign In to Dashboard
-              </Link>
-              <Link to="/" className="btn btn-primary">
-                {" "}
-                <RiArrowGoBackLine size={18} />
-                Home
-              </Link>
-            </div>
+              {error && (
+                <p role="alert" className="mt-2 text-sm text-error">
+                  {error}
+                </p>
+              )}
+              <div className="card-actions justify-between my-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn btn-primary"
+                >
+                  <FiLogIn size={18} />
+                  {isSubmitting ? "Signing in..." : "Sign In to Dashboard"}
+                </button>
+                <Link to="/" className="btn btn-primary">
+                  <RiArrowGoBackLine size={18} />
+                  Home
+                </Link>
+              </div>
+            </form>
           </div>
           <div className="w-full bg-base-content/10 p-4 rounded-b-lg">
             <div className="flex items-center gap-2 justify-center">

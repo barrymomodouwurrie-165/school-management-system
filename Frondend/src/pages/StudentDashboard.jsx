@@ -20,6 +20,9 @@ import ResultCheck from "../components/StudentSideBarComponents/ResultCheck";
 import ExamsContent from "../components/ExamsContent";
 import SideBarNav from "../components/StudentSideBarComponents/SideBarNav";
 import ViewResult from "../components/StudentSideBarComponents/ViewResult";
+import ReportStudent from "../components/StudentSideBarComponents/ReportStudent";
+import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestion";
+import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 
 const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
@@ -34,6 +37,9 @@ const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
     ai: AiAssistance,
     "check-result": ResultCheck,
     "exam-details": ExamsContent,
+    "report-student": ReportStudent,
+    suggestion: SendSuggestion,
+    complaint: SendComplaint,
   };
 
   const ActivePage = PAGES[activePage] && PAGES[activePage];
@@ -57,9 +63,9 @@ const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
       label: "Reports",
       icon: FaFlag,
       children: [
-        { id: "complain", label: "Complain" },
+        { id: "complaint", label: "Send Complaint" },
         { id: "report-student", label: "Report Student" },
-        { id: "suggestion", label: "Suggestion" },
+        { id: "suggestion", label: "Send Suggestion" },
       ],
     },
   ];

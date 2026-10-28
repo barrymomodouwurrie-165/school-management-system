@@ -1,37 +1,44 @@
 import { FaExclamationCircle, FaPaperPlane } from "react-icons/fa";
 import { useState } from "react";
-import dayjs from "dayjs";
+import { submitCommunication } from "../../utils/communicationApi";
 const ReportStudent = () => {
   const [idName, setIdName] = useState("");
-  const [category, setCategory] = useState("");
-  const [urgency, setUrgency] = useState("");
+  const [category, setCategory] = useState("Behaviour");
+  const [urgency, setUrgency] = useState("Standard");
   const [description, setDescription] = useState("");
   const [parent, setParent] = useState(false);
   const [counselor, setCounselor] = useState(false);
-  const [reports, setReports] = useState([]);
+  const [status, setStatus] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const date = dayjs().format("ddd, D MMM YYYY hh:mm A");
-    const newReport = {
-      id: crypto.randomUUID(),
-      studentIdentity: idName,
-      category,
-      urgency,
-      description,
-      involveGuardian: parent ? "Yes" : "No",
-      involveCounselor: counselor ? "Yes" : "No",
-      date,
-    };
-    setReports((prev) => [newReport, prev]);
-    setIdName("");
-    setCategory("");
-    setUrgency("");
-    setDescription("");
-    setParent(false);
-    setCounselor(false);
+    setIsSubmitting(true);
+    setStatus("");
+    try {
+      await submitCommunication({
+        type: "student-report",
+        studentIdentity: idName,
+        category,
+        urgency,
+        description,
+        involveGuardian: parent ? "Yes" : "No",
+        involveCounselor: counselor ? "Yes" : "No",
+      });
+      setIdName("");
+      setCategory("Behaviour");
+      setUrgency("Standard");
+      setDescription("");
+      setParent(false);
+      setCounselor(false);
+      setStatus("The report was sent to the school administration.");
+    } catch (error) {
+      setStatus(error.message || "Unable to submit the report.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  console.log(reports);
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex flex-col gap-1 rounded-md shadow-md px-2 pb-2">
@@ -43,7 +50,7 @@ const ReportStudent = () => {
         </p>
       </div>
       <div className="my-4 px-2 pb-4 rounded-md shadow-md">
-        <form action="">
+        <form onSubmit={handleSubmit}>
           <div className="form-control max-w-md">
             <label className="label" htmlFor="">
               <span className="label-text w-full flex items-center justify-between">
@@ -57,6 +64,7 @@ const ReportStudent = () => {
               placeholder="write student's ID or name"
               className="input input-bordered inout-sm rounded-md"
               type="text"
+              required
             />
           </div>
           <div className="grid grid-cols-2 gap-2 max-w-md">
@@ -68,6 +76,7 @@ const ReportStudent = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 value={category}
                 className="select select-bordered rounded-md select-sm"
+                required
                 name=""
                 id=""
               >
@@ -84,6 +93,7 @@ const ReportStudent = () => {
                 onChange={(e) => setUrgency(e.target.value)}
                 value={urgency}
                 className="select select-ghost select-sm rounded-md bg-blue-600 text-white"
+                required
                 name=""
                 id=""
               >
@@ -105,6 +115,7 @@ const ReportStudent = () => {
               value={description}
               placeholder="Describe what happened in detail (Observation, incident time, context, any immediate intervnetions taken)..."
               className="textarea textarea-bordered rounded-md max-w-md min-h-52"
+              required
               name=""
               id=""
             />
@@ -150,12 +161,18 @@ const ReportStudent = () => {
           </div>
           <div className="flex justify-end max-w-md my-2">
             <button
-              onClick={handleSubmit}
+              type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary btn-sm rounded-md"
             >
-              Submit report <FaPaperPlane />
+              {isSubmitting ? "Sending..." : "Submit report"} <FaPaperPlane />
             </button>
           </div>
+          {status && (
+            <p role="status" className="text-sm text-primary">
+              {status}
+            </p>
+          )}
         </form>
       </div>
     </div>

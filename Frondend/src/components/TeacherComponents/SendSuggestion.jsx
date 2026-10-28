@@ -1,37 +1,37 @@
 import { useState } from "react";
 import { FaPen, FaQuestion, FaLockOpen, FaPaperPlane } from "react-icons/fa";
-import dayjs from "dayjs";
+import { submitCommunication } from "../../utils/communicationApi";
 const SendSuggestion = () => {
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Curriculum");
   const [headline, setHeadline] = useState("");
   const [suggestion, setSuggestion] = useState("");
   const [isChecked, setIsChecked] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
+  const [status, setStatus] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  //   console.log(category);
-  //   console.log(headline);
-  //   console.log(suggestion);
-  //   console.log(isChecked);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const date = dayjs().format("ddd, D MMM YYYY hh:mm A");
-    const newSuggestion = {
-      id: crypto.randomUUID(),
-      date,
-      category,
-      headline,
-      suggestion,
-      isChecked: isChecked ? "Mr. N.A Mendy" : "",
-    };
-    setSuggestions((prev) => [newSuggestion, ...prev]);
-    setCategory("");
-    setHeadline("");
-    setSuggestion("");
-    setIsChecked(false);
+    setIsSubmitting(true);
+    setStatus("");
+    try {
+      await submitCommunication({
+        type: "suggestion",
+        category,
+        headline,
+        suggestion,
+        anonymous: !isChecked,
+      });
+      setCategory("Curriculum");
+      setHeadline("");
+      setSuggestion("");
+      setIsChecked(false);
+      setStatus("Your suggestion was sent to the school administration.");
+    } catch (error) {
+      setStatus(error.message || "Unable to send your suggestion.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  console.log(suggestions);
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -52,7 +52,7 @@ const SendSuggestion = () => {
             CONFIDENTIAL FLOW
           </span>
         </div>
-        <form action="">
+        <form onSubmit={handleSubmit}>
           <div className="form-control max-w-40 py-2">
             <label className="label" htmlFor="">
               <span className="label-text">Category / Topic Area</span>
@@ -63,6 +63,7 @@ const SendSuggestion = () => {
               className="select select-ghost bg-blue-600/10 text-blue-600 select-sm"
               name=""
               id=""
+              required
             >
               <option value="Curriculum">Curriculum</option>
               <option value="Facilities & Infrastructure">
@@ -85,6 +86,7 @@ const SendSuggestion = () => {
               type="text"
               name=""
               id=""
+              required
             />
           </div>
           <div className="form-control max-w-lg">
@@ -101,6 +103,7 @@ const SendSuggestion = () => {
               className="textarea textarea-bordered rounded-md max-w-lg min-h-52"
               name=""
               id=""
+              required
             />
             <p className="text-sm text-blue-600/70">
               Be specific about the department, logistical requirements, and
@@ -133,16 +136,33 @@ const SendSuggestion = () => {
               <p>Reviewed every Monday by Administrative Board</p>
             </span>
             <div className="flex items-center justify-between gap-2 mt-4">
-              <button className="btn btn-outline btn-sm rounded-md">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory("Curriculum");
+                  setHeadline("");
+                  setSuggestion("");
+                  setIsChecked(false);
+                  setStatus("");
+                }}
+                className="btn btn-outline btn-sm rounded-md"
+              >
                 Discard
               </button>
               <button
-                onClick={handleSubmit}
+                type="submit"
+                disabled={isSubmitting}
                 className="btn btn-primary btn-sm rounded-md"
               >
-                Send Suggestion <FaPaperPlane />
+                {isSubmitting ? "Sending..." : "Send Suggestion"}{" "}
+                <FaPaperPlane />
               </button>
             </div>
+            {status && (
+              <p role="status" className="text-sm text-primary">
+                {status}
+              </p>
+            )}
           </div>
         </form>
       </div>

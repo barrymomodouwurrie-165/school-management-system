@@ -7,6 +7,7 @@ import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
 import AcademicsContent from "../components/AcademicsContent";
+import AdminSubmissions from "../components/AdminSubmissions";
 import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
 import AsignStaffRole from "../components/AsignStaffRole";
@@ -22,6 +23,7 @@ import {
   FaUsers,
   FaSignOutAlt,
   FaTachometerAlt,
+  FaFlag,
 } from "react-icons/fa";
 
 const AdminDashboard = ({
@@ -46,6 +48,7 @@ const AdminDashboard = ({
     students: StudentsContent,
     staff: StaffContent,
     academics: AcademicsContent,
+    submissions: AdminSubmissions,
     "private-message": CommunicationsContent,
     "public-news": NewsComposePage,
   };
@@ -63,6 +66,7 @@ const AdminDashboard = ({
     { id: "students", label: "Students", logo: FaUsers },
     { id: "staff", label: "Staff", logo: FaUserTie },
     { id: "academics", label: "Academics", logo: FaBookOpen },
+    { id: "submissions", label: "Submissions", logo: FaFlag },
 
     {
       id: "message",
