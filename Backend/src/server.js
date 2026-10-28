@@ -28,21 +28,3 @@ connectDB().then(() => {
   });
 });
 
-// {
-//   "first_name": "Momodou",
-//     "last_name": "Barry",
-//     "gender": "Male",
-//     "nationality":"Gambian",
-//     "phone_number":"+220833986565",
-//     "email":"barrymomodou@gmail.com",
-//     "address":"Manjai Kunda",
-//     "ethnicity":"Fula",
-//     "marital_status":"Single",
-//     "staff_id":"20260010",
-//     "qualification":"Bachelor's Degree",
-//     "subject_taught":"Mathematics",
-//     "department":"Mathematics",
-//     "section":"Senior",
-//     "employment_type":"Full-time",
-//     "start_date":"02/05/2026",
-// }
