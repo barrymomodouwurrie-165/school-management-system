@@ -7,7 +7,7 @@ const AttendanceRoster = ({
 }) => {
   return (
     <div className="grid grid-cols-4 items-center text-sm md:text-base rounded-sm shadow-md mb-4 px-2 py-1 hover:bg-blue-600/10">
-      <span>{data.id}</span>
+      <span>{data.displayId ?? data.id}</span>
       <span className="text-xs md:text-base">{data.name}</span>
       <span className="pl-6">
         <input
