@@ -1,69 +1,12 @@
-const SubjectsContent = ({ addButton }) => {
-  const SUBJECTS_DATA = [
-    {
-      id: "1",
-      subject: "English Language",
-      subject_code: "ENG",
-      lead_teacher: "Mr. M.Jallow",
-      offered_at: "Both",
-    },
-    {
-      id: "2",
-      subject: "Mathematics",
-      subject_code: "MTH",
-      lead_teacher: "Ms. S.Njie",
-      offered_at: "Both",
-    },
-    {
-      id: "3",
-      subject: "Geography",
-      subject_code: "GEO",
-      lead_teacher: "Mr. E.Colley",
-      offered_at: "Senior",
-    },
-    {
-      id: "4",
-      subject: "G.Science",
-      subject_code: "GSC",
-      lead_teacher: "Mr. K.Samba",
-      offered_at: "Both",
-    },
-    {
-      id: "5",
-      subject: "Financial Accounting",
-      subject_code: "FAC",
-      lead_teacher: "Ms. O.Njie",
-      offered_at: "Senior",
-    },
-  ];
-  return addButton === "addSubject" ? (
-    <div>hello</div>
-  ) : (
-    <div className="rounded-md shadow-md">
-      <div className="grid grid-cols-4 text-base-content/70 text-sm m-2">
-        <span>SUBJECT</span>
-        <span>CODE</span>
-        <span>LEAD TEACHER</span>
-        <span>TAUGHT IN</span>
-      </div>
-      {SUBJECTS_DATA &&
-        SUBJECTS_DATA.map((data) => {
-          return (
-            <div
-              key={data.id}
-              className="grid grid-cols-4 text-sm border-t p-2"
-            >
-              <span>{data.subject}</span>
-              <span>{data.subject_code}</span>
-              <span>{data.lead_teacher}</span>
-              <span className="flex justify-center md:justify-start">
-                {data.offered_at}
-              </span>
-            </div>
-          );
-        })}
-    </div>
-  );
-};
+const SubjectsContent = () => (
+  <section className="rounded-lg border border-dashed p-8 text-center">
+    <h3 className="font-bold">Subjects are not configured yet</h3>
+    <p className="mx-auto mt-2 max-w-xl text-sm text-base-content/70">
+      Subject records will appear here after the subject list has been finalized
+      and seeded into the database. Staff subject assignments currently use the
+      available subject list in the staff assignment form.
+    </p>
+  </section>
+);
 
 export default SubjectsContent;

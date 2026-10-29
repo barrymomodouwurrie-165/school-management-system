@@ -134,3 +134,65 @@ export const registerStudent = async (student) => {
     );
   }
 };
+
+export const getAcademicClasses = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/classes`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve classes."),
+      { cause: error },
+    );
+  }
+};
+
+export const createAcademicClass = async (classroom) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/classes`,
+      classroom,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to create the class."),
+      { cause: error },
+    );
+  }
+};
+
+export const getAcademicExams = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/exams`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve exams."),
+      { cause: error },
+    );
+  }
+};
+
+export const createAcademicExam = async (exam) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/exams`,
+      exam,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to create the exam."),
+      { cause: error },
+    );
+  }
+};

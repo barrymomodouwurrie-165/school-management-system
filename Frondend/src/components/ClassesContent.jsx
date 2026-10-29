@@ -1,161 +1,249 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  createAcademicClass,
+  getAcademicClasses,
+} from "../utils/adminApi";
+
+const JUNIOR_PROGRAMS = [..."ABCDEFGHIJKLM"];
+const SENIOR_PROGRAMS = [
+  "Science",
+  "Arts",
+  "Commerce",
+  "Agric",
+  "Home Economics",
+  "Technical",
+];
 
 const ClassesContent = ({ addButton, setAddButton }) => {
-  const [classes, setClasses] = useState([
-    {
-      id: "1",
-      class: "Grade 7A",
-      section: "Junior",
-      class_teacher: "Mr. A.Jallow",
-      total_students: "60",
-    },
-    {
-      id: "2",
-      class: "Grade 7B",
-      section: "Junior",
-      class_teacher: "Ms. A.Njie",
-      total_students: "58",
-    },
-    {
-      id: "3",
-      class: "Grade 8A",
-      section: "Junior",
-      class_teacher: "Mr. N.Mendy",
-      total_students: "60",
-    },
-    {
-      id: "4",
-      class: "Grade 8B",
-      section: "Junior",
-      class_teacher: "Mr. K.Samba",
-      total_students: "55",
-    },
-    {
-      id: "5",
-      class: "Grade 9A",
-      section: "Junior",
-      class_teacher: "Ms. Z.Manga",
-      total_students: "60",
-    },
-  ]);
-  //   const [addedClass, setAddedClass] = useState({});
-  const [classs, setClasss] = useState("");
-  const [section, setSection] = useState("");
-  const [teacher, setTeacher] = useState("");
-  const [students, setStudents] = useState("");
+  const [classrooms, setClassrooms] = useState([]);
+  const [section, setSection] = useState("Junior");
+  const [grade, setGrade] = useState("");
+  const [program, setProgram] = useState("");
+  const [streamNumber, setStreamNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
 
-  const handleSubit = (e) => {
-    e.preventDefault();
-    const newClass = {
-      id: crypto.randomUUID(),
-      class: classs,
-      section: section,
-      class_teacher: teacher,
-      total_students: students,
+  useEffect(() => {
+    let active = true;
+    getAcademicClasses()
+      .then((result) => {
+        if (active) setClassrooms(result);
+      })
+      .catch((error) => {
+        if (active) {
+          setStatus({
+            type: "error",
+            message: error.message || "Unable to load classes.",
+          });
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
     };
-    setClasses((prev) => [newClass, ...prev]);
-    setClasss("");
-    setSection("");
-    setTeacher("");
-    setStudents("");
-    setAddButton("");
+  }, []);
+
+  const grades = section === "Junior" ? [7, 8, 9] : [10, 11, 12];
+  const programs = section === "Junior" ? JUNIOR_PROGRAMS : SENIOR_PROGRAMS;
+  const hasStream = section === "Senior" && program !== "Technical";
+
+  const handleSectionChange = (event) => {
+    const nextSection = event.target.value;
+    setSection(nextSection);
+    setGrade("");
+    setProgram("");
+    setStreamNumber("");
   };
 
-  return addButton === "addClass" ? (
-    <div className="rounded-md shadow-md p-4">
-      <form action="">
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span>Class Name</span>
-          </label>
-          <input
-            onChange={(e) => setClasss(e.target.value)}
-            value={classs}
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="text"
-          />
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span>Section</span>
-          </label>
-          <select
-            onChange={(e) => {
-              setSection(e.target.value);
-            }}
-            value={section}
-            className="select select-bordered rounded-md select-sm w-full md:w-1/3"
-            name=""
-            id=""
-          >
-            <option value="">Select</option>
-            <option value="Junior">Junior</option>
-            <option value="Senior">Senior</option>
-          </select>
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span>Class Teacher</span>
-          </label>
-          <input
-            onChange={(e) => setTeacher(e.target.value)}
-            value={teacher}
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="text"
-          />
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span>Number of Students</span>
-          </label>
-          <input
-            onChange={(e) => setStudents(e.target.value)}
-            value={students}
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="number"
-          />
-        </div>
-        <div className="flex items-center justify-between md:justify-normal gap-28 my-2">
-          <button
-            onClick={handleSubit}
-            className="btn btn-primary btn-sm rounded-md"
-          >
-            Add to Classes
-          </button>
-          <button
-            onClick={() => setAddButton("")}
-            className="btn btn-primary btn-sm rounded-md"
-          >
-            Back
-          </button>
-        </div>
-      </form>
-    </div>
-  ) : (
-    <div className="rounded-md shadow-md">
-      <div className="grid grid-cols-4 text-base-content/70 text-sm m-2">
-        <span>CLASS</span>
-        <span>SECTION</span>
-        <span>CLASS TEACHER</span>
-        <span>#STUDENTS</span>
-      </div>
+  const handleCreateClass = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setStatus({ type: "", message: "" });
+    try {
+      const result = await createAcademicClass({
+        grade,
+        section,
+        program,
+        stream_number: hasStream ? streamNumber : "",
+      });
+      setClassrooms((current) =>
+        [...current, result.classroom].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true }),
+        ),
+      );
+      setStatus({ type: "success", message: result.message });
+      setGrade("");
+      setProgram("");
+      setStreamNumber("");
+      setAddButton("");
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Unable to create the class.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-      {classes &&
-        classes.map((data) => {
-          return (
-            <div
-              key={data.id}
-              className="grid grid-cols-4 text-sm border-t p-2"
+  return (
+    <div>
+      {status.message && (
+        <p
+          role={status.type === "error" ? "alert" : "status"}
+          className={`mb-4 text-sm ${
+            status.type === "error" ? "text-error" : "text-success"
+          }`}
+        >
+          {status.message}
+        </p>
+      )}
+
+      {addButton === "addClass" ? (
+        <form
+          onSubmit={handleCreateClass}
+          className="space-y-3 rounded-md p-4 shadow-md"
+        >
+          <h3 className="font-bold">Create classroom</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="form-control">
+              <span className="label-text mb-1">Section</span>
+              <select
+                className="select select-bordered select-sm"
+                value={section}
+                onChange={handleSectionChange}
+                required
+              >
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
+              </select>
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1">Grade</span>
+              <select
+                className="select select-bordered select-sm"
+                value={grade}
+                onChange={(event) => setGrade(event.target.value)}
+                required
+              >
+                <option value="" disabled>
+                  Select grade
+                </option>
+                {grades.map((item) => (
+                  <option key={item} value={item}>
+                    Grade {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1">Program / class letter</span>
+              <select
+                className="select select-bordered select-sm"
+                value={program}
+                onChange={(event) => {
+                  setProgram(event.target.value);
+                  setStreamNumber("");
+                }}
+                required
+              >
+                <option value="" disabled>
+                  Select program
+                </option>
+                {programs.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {hasStream && (
+              <label className="form-control">
+                <span className="label-text mb-1">Stream</span>
+                <select
+                  className="select select-bordered select-sm"
+                  value={streamNumber}
+                  onChange={(event) => setStreamNumber(event.target.value)}
+                  required
+                >
+                  <option value="" disabled>
+                    Select stream
+                  </option>
+                  <option value="1">Stream 1</option>
+                  <option value="2">Stream 2</option>
+                </select>
+              </label>
+            )}
+          </div>
+          {grade && program && (
+            <p className="text-sm text-base-content/70">
+              Class name:{" "}
+              <strong>
+                Grade {grade} {program}
+                {hasStream && streamNumber ? ` ${streamNumber}` : ""}
+              </strong>
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={isSaving || (hasStream && !streamNumber)}
             >
-              <span>{data.class}</span>
-              <span>{data.section}</span>
-              <span>{data.class_teacher}</span>
-              <span className="flex justify-center md:justify-start">
-                {data.total_students}
-              </span>
-            </div>
-          );
-        })}
+              {isSaving ? "Creating..." : "Create class"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setAddButton("")}
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : isLoading ? (
+        <p role="status" className="py-8 text-center">
+          Loading classes...
+        </p>
+      ) : classrooms.length ? (
+        <div className="overflow-x-auto rounded-md shadow-md">
+          <table className="table table-zebra">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Class teacher</th>
+                <th>Students</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classrooms.map((classroom) => (
+                <tr key={classroom._id}>
+                  <td>{classroom.name}</td>
+                  <td>{classroom.section}</td>
+                  <td>
+                    {classroom.class_teacher
+                      ? `${classroom.class_teacher.first_name} ${classroom.class_teacher.last_name}`
+                      : "Not assigned"}
+                  </td>
+                  <td>{classroom.totalStudents}</td>
+                  <td>{classroom.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="rounded-md p-6 text-center text-base-content/70 shadow-md">
+          No classes have been created yet.
+        </p>
+      )}
     </div>
   );
 };

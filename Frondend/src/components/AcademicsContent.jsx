@@ -11,15 +11,8 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
   const [isActive, setIsActive] = useState("classes");
 
   const handleAddButton = () => {
-    if (isActive === "classes") {
-      setAddButton("addClass");
-    }
-    if (isActive === "subjects") {
-      setAddButton("addSubject");
-    }
-    if (isActive === "exams") {
-      setAddButton("addExam");
-    }
+    if (isActive === "classes") setAddButton("addClass");
+    if (isActive === "exams") setAddButton("addExam");
   };
   return (
     <div className="p-4">
@@ -33,25 +26,33 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
           </div>
         </div>
         <button
+          type="button"
           onClick={handleAddButton}
-          className="btn btn-primary btn-sm rounded-md flex justify-center"
+          disabled={isActive === "subjects"}
+          title={
+            isActive === "classes"
+              ? "Create a classroom"
+              : isActive === "exams"
+                ? "Create an exam"
+                : "Subjects are pending database setup"
+          }
+          className="btn btn-primary btn-sm flex justify-center rounded-md"
         >
-          {isActive === "classes" ? (
-            <span className="flex items-center gap-1">
-              <FaPlus />
-              Add Class
-            </span>
-          ) : isActive === "subjects" ? (
-            <span className="flex items-center gap-1">
-              <FaPlus />
-              Add Subject
-            </span>
-          ) : (
-            <span className="flex items-center gap-1">
-              <FaPlus />
-              Add Exam
-            </span>
-          )}
+          <span className="flex items-center gap-1">
+            {isActive === "classes" ? (
+              <>
+                <FaPlus />
+                Add Class
+              </>
+            ) : isActive === "subjects" ? (
+              "Subjects pending database setup"
+            ) : (
+              <>
+                <FaPlus />
+                Add Exam
+              </>
+            )}
+          </span>
         </button>
         <Link
           className="btn btn-ghost md:hidden"
@@ -64,19 +65,28 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
       </div>
       <div className="grid grid-cols-3 my-4">
         <button
-          onClick={() => setIsActive("classes")}
+          onClick={() => {
+            setIsActive("classes");
+            setAddButton("");
+          }}
           className={`border-b-2 ${isActive === "classes" ? "border-blue-950" : ""}`}
         >
           Classes
         </button>
         <button
-          onClick={() => setIsActive("subjects")}
+          onClick={() => {
+            setIsActive("subjects");
+            setAddButton("");
+          }}
           className={`border-b-2 ${isActive === "subjects" ? "border-blue-950" : ""}`}
         >
           Subjects
         </button>
         <button
-          onClick={() => setIsActive("exams")}
+          onClick={() => {
+            setIsActive("exams");
+            setAddButton("");
+          }}
           className={`border-b-2 ${isActive === "exams" ? "border-blue-950" : ""}`}
         >
           Exams

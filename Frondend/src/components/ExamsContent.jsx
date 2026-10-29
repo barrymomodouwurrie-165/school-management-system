@@ -1,175 +1,218 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createAcademicExam, getAcademicExams } from "../utils/adminApi";
+
+const formatDate = (value) => {
+  const date = String(value).slice(0, 10);
+  const [year, month, day] = date.split("-").map(Number);
+  if (!year || !month || !day) return "Invalid date";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+};
 
 const ExamsContent = ({ addButton, setAddButton }) => {
-  const [examTitle, setExamTitle] = useState("");
-  const [examDate, setExamDate] = useState("");
+  const [exams, setExams] = useState([]);
+  const [title, setTitle] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [section, setSection] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
 
-  const status = "Scheduled";
+  useEffect(() => {
+    let active = true;
+    getAcademicExams()
+      .then((result) => {
+        if (active) setExams(result);
+      })
+      .catch((error) => {
+        if (active) {
+          setStatus({
+            type: "error",
+            message: error.message || "Unable to load exams.",
+          });
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
 
-  const [exams, setExams] = useState([
-    {
-      id: "1",
-      exam: "First term Exam",
-      exam_date: "15th Nov to 5th Dec",
-      section: "Both",
-      status: "Scheduled",
-      color: "blue",
-    },
-    {
-      id: "2",
-      exam: "Grade 9 trial Exam",
-      exam_date: "1st April to 12th April",
-      section: "Junior",
-      status: "Scheduled",
-      color: "blue",
-    },
-
-    {
-      id: "3",
-      exam: "End of Second Term Exam",
-      exam_date: "16th July to 26th july",
-      section: "Both",
-      status: "Completed",
-      color: "green",
-    },
-    {
-      id: "4",
-      exam: "G12 Trials Examination",
-      exam_date: "5th April to 12th April",
-      section: "Senior",
-      status: "Completed",
-      color: "green",
-    },
-    {
-      id: "5",
-      exam: "WASSCE",
-      exam_date: "May 19 to June 30",
-      section: "Senior",
-      status: "Completed",
-      color: "green",
-    },
-  ]);
-
-  const handleSubmitExam = (e) => {
-    e.preventDefault();
-    const newExam = {
-      id: crypto.randomUUID(),
-      exam: examTitle,
-      exam_date: examDate,
-      section: section,
-      status: status,
-      color: "blue",
+    return () => {
+      active = false;
     };
-    setExams((prev) => [newExam, ...prev]);
-    setExamTitle("");
-    setExamDate("");
-    setSection("");
-    setAddButton("");
+  }, []);
+
+  const handleCreateExam = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setStatus({ type: "", message: "" });
+    try {
+      const result = await createAcademicExam({
+        title,
+        startDate,
+        endDate,
+        section,
+      });
+      setExams((current) =>
+        [...current, result.exam].sort(
+          (first, second) =>
+            new Date(first.startDate).getTime() -
+            new Date(second.startDate).getTime(),
+        ),
+      );
+      setStatus({ type: "success", message: result.message });
+      setTitle("");
+      setStartDate("");
+      setEndDate("");
+      setSection("");
+      setAddButton("");
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Unable to create the exam.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  return addButton === "addExam" ? (
-    <div className="rounded-md shadow-md p-2 m-2">
-      <form action="">
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span className="label-text">Exam Title</span>
-          </label>
-          <input
-            onChange={(e) => setExamTitle(e.target.value)}
-            value={examTitle}
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="text"
-            name=""
-            id=""
-          />
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span className="label-text">Exam duration</span>
-          </label>
-          <input
-            onChange={(e) => setExamDate(e.target.value)}
-            value={examDate}
-            placeholder="eg. May 2nd to June 30th"
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="text"
-            name=""
-            id=""
-          />
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span className="label-text">Section</span>
-          </label>
-          <select
-            onChange={(e) => setSection(e.target.value)}
-            value={section}
-            className="select select-bordered rounded-md select-sm w-full md:w-1/3"
-            name=""
-            id=""
-          >
-            <option value="">--Select--</option>
-            <option value="Junior">Junior</option>
-            <option value="Senior">Senior</option>
-            <option value="Both">Both</option>
-          </select>
-        </div>
-        <div className="form-control">
-          <label className="label" htmlFor="">
-            <span className="label-text">Exam status</span>
-          </label>
-          <input
-            readOnly
-            value={status}
-            className="input input-bordered rounded-md input-sm w-full md:w-1/3"
-            type="text"
-            name=""
-            id=""
-          />
-        </div>
-        <div className="flex items-center justify-between md:justify-normal gap-28 my-2">
-          <button
-            onClick={handleSubmitExam}
-            className="btn btn-primary btn-sm rounded-md"
-          >
-            Add to Exams
-          </button>
-          <button
-            onClick={() => setAddButton("")}
-            className="btn btn-primary btn-sm rounded-md"
-          >
-            Back
-          </button>
-        </div>
-      </form>
-    </div>
-  ) : (
-    <div className="rounded-md shadow-md p-2 m-2">
-      <div className="grid grid-cols-4 text-base-content/70 text-sm m-2">
-        <span>EXAM</span>
-        <span>DATES</span>
-        <span>SECTION</span>
-        <span>STATUS</span>
-      </div>
-      {exams &&
-        exams.map((data) => {
-          return (
-            <div
-              key={data.id}
-              className="grid grid-cols-4 gap-6 md:gap-0 text-xs md:text-sm border-t p-2"
-            >
-              <span>{data.exam}</span>
-              <span>{data.exam_date}</span>
-              <span>{data.section}</span>
-              <span
-                className={`bg-${data.color}-600 max-w-24 max-h-6 flex justify-center items-center rounded-md text-white`}
+  return (
+    <div>
+      {status.message && (
+        <p
+          role={status.type === "error" ? "alert" : "status"}
+          className={`mb-4 text-sm ${
+            status.type === "error" ? "text-error" : "text-success"
+          }`}
+        >
+          {status.message}
+        </p>
+      )}
+
+      {addButton === "addExam" ? (
+        <form
+          onSubmit={handleCreateExam}
+          className="space-y-3 rounded-md p-4 shadow-md"
+        >
+          <h3 className="font-bold">Add exam</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="form-control sm:col-span-2">
+              <span className="label-text mb-1">Exam title</span>
+              <input
+                type="text"
+                className="input input-bordered input-sm"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                maxLength={120}
+                required
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1">Start date</span>
+              <input
+                type="date"
+                className="input input-bordered input-sm"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                required
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1">End date</span>
+              <input
+                type="date"
+                className="input input-bordered input-sm"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(event) => setEndDate(event.target.value)}
+                required
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1">Section</span>
+              <select
+                className="select select-bordered select-sm"
+                value={section}
+                onChange={(event) => setSection(event.target.value)}
+                required
               >
-                {data.status}
-              </span>
-            </div>
-          );
-        })}
+                <option value="" disabled>
+                  Select section
+                </option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
+                <option value="Both">Both</option>
+              </select>
+            </label>
+          </div>
+          <p className="text-xs text-base-content/70">
+            Status is set automatically: Scheduled until the end date passes,
+            then Completed.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save exam"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setAddButton("")}
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : isLoading ? (
+        <p role="status" className="py-8 text-center">
+          Loading exams...
+        </p>
+      ) : exams.length ? (
+        <div className="overflow-x-auto rounded-md shadow-md">
+          <table className="table table-zebra">
+            <thead>
+              <tr>
+                <th>Exam</th>
+                <th>Start date</th>
+                <th>End date</th>
+                <th>Section</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exams.map((exam) => (
+                <tr key={exam._id}>
+                  <td>{exam.title}</td>
+                  <td>{formatDate(exam.startDate)}</td>
+                  <td>{formatDate(exam.endDate)}</td>
+                  <td>{exam.section}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        exam.status === "Completed"
+                          ? "badge-error"
+                          : "badge-success"
+                      }`}
+                    >
+                      {exam.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="rounded-md p-6 text-center text-base-content/70 shadow-md">
+          No exams have been added yet.
+        </p>
+      )}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import userRouter from "./routers/userRouter.js";
 import communicationRouter from "./routers/communicationRouter.js";
 import attendanceRouter from "./routers/attendanceRouter.js";
+import academicsRouter from "./routers/academicsRouter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,10 +22,10 @@ app.use(cookieParser());
 app.use("/api/users", userRouter);
 app.use("/api/communications", communicationRouter);
 app.use("/api/attendance", attendanceRouter);
+app.use("/api/academics", academicsRouter);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 });
-
