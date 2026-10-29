@@ -23,7 +23,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const TeacherDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
+const TeacherDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
 
@@ -144,7 +144,7 @@ const TeacherDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
           )}
         </div>
       </div>
-      <ActivePage messages={messages} setMessages={setMessages} />
+      <ActivePage />
     </div>
   );
 };

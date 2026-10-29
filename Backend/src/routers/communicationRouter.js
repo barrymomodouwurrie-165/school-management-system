@@ -211,9 +211,36 @@ communicationRouter.post("/announcements", async (req, res) => {
   }
 });
 
-communicationRouter.get("/announcements", async (_req, res) => {
+communicationRouter.get("/announcements", async (req, res) => {
+  let claims;
   try {
-    const announcements = await Announcement.find().sort({ sentAt: -1 });
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  const audienceByRole = {
+    teacher: "staff",
+    student: "students",
+  };
+  const audience = audienceByRole[claims.role];
+  if (claims.role !== "admin" && !audience) {
+    return res
+      .status(403)
+      .json({ message: "This account cannot view announcements." });
+  }
+
+  try {
+    const query =
+      claims.role === "admin"
+        ? {}
+        : { recipients: { $in: [audience, "all"] } };
+    const announcements = await Announcement.find(query)
+      .sort({ sentAt: -1 })
+      .limit(8)
+      .lean();
     return res.status(200).json(announcements);
   } catch (error) {
     console.error("Announcement retrieval failed:", error.message);
@@ -228,13 +255,37 @@ communicationRouter.post("/news", async (req, res) => {
   if (!author) return;
 
   const body = req.body && typeof req.body === "object" ? req.body : {};
+  const headline =
+    typeof body.headline === "string" ? body.headline.trim() : "";
+  const story = typeof body.story === "string" ? body.story.trim() : "";
+  const imageUrl =
+    typeof body.imageUrl === "string" ? body.imageUrl.trim() : "";
+  const publicationDate =
+    typeof body.publicationDate === "string"
+      ? new Date(`${body.publicationDate}T00:00:00.000Z`)
+      : null;
+
+  if (
+    !headline ||
+    !story ||
+    !publicationDate ||
+    Number.isNaN(publicationDate.getTime()) ||
+    publicationDate.toISOString().slice(0, 10) !== body.publicationDate
+  ) {
+    return res.status(400).json({
+      message: "Provide a headline, story, and valid publication date.",
+    });
+  }
+  if (imageUrl && imageUrl.length > 2048) {
+    return res.status(400).json({ message: "Image URL is too long." });
+  }
 
   try {
     const article = await NewsArticle.create({
-      headline: body.headline,
-      story: body.story,
-      publicationDate: body.publicationDate,
-      imageUrl: body.imageUrl,
+      headline,
+      story,
+      publicationDate,
+      ...(imageUrl ? { imageUrl } : {}),
     });
 
     return res.status(201).json(article);
@@ -252,7 +303,9 @@ communicationRouter.post("/news", async (req, res) => {
 
 communicationRouter.get("/news", async (_req, res) => {
   try {
-    const articles = await NewsArticle.find().sort({ publicationDate: -1 });
+    const articles = await NewsArticle.find()
+      .sort({ publicationDate: -1 })
+      .limit(5);
     return res.status(200).json(articles);
   } catch (error) {
     console.error("News article retrieval failed:", error.message);

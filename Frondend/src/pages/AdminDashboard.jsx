@@ -29,10 +29,6 @@ import {
 } from "react-icons/fa";
 
 const AdminDashboard = ({
-  latestNews,
-  setLatestNews,
-  messages,
-  setMessages,
   theme,
   toggleTheme,
 }) => {
@@ -171,8 +167,6 @@ const AdminDashboard = ({
         />
       ) : (
         <ActivePage
-          latestNews={latestNews}
-          setLatestNews={setLatestNews}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           assign={assign}
@@ -180,8 +174,6 @@ const AdminDashboard = ({
           staffName={staffName}
           setStaffName={setStaffName}
           setStaffId={setStaffId}
-          messages={messages}
-          setMessages={setMessages}
         />
       )}
     </div>

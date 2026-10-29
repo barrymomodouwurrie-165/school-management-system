@@ -24,7 +24,7 @@ import ReportStudent from "../components/StudentSideBarComponents/ReportStudent"
 import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestion";
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 
-const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
+const StudentDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
@@ -214,8 +214,6 @@ const StudentDashboard = ({ messages, setMessages, theme, toggleTheme }) => {
         <ViewResult viewResult={viewResult} setViewResult={setViewResult} />
       ) : (
         <ActivePage
-          messages={messages}
-          setMessages={setMessages}
           setViewResult={setViewResult}
           viewResult={viewResult}
           onBack={() => {

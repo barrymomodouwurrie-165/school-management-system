@@ -5,7 +5,7 @@ import Mainboday from "../components/Mainboday";
 import LatestNews from "../components/LatestNews";
 import Footer from "../components/Footer";
 
-const LandingPage = ({ latestNews, setLatestNews, theme, toggleTheme }) => {
+const LandingPage = ({ theme, toggleTheme }) => {
   return (
     <div
       className={
@@ -18,7 +18,7 @@ const LandingPage = ({ latestNews, setLatestNews, theme, toggleTheme }) => {
       <Header />
       <Statictics />
       <Mainboday />
-      <LatestNews latestNews={latestNews} setLatestNews={setLatestNews} />
+      <LatestNews />
       <Footer />
     </div>
   );

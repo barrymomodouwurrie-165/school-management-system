@@ -1,37 +1,63 @@
-import { FaPaperPlane } from "react-icons/fa";
-import SentMessages from "./SentMessages";
+import { useEffect, useState } from "react";
+import { FaBars, FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router";
-import { FaBars } from "react-icons/fa";
-import { useState } from "react";
-import dayjs from "dayjs";
-const CommunicationsContent = ({
-  isOpen,
-  setIsOpen,
-  messages,
-  setMessages,
-}) => {
-  const [sentBy, setSentBy] = useState("");
-  const [subject, setSubject] = useState("");
-  const [text, setText] = useState("");
-  const [sentTo, setSentTo] = useState("");
-  
+import {
+  createAnnouncement,
+  getAnnouncements,
+} from "../utils/communicationApi";
+import SentMessages from "./SentMessages";
 
-  const handleSendButton = (e) => {
-    e.preventDefault();
-    const date = dayjs().format("MMMM DD");
-    const newMessage = {
-      id: crypto.randomUUID(),
-      send_from: sentBy,
-      send_to: sentTo,
-      subject,
-      text,
-      date,
+const CommunicationsContent = ({ isOpen, setIsOpen }) => {
+  const [subject, setSubject] = useState("");
+  const [content, setContent] = useState("");
+  const [recipient, setRecipient] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getAnnouncements()
+      .then((announcements) => {
+        if (active) setMessages(announcements);
+      })
+      .catch((loadFailure) => {
+        if (active) setLoadError(loadFailure.message);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
     };
-    setMessages((prev) => [newMessage, ...prev]);
-    setSentBy("");
-    setSentTo("");
-    setSubject("");
-    setText("");
+  }, []);
+
+  const handleSend = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    setIsSending(true);
+
+    try {
+      const announcement = await createAnnouncement({
+        subject: subject.trim(),
+        content: content.trim(),
+        recipients: [recipient],
+      });
+      setMessages((current) => [announcement, ...current].slice(0, 8));
+      setSubject("");
+      setContent("");
+      setRecipient("");
+      setSuccess("Announcement sent successfully.");
+    } catch (sendFailure) {
+      setError(sendFailure.message);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -45,9 +71,7 @@ const CommunicationsContent = ({
         </div>
         <Link
           className="btn btn-ghost md:hidden"
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
+          onClick={() => setIsOpen(!isOpen)}
         >
           <FaBars size={24} />
         </Link>
@@ -55,83 +79,86 @@ const CommunicationsContent = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <div className="rounded-md shadow-md p-2 self-start">
           <h2 className="font-bold">New announcement</h2>
-          <form action="">
+          <form onSubmit={handleSend}>
             <div className="form-control">
-              <label className="label" htmlFor="">
-                <span className="label-text">From</span>
-              </label>
-              <input
-                onChange={(e) => setSentBy(e.target.value)}
-                value={sentBy}
-                className="input input-bordered rounded-md "
-                type="text"
-              />
-            </div>
-            <div className="form-control">
-              <label className="label" htmlFor="">
+              <label className="label" htmlFor="announcement-recipient">
                 <span className="label-text">Send to</span>
               </label>
               <select
-                onChange={(e) => setSentTo(e.target.value)}
-                value={sentTo}
-                className="select select-bordered rounded-md "
-                name="send_to"
-                id=""
+                id="announcement-recipient"
+                value={recipient}
+                onChange={(event) => setRecipient(event.target.value)}
+                className="select select-bordered rounded-md"
+                required
               >
-                <option value="Guardians">Guardians</option>
-                <option value="Staff">Staff</option>
-                <option value="Students">Students</option>
-                <option value="All">All</option>
+                <option value="" disabled>
+                  Select a recipient group
+                </option>
+                <option value="guardians">Guardians</option>
+                <option value="staff">Staff</option>
+                <option value="students">Students</option>
+                <option value="all">All audiences</option>
               </select>
             </div>
             <div className="form-control">
-              <label className="label" htmlFor="">
+              <label className="label" htmlFor="announcement-subject">
                 <span className="label-text">Subject</span>
               </label>
               <input
-                onChange={(e) => setSubject(e.target.value)}
+                id="announcement-subject"
                 value={subject}
-                placeholder="eg. Term meeting"
-                className="input input-bordered rounded-md "
+                onChange={(event) => setSubject(event.target.value)}
+                placeholder="e.g. Term meeting"
+                className="input input-bordered rounded-md"
                 type="text"
+                maxLength={200}
+                required
               />
             </div>
             <div className="form-control">
-              <label className="label" htmlFor="">
+              <label className="label" htmlFor="announcement-content">
                 <span className="label-text">Message</span>
               </label>
               <textarea
-                onChange={(e) => setText(e.target.value)}
-                value={text}
-                className="input input-bordered rounded-md  h-32 max-h-32"
-                type="text"
-                placeholder="write your message here..."
+                id="announcement-content"
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                className="textarea textarea-bordered rounded-md h-32 max-h-32"
+                placeholder="Write your message here..."
+                required
               />
             </div>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+            <div className="flex justify-end my-4">
+              <button
+                type="submit"
+                disabled={isSending}
+                className="btn btn-primary btn-sm rounded-md"
+              >
+                <FaPaperPlane />
+                {isSending ? "Sending..." : "Send announcement"}
+              </button>
+            </div>
           </form>
-          <div className="flex justify-end my-4">
-            <button
-              onClick={handleSendButton}
-              className="btn btn-primary btn-sm rounded-md"
-            >
-              <FaPaperPlane />
-              Send announcement
-            </button>
-          </div>
         </div>
         <div className="p-2">
           <h2 className="font-bold">Most recently sent announcements</h2>
-          {messages &&
-            messages.map((message) => {
-              return (
-                <div
-                  key={message.id}
-                  className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
-                >
-                  <SentMessages message={message} />;
-                </div>
-              );
-            })}
+          {loadError && <p role="alert">{loadError}</p>}
+          {isLoading ? (
+            <p>Loading announcements...</p>
+          ) : !messages.length && !loadError ? (
+            <p>No announcements have been sent yet.</p>
+          ) : (
+            messages.map((message) => (
+              <div
+                key={message._id}
+                className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
+              >
+                <SentMessages message={message} />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
