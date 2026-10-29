@@ -13,6 +13,33 @@ const getAdminConfig = () => {
 const getErrorMessage = (error, fallbackMessage) =>
   error.response?.data?.message || error.message || fallbackMessage;
 
+export const getAdminStaff = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/users/staff`, getAdminConfig());
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve staff records."),
+      { cause: error },
+    );
+  }
+};
+
+export const getAdminStudents = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/users/students`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve student records."),
+      { cause: error },
+    );
+  }
+};
+
 export const registerStaff = async (staff) => {
   try {
     const response = await axios.post(

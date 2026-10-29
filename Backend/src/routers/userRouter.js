@@ -13,6 +13,61 @@ import studentRegister from "../controllers/studentRegister.js";
 
 const userRouter = express.Router();
 
+const isAdminRequest = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return false;
+  }
+
+  if (claims.role !== "admin") {
+    res.status(403).json({ message: "Only administrators can access user records." });
+    return false;
+  }
+
+  return true;
+};
+
+userRouter.get("/staff", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+
+  try {
+    const staff = await StaffUser.find()
+      .select(
+        "first_name last_name gender nationality phone_number email staff_id qualification subject_taught department section employment_type start_date staff_position profile_image assigned_classes",
+      )
+      .sort({ last_name: 1, first_name: 1 })
+      .lean();
+
+    return res.status(200).json(staff);
+  } catch (error) {
+    console.error("Staff list retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve staff records." });
+  }
+});
+
+userRouter.get("/students", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+
+  try {
+    const students = await StudentUser.find()
+      .select(
+        "student_id first_name last_name gender nationality ethnicity date_of_birth section class enrollment_date guardian_name guardian_phone guardian_address status",
+      )
+      .sort({ last_name: 1, first_name: 1 })
+      .lean();
+
+    return res.status(200).json(students);
+  } catch (error) {
+    console.error("Student list retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve student records." });
+  }
+});
+
 userRouter.post("/staff/register", staffRegister);
 
 userRouter.post("/students/register", studentRegister);

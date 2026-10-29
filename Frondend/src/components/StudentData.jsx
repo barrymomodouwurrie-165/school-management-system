@@ -1,9 +1,16 @@
 import { Link } from "react-router";
-import { FaEye, FaEyeSlash, FaPen } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
 
 const StudentData = ({ data }) => {
   const [isView, setIsView] = useState(false);
+  const statusColor =
+    data.color === "green"
+      ? "bg-green-600"
+      : data.color === "yellow"
+        ? "bg-amber-500"
+        : "bg-slate-500";
+
   return (
     <div key={data.id} className="grid grid-cols-6 gap-4 text-xs md:text-base px-2 py-3 border-t">
       <span className="">{data.student_name}</span>
@@ -11,16 +18,17 @@ const StudentData = ({ data }) => {
       <span>{data.section}</span>
       <span>{data.guardian_name}</span>
       <div
-        className={`${data.color === "green" ? "bg-green-600" : "bg-red-600"} flex justify-center w-[80px] h-[25px] md:w-[100px]  md:h-[25px] rounded-md text-sm text-white`}
+        className={`${statusColor} flex h-[25px] w-[80px] justify-center rounded-md text-sm text-white md:w-[100px]`}
       >
         {data.status}
       </div>
       <div className="flex items-end md:items-start justify-end gap-4 flex-col md:justify-start">
-        <Link onClick={() => setIsView(!isView)} className="max-w-[20px]">
+        <Link
+          onClick={() => setIsView(!isView)}
+          className="max-w-[20px]"
+          aria-label={`${isView ? "Hide" : "View"} details for ${data.student_name}`}
+        >
           {isView ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
-        </Link>
-        <Link className="max-w-[20px]">
-          <FaPen size={12} />
         </Link>
       </div>
       {isView && (

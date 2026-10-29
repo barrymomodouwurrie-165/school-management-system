@@ -1,6 +1,11 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import StaffContentCard from "./StaffContentCard";
 import { FaBars } from "react-icons/fa";
+import StaffContentCard from "./StaffContentCard";
+import { getAdminStaff } from "../utils/adminApi";
+
+const getInitials = (staff) =>
+  `${staff.first_name?.[0] ?? ""}${staff.last_name?.[0] ?? ""}`.toUpperCase();
 
 const StaffContent = ({
   isOpen,
@@ -10,218 +15,128 @@ const StaffContent = ({
   setStaffName,
   setStaffId,
 }) => {
-  const STAFF_DATA = [
-    {
-      id: "1",
-      staff_id: "100001",
-      initials: "AJ",
-      staff_name: "Mr. A.Jallow",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "Mathematics",
-      email: "a.jallow@school.com",
-      phone: "+220833986565",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "2",
-      staff_id: "100002",
-      initials: "NF",
-      staff_name: "Mrs. N.Faye",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "Integrated Science",
-      email: "n.faye@school.com",
-      phone: "+220833512298",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "3",
-      staff_id: "100003",
-      initials: "KD",
-      staff_name: "Mr. K.Darboe",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Head of department",
-      department: "Mathematics",
-      email: "k.darboe@school.com",
-      phone: "+220877123845",
-      section: "Senior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "4",
-      staff_id: "100004",
-      initials: "FC",
-      staff_name: "Ms. F.Camara",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "English Language",
-      email: "f.camara@school.com",
-      phone: "+220866237761",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "5",
-      staff_id: "100005",
-      initials: "SN",
-      staff_name: "Mr. S.Njie",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Administrator",
-      department: "Front Office",
-      email: "s.njie@school.com",
-      phone: "+2208335687921",
-      section: "Both",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "6",
-      staff_id: "100006",
-      initials: "BC",
-      staff_name: "Mr. B.Colley",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Support staff",
-      department: "Facilities",
-      email: "b.colley@school.com",
-      phone: "+2208776659874",
-      section: "Both",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "7",
-      staff_id: "100007",
-      initials: "MJ",
-      staff_name: "Mrs. M.Jobe",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "English",
-      email: "m.jobe@school.com",
-      phone: "+220872543219",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "8",
-      staff_id: "100008",
-      initials: "AT",
-      staff_name: "Ms. A.Touray",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "French",
-      email: "barrywurrytouray@gmail.com",
-      phone: "+220833281347",
-      section: "Senior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "9",
-      staff_id: "100009",
-      initials: "OS",
-      staff_name: "Mr. O.Sowe",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "Physical Education",
-      email: "o.sowe@school.com",
-      phone: "+220866298534",
-      section: "Both",
-      data: "05/08/2026",
-    },
-    {
-      id: "10",
-      staff_id: "100010",
-      initials: "IC",
-      staff_name: "Mrs. I.Ceesay",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Head of department",
-      department: "G.Science",
-      email: "i.ceesay@school.com",
-      phone: "+220833476190",
-      section: "Senior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "11",
-      staff_id: "100011",
-      initials: "LM",
-      staff_name: "Mr. L.Manneh",
-      gender: "Male",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "Art",
-      email: "l.manneh@school.com",
-      phone: "+220877845213",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-    {
-      id: "12",
-      staff_id: "100012",
-      initials: "HB",
-      staff_name: "Mrs. H.Bah",
-      gender: "Female",
-      nationality: "Gambian",
-      role: "Teacher",
-      department: "G.Agriculture",
-      email: "h.bah@school.com",
-      phone: "+220866297481",
-      section: "Junior",
-      start_date: "05/08/2026",
-    },
-  ];
+  const [staff, setStaff] = useState([]);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getAdminStaff()
+      .then((result) => {
+        if (active) setStaff(result);
+      })
+      .catch((requestError) => {
+        if (active) {
+          setError(requestError.message || "Unable to load staff records.");
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibleStaff = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return staff;
+
+    return staff.filter((member) =>
+      [
+        `${member.first_name ?? ""} ${member.last_name ?? ""}`,
+        member.first_name,
+        member.last_name,
+        member.staff_id,
+        member.email,
+        member.department,
+        member.staff_position,
+        member.subject_taught,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [staff, search]);
+
+  const staffCards = visibleStaff.map((member) => ({
+    ...member,
+    id: member._id,
+    initials: getInitials(member),
+    staff_name: `${member.first_name} ${member.last_name}`,
+    role: member.staff_position,
+    phone: member.phone_number,
+  }));
+
   return (
     <div className="p-3">
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
           <h2 className="text-lg font-bold">STAFF DATA</h2>
-          <p className="text-base-content/70">12 staff members shown</p>
+          <p className="text-base-content/70">
+            {isLoading
+              ? "Loading staff records..."
+              : `${visibleStaff.length} of ${staff.length} staff members shown`}
+          </p>
         </div>
         <Link
           className="btn btn-ghost md:hidden"
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
+          onClick={() => setIsOpen(!isOpen)}
         >
           <FaBars size={24} />
         </Link>
       </div>
       <div className="flex items-center">
-        <div className="flex-1 max-w-[500px] mr-2">
+        <div className="mr-2 max-w-[500px] flex-1">
           <input
-            type="text"
-            placeholder="search name or department"
-            className="input input-bordered w-full  rounded-lg"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search name, ID, email or department"
+            aria-label="Search staff"
+            className="input input-bordered w-full rounded-lg"
           />
         </div>
-        <button className="btn btn-outline rounded-lg">Show all</button>
+        <button
+          type="button"
+          className="btn btn-outline rounded-lg"
+          onClick={() => setSearch("")}
+        >
+          Show all
+        </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 my-4">
-        {STAFF_DATA &&
-          STAFF_DATA.map((data) => {
-            return (
-              <div key={data.id} className="card self-start shadow-md p-3">
-                <StaffContentCard
-                  data={data}
-                  assign={assign}
-                  setAssign={setAssign}
-                  setStaffName={setStaffName}
-                  setStaffId={setStaffId}
-                />
-              </div>
-            );
-          })}
-      </div>
+
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-error">
+          {error}
+        </p>
+      )}
+      {isLoading ? (
+        <p role="status" className="py-8 text-center">
+          Loading staff records...
+        </p>
+      ) : staffCards.length ? (
+        <div className="my-4 grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+          {staffCards.map((data) => (
+            <div key={data.id} className="card self-start p-3 shadow-md">
+              <StaffContentCard
+                data={data}
+                assign={assign}
+                setAssign={setAssign}
+                setStaffName={setStaffName}
+                setStaffId={setStaffId}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="my-4 rounded-lg p-6 text-center text-base-content/70 shadow-md">
+          {staff.length
+            ? "No staff match your search."
+            : "No staff records have been registered yet."}
+        </p>
+      )}
     </div>
   );
 };

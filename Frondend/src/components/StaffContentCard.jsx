@@ -36,8 +36,9 @@ const StaffContentCard = ({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-t mt-2 py-2">
         <button
           onClick={() => {
-            (setAssign(!assign),
-              setStaffName(data.staff_name, setStaffId(data.staff_id)));
+            setAssign(!assign);
+            setStaffName(data.staff_name);
+            setStaffId(data.staff_id);
           }}
           className="btn btn-outline btn-sm max-w-20"
         >
