@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 const getAdminConfig = () => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {
-    throw new Error("Please sign in as an admin before registering users.");
+    throw new Error("Please sign in as an admin to manage user records.");
   }
   return { headers: { Authorization: `Bearer ${accessToken}` } };
 };
@@ -25,6 +25,22 @@ export const getAdminStaff = async () => {
   }
 };
 
+export const updateAdminStaff = async (staffId, staff) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/staff/${encodeURIComponent(staffId)}`,
+      staff,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update staff details."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAdminStudents = async () => {
   try {
     const response = await axios.get(
@@ -35,6 +51,37 @@ export const getAdminStudents = async () => {
   } catch (error) {
     throw new Error(
       getErrorMessage(error, "Unable to retrieve student records."),
+      { cause: error },
+    );
+  }
+};
+
+export const getStaffAssignments = async (staffId) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/users/staff/${encodeURIComponent(staffId)}/assignments`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve staff assignments."),
+      { cause: error },
+    );
+  }
+};
+
+export const updateStaffAssignments = async (staffId, assignments) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/staff/${encodeURIComponent(staffId)}/assignments`,
+      assignments,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update staff assignments."),
       { cause: error },
     );
   }

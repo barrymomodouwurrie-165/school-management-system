@@ -1,286 +1,282 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import {
+  getStaffAssignments,
+  updateStaffAssignments,
+} from "../utils/adminApi";
 
-const AsignStaffRole = ({ assign, setAssign, staffName, staffId }) => {
-  const QUALIFICATIONS_ITEMS = [
-    "PTC",
-    "HTC",
-    "Diploma",
-    "BSc Degree",
-    "Master's Degree",
-    "PhD",
-  ];
-  const SUBJECTS = [
-    "Mathematics",
-    "English Language",
-    "G.Science",
-    "Civic",
-    "Agricultural Science",
-    "F.Accounting",
-    "C.Accounting",
-    "Physics",
-    "Government",
-    "History",
-    "Geogrpahy",
-    "Biology",
-    "Chemistry",
-    "S.E.S",
-    "Literature",
-    "I.R.k",
-  ];
-  const CLASSES = [
-    "7A",
-    "7B",
-    "7C",
-    "8A",
-    "8B",
-    "8C",
-    "9A",
-    "9B",
-    "9C",
-    "10A",
-    "10B",
-    "11A",
-    "11B",
-    "12A",
-    "12B",
-  ];
-  const [selected, setSelected] = useState("");
-  const [qualifications, setQualifications] = useState([]);
-  const [subjectSelected, setSubjectSelected] = useState("");
-  const [subjects, setSubjects] = useState([]);
-  const [classSelected, setClassSelected] = useState("");
+const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   const [classes, setClasses] = useState([]);
-  const [assigned, setAssigned] = useState("");
+  const [subjects, setSubjects] = useState([]);
   const [assignedClasses, setAssignedClasses] = useState([]);
+  const [assignedSubjects, setAssignedSubjects] = useState([]);
+  const [classTeacherClasses, setClassTeacherClasses] = useState([]);
+  const [staffPosition, setStaffPosition] = useState("Teacher");
+  const [department, setDepartment] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
 
-  const HandleQualificationChange = (e) => {
-    const value = e.target.value;
-    if (!value) return;
+  useEffect(() => {
+    let active = true;
+    getStaffAssignments(staffId)
+      .then((result) => {
+        if (!active) return;
+        setClasses(result.classes);
+        setSubjects(result.subjects);
+        setAssignedClasses(result.staff.assigned_classes ?? []);
+        setAssignedSubjects(
+          result.staff.assigned_subjects ??
+            (result.staff.subject_taught ? [result.staff.subject_taught] : []),
+        );
+        setClassTeacherClasses(result.classTeacherClasses);
+        setStaffPosition(result.staff.staff_position);
+        setDepartment(result.staff.department);
+      })
+      .catch((error) => {
+        if (active) {
+          setStatus({
+            type: "error",
+            message: error.message || "Unable to load staff assignments.",
+          });
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
 
-    setQualifications((prev) =>
-      prev.includes(value) ? prev : [...prev, value],
+    return () => {
+      active = false;
+    };
+  }, [staffId]);
+
+  const toggleValue = (value, setSelected) => {
+    setSelected((current) =>
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
     );
-    setSelected("");
-  };
-  const RemoveQualification = (item) => {
-    setQualifications((prev) => prev.filter((q) => q !== item));
   };
 
-  const HandleSubjectChange = (e) => {
-    const value = e.target.value;
-    if (!value) return;
-
-    setSubjects((prev) => (prev.includes(value) ? prev : [...prev, value]));
-    setSubjectSelected("");
-  };
-  const RemoveSubject = (item) => {
-    setSubjects((prev) => prev.filter((q) => q !== item));
-  };
-  const HandleClassChange = (e) => {
-    const value = e.target.value;
-    if (!value) return;
-    setClasses((prev) => (prev.includes(value) ? prev : [...prev, value]));
-    setAssigned("");
-
-    setClassSelected("");
-  };
-  const RemoveClass = (item) => {
-    setClasses((prev) => prev.filter((q) => q !== item));
-  };
-  const HandleAssignedClassChange = (e) => {
-    const value = e.target.value;
-    if (!value) return;
-    setAssignedClasses((prev) =>
-      prev.includes(value) ? prev : [...prev, value],
-    );
-
-    setAssigned("");
-  };
-  const RemoveAssignedClass = (item) => {
-    setAssignedClasses((prev) => prev.filter((q) => q !== item));
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setStatus({ type: "", message: "" });
+    try {
+      const result = await updateStaffAssignments(staffId, {
+        assignedClasses,
+        assignedSubjects,
+        classTeacherClasses,
+        staffPosition,
+      });
+      setStatus({
+        type: "success",
+        message: result.message || "Staff assignments updated successfully.",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Unable to update staff assignments.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="max-w-3xl m-auto p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-bold">
-          Add to {staffName}({staffId}) profile
-        </h2>
+    <main className="mx-auto max-w-4xl p-4">
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-bold">
+            Assign {staffName} ({staffId})
+          </h1>
+          <p className="text-sm text-base-content/70">
+            Manage teaching classes, subjects, department leadership, and
+            class-teacher duties.
+          </p>
+        </div>
         <button
-          className="btn btn-primary btn-sm rounded-md"
-          onClick={() => setAssign(!assign)}
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => setAssign(false)}
         >
-          back
+          Back
         </button>
-      </div>
-      <div className="my-4 shadow-md rounded-md p-4 max-w-3xl m-auto">
-        <h2 className="font-bold mb-4">Add Qualification(s)</h2>
+      </header>
 
-        <select
-          onChange={HandleQualificationChange}
-          value={selected}
-          className="select select-bordered select-sm rounded-md"
-          name=""
-          id=""
+      {status.message && (
+        <p
+          role={status.type === "error" ? "alert" : "status"}
+          className={`my-4 text-sm ${
+            status.type === "error" ? "text-error" : "text-success"
+          }`}
         >
-          <option value="">Select</option>
-          {QUALIFICATIONS_ITEMS.map((item) => {
-            return (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            );
-          })}
-        </select>
-        <div className="flex items-center gap-2 mt-4">
-          {qualifications.length === 0 && (
-            <p className="text-base-content/70">No qualifications selected!</p>
-          )}
-          {qualifications.map((item) => {
-            return (
-              <div key={item} className="">
-                <span className="relative border bg-green-600/10 p-1 rounded-md min-w-20 flex justify-center">
-                  {item}
-                  <button
-                    onClick={() => {
-                      RemoveQualification(item);
-                    }}
-                    className="absolute top-0 left-[88%] text-red-600"
-                  >
-                    <FaTimes />
-                  </button>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div className="my-4 shadow-md rounded-md p-4 max-w-3xl m-auto">
-        <h2 className="font-bold mb-4">Assign Subject(s)</h2>
-        <select
-          onChange={HandleSubjectChange}
-          value={subjectSelected}
-          className="select select-bordered select-sm rounded-md"
-          name=""
-          id=""
-        >
-          <option value="">Select</option>
-          {SUBJECTS.map((item) => {
-            return (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            );
-          })}
-        </select>
-        <div className="flex items-center gap-2 mt-4">
-          {subjects.length === 0 && (
-            <p className="text-base-content/70">No subject selected yet!</p>
-          )}
-          {subjects &&
-            subjects.map((item) => {
-              return (
-                <span className="relative border bg-green-600/10 p-1 rounded-md min-w-20 flex justify-center">
-                  {item}
-                  <button
-                    onClick={() => {
-                      RemoveSubject(item);
-                    }}
-                    className="absolute top-0 left-[88%] text-red-600"
-                  >
-                    <FaTimes />
-                  </button>
-                </span>
+          {status.message}
+        </p>
+      )}
+
+      {isLoading ? (
+        <p role="status" className="py-8 text-center">
+          Loading staff assignments...
+        </p>
+      ) : status.type === "error" ? (
+        <p className="py-6 text-sm text-base-content/70">
+          Assignments could not be loaded. Go back and try again before making
+          changes.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <section className="rounded-md p-4 shadow-md">
+            <h2 className="mb-3 font-bold">Staff position</h2>
+            <label className="flex max-w-sm flex-col gap-1 text-sm">
+              <span>Position</span>
+              <select
+                className="select select-bordered select-sm"
+                value={staffPosition}
+                onChange={(event) => setStaffPosition(event.target.value)}
+              >
+                {["Teacher", "H.O.D", "H.O.B", "Admin"].map((position) => (
+                  <option key={position} value={position}>
+                    {position === "H.O.D"
+                      ? `Head of Department - ${position}`
+                      : position}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {staffPosition === "H.O.D" && (
+              <p className="mt-2 text-sm text-base-content/70">
+                Department: {department}
+              </p>
+            )}
+          </section>
+
+          <SelectionSection
+            title="Assign teaching classes"
+            items={classes.map((classroom) => classroom.name)}
+            selected={assignedClasses}
+            onToggle={(value) => toggleValue(value, setAssignedClasses)}
+            emptyMessage="No active classes are available."
+          />
+
+          <SelectionSection
+            title="Assign subjects to teach"
+            items={subjects}
+            selected={assignedSubjects}
+            onToggle={(value) => toggleValue(value, setAssignedSubjects)}
+            emptyMessage="No subjects are configured."
+          />
+
+          <SelectionSection
+            title="Make class teacher"
+            items={classes.map((classroom) => classroom.name)}
+            selected={classTeacherClasses}
+            onToggle={(value) => toggleValue(value, setClassTeacherClasses)}
+            getDescription={(className) => {
+              const classroom = classes.find((item) => item.name === className);
+              if (!classroom?.classTeacher) return "No class teacher assigned";
+              if (classroom.classTeacher.staffId === staffId) {
+                return "Currently assigned to this staff member";
+              }
+              return `Assigned to ${classroom.classTeacher.name}`;
+            }}
+            isDisabled={(className) => {
+              const classroom = classes.find((item) => item.name === className);
+              return Boolean(
+                classroom?.classTeacher &&
+                  classroom.classTeacher.staffId !== staffId,
               );
-            })}
-        </div>
-      </div>
-      <div className="my-4 shadow-md rounded-md p-4 max-w-3xl m-auto">
-        <h2 className="font-bold mb-4">Assign Class(es)</h2>
-        <select
-          onChange={HandleClassChange}
-          value={classSelected}
-          className="select select-bordered select-sm rounded-md"
-          name=""
-          id=""
-        >
-          <option value="">Select</option>
-          {CLASSES.map((item) => {
-            return (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            );
-          })}
-        </select>
-        <div className="flex items-center gap-2 mt-4">
-          {classes.length === 0 && (
-            <p className="text-base-content/70">No class selected yet!</p>
-          )}
-          {classes &&
-            classes.map((item) => {
-              return (
-                <span className="relative border bg-green-600/10 p-1 rounded-md min-w-20 flex justify-center">
-                  {item}
-                  <button
-                    onClick={() => {
-                      RemoveClass(item);
-                    }}
-                    className="absolute top-0 left-[88%] text-red-600"
-                  >
-                    <FaTimes />
-                  </button>
-                </span>
-              );
-            })}
-        </div>
-      </div>
-      <div className="my-4 shadow-md rounded-md p-4 max-w-3xl m-auto">
-        <h2 className="font-bold mb-4">Make class teacher</h2>
-        <select
-          onChange={HandleAssignedClassChange}
-          value={assigned}
-          className="select select-bordered select-sm rounded-md"
-          name=""
-          id=""
-        >
-          <option value="">Select</option>
-          {CLASSES.map((item) => {
-            return (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            );
-          })}
-        </select>
-        <div className="flex items-center gap-2 mt-4">
-          {assignedClasses.length === 0 && (
-            <p className="text-base-content/70">No class selected yet!</p>
-          )}
-          {assignedClasses &&
-            assignedClasses.map((item) => {
-              return (
-                <span className="relative border bg-green-600/10 p-1 rounded-md min-w-20 flex justify-center">
-                  {item}
-                  <button
-                    onClick={() => {
-                      RemoveAssignedClass(item);
-                    }}
-                    className="absolute top-0 left-[88%] text-red-600"
-                  >
-                    <FaTimes />
-                  </button>
-                </span>
-              );
-            })}
-        </div>
-      </div>
-      <div>
-        <button className="btn btn-primary btn-sm rounded-md shadow-md">Add to profile</button>
-      </div>
-    </div>
+            }}
+            emptyMessage="No active classes are available."
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving assignments..." : "Save assignments"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setAssign(false)}
+            >
+              Back to staff
+            </button>
+          </div>
+        </form>
+      )}
+    </main>
   );
 };
+
+const SelectionSection = ({
+  title,
+  items,
+  selected,
+  onToggle,
+  getDescription,
+  isDisabled,
+  emptyMessage,
+}) => (
+  <section className="rounded-md p-4 shadow-md">
+    <h2 className="mb-3 font-bold">{title}</h2>
+    {!items.length ? (
+      <p className="text-sm text-base-content/70">{emptyMessage}</p>
+    ) : (
+      <div className="grid gap-2 sm:grid-cols-2">
+        {items.map((item) => {
+          const disabled = isDisabled?.(item) ?? false;
+          return (
+            <label
+              key={item}
+              className={`flex items-start gap-2 rounded border p-2 text-sm ${
+                disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm"
+                checked={selected.includes(item)}
+                disabled={disabled}
+                onChange={() => onToggle(item)}
+              />
+              <span>
+                <span className="block font-medium">{item}</span>
+                {getDescription && (
+                  <span className="block text-xs text-base-content/60">
+                    {getDescription(item)}
+                  </span>
+                )}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    )}
+    {!!selected.length && (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {selected.map((item) => (
+          <span
+            key={item}
+            className="inline-flex items-center gap-1 rounded bg-green-600/10 px-2 py-1 text-xs"
+          >
+            {item}
+            <button
+              type="button"
+              aria-label={`Remove ${item}`}
+              onClick={() => onToggle(item)}
+              className="text-red-600"
+            >
+              <FaTimes />
+            </button>
+          </span>
+        ))}
+      </div>
+    )}
+  </section>
+);
 
 export default AsignStaffRole;

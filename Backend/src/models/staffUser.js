@@ -100,6 +100,10 @@ const staffSchema = new mongoose.Schema(
       type: [String],
       default: undefined,
     },
+    assigned_subjects: {
+      type: [String],
+      default: undefined,
+    },
     role: {
       type: String,
       enum: ["teacher"],

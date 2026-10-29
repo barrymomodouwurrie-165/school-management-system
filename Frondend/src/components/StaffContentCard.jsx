@@ -4,10 +4,10 @@ import { useState } from "react";
 
 const StaffContentCard = ({
   data,
-  assign,
   setAssign,
   setStaffName,
   setStaffId,
+  onEdit,
 }) => {
   const [view, setView] = useState(false);
   return (
@@ -36,7 +36,7 @@ const StaffContentCard = ({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-t mt-2 py-2">
         <button
           onClick={() => {
-            setAssign(!assign);
+            setAssign(true);
             setStaffName(data.staff_name);
             setStaffId(data.staff_id);
           }}
@@ -44,7 +44,11 @@ const StaffContentCard = ({
         >
           Assign
         </button>
-        <StaffContenButton view={view} setView={setView} />
+        <StaffContenButton
+          view={view}
+          setView={setView}
+          onEdit={() => onEdit(data)}
+        />
       </div>
       {view && (
         <div className="flex flex-col border-t pt-2 text-xs md:text-md">
@@ -78,6 +82,14 @@ const StaffContentCard = ({
           <span className="flex items-center gap-2">
             <p className="font-bold">Department:</p>
             {data.department}{" "}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Subjects:</p>
+            {data.assigned_subjects?.join(", ") || data.subject_taught}
+          </span>
+          <span className="flex items-center gap-2">
+            <p className="font-bold">Teaching classes:</p>
+            {data.assigned_classes?.join(", ") || "Not assigned"}
           </span>
           <span className="flex items-center gap-2">
             <p className="font-bold">Start Date:</p>

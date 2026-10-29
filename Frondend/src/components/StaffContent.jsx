@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import StaffContentCard from "./StaffContentCard";
+import StaffEditForm from "./StaffEditForm";
 import { getAdminStaff } from "../utils/adminApi";
 
 const getInitials = (staff) =>
@@ -10,7 +11,6 @@ const getInitials = (staff) =>
 const StaffContent = ({
   isOpen,
   setIsOpen,
-  assign,
   setAssign,
   setStaffName,
   setStaffId,
@@ -19,6 +19,8 @@ const StaffContent = ({
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -69,6 +71,24 @@ const StaffContent = ({
     phone: member.phone_number,
   }));
 
+  if (editingStaff) {
+    return (
+      <StaffEditForm
+        staff={editingStaff}
+        onCancel={() => setEditingStaff(null)}
+        onSaved={(updatedStaff, message) => {
+          setStaff((current) =>
+            current.map((member) =>
+              member._id === updatedStaff._id ? updatedStaff : member,
+            ),
+          );
+          setEditingStaff(null);
+          setSuccessMessage(message || "Staff details updated successfully.");
+        }}
+      />
+    );
+  }
+
   return (
     <div className="p-3">
       <div className="flex items-start justify-between">
@@ -112,6 +132,11 @@ const StaffContent = ({
           {error}
         </p>
       )}
+      {successMessage && (
+        <p role="status" className="mt-4 text-sm text-success">
+          {successMessage}
+        </p>
+      )}
       {isLoading ? (
         <p role="status" className="py-8 text-center">
           Loading staff records...
@@ -122,10 +147,13 @@ const StaffContent = ({
             <div key={data.id} className="card self-start p-3 shadow-md">
               <StaffContentCard
                 data={data}
-                assign={assign}
                 setAssign={setAssign}
                 setStaffName={setStaffName}
                 setStaffId={setStaffId}
+                onEdit={(member) => {
+                  setSuccessMessage("");
+                  setEditingStaff(member);
+                }}
               />
             </div>
           ))}
