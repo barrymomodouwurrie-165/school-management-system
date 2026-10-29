@@ -135,6 +135,37 @@ export const registerStudent = async (student) => {
   }
 };
 
+export const getAdminProfile = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/users/admin/profile`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve admin profile."),
+      { cause: error },
+    );
+  }
+};
+
+export const updateAdminProfile = async (profile) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/admin/profile`,
+      profile,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update admin profile."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAcademicClasses = async () => {
   try {
     const response = await axios.get(

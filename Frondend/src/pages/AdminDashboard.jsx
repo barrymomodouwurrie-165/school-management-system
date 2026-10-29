@@ -11,10 +11,11 @@ import AdminSubmissions from "../components/AdminSubmissions";
 import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
 import AdminAttendance from "../components/AdminAttendance";
+import AdminProfile from "../components/AdminProfile";
 import AsignStaffRole from "../components/AsignStaffRole";
 import { MdExitToApp } from "react-icons/md";
 import profile from "../assets/profile.webp";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   FaUserTie,
@@ -26,7 +27,9 @@ import {
   FaTachometerAlt,
   FaFlag,
   FaCalendarCheck,
+  // FaUserCircle,
 } from "react-icons/fa";
+import { getAdminProfile } from "../utils/adminApi";
 
 const AdminDashboard = ({
   theme,
@@ -38,9 +41,32 @@ const AdminDashboard = ({
   const [assign, setAssign] = useState(false);
   const [staffName, setStaffName] = useState(null);
   const [staffId, setStaffId] = useState(null);
+  const [adminProfile, setAdminProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileRefresh, setProfileRefresh] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    getAdminProfile()
+      .then((profile) => {
+        if (active) setAdminProfile(profile);
+      })
+      .catch((error) => {
+        if (active) setProfileError(error.message);
+      })
+      .finally(() => {
+        if (active) setProfileLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [profileRefresh]);
 
   const PAGES = {
     admin: AdminContent,
+    "admin-profile": AdminProfile,
     "register-staff": RegisterStaff,
     "register-student": RegisterStudent,
     students: StudentsContent,
@@ -58,6 +84,7 @@ const AdminDashboard = ({
       label: "Admin",
       logo: FaCog,
       children: [
+        { id: "admin-profile", label: "Admin Profile" },
         { id: "register-staff", label: "Register Staff" },
         { id: "register-student", label: "Register Student" },
       ],
@@ -67,6 +94,7 @@ const AdminDashboard = ({
     { id: "academics", label: "Academics", logo: FaBookOpen },
     { id: "submissions", label: "Submissions", logo: FaFlag },
     { id: "attendance", label: "Attendance", logo: FaCalendarCheck },
+    // { id: "admin-profile", label: "Admin Profile", logo: FaUserCircle },
 
     {
       id: "message",
@@ -96,6 +124,7 @@ const AdminDashboard = ({
         setIsClick={setIsClick}
         theme={theme}
         toggleTheme={toggleTheme}
+        adminProfile={adminProfile}
       />
 
       {isOpen ? (
@@ -135,14 +164,16 @@ const AdminDashboard = ({
               <div className="flex items-center gap-1">
                 <div className="p-2">
                   <img
-                    src={profile}
-                    alt=""
-                    className="w-[40px] h-[40px] rounded-lg"
+                    src={adminProfile?.profilePicture || profile}
+                    alt="Admin profile"
+                    className="h-[40px] w-[40px] rounded-lg object-cover"
                   />
                 </div>
                 <div>
-                  <h2 className="font-bold text-white">Dr. M. W. Barry</h2>
-                  <p className="text-white/60">Principal Admin</p>
+                  <h2 className="font-bold text-white">
+                    {adminProfile?.fullName || adminProfile?.username || "Admin"}
+                  </h2>
+                  <p className="text-white/60">Administrator</p>
                 </div>
               </div>
             </div>
@@ -155,6 +186,7 @@ const AdminDashboard = ({
           isClick={isClick}
           theme={theme}
           toggleTheme={toggleTheme}
+          adminProfile={adminProfile}
         />
       )}
 
@@ -174,6 +206,18 @@ const AdminDashboard = ({
           staffName={staffName}
           setStaffName={setStaffName}
           setStaffId={setStaffId}
+          profile={adminProfile}
+          isLoading={profileLoading}
+          loadError={profileError}
+          onRetry={() => {
+            setProfileLoading(true);
+            setProfileError("");
+            setProfileRefresh((current) => current + 1);
+          }}
+          onProfileUpdated={(updatedProfile) => {
+            setAdminProfile(updatedProfile);
+            setProfileError("");
+          }}
         />
       )}
     </div>

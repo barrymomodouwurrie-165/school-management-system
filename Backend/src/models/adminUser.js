@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 
 const adminUserSchema = new mongoose.Schema(
   {
+    fullName: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+    },
     username: {
       type: String,
       required: true,
@@ -15,6 +20,11 @@ const adminUserSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
       select: false,
+    },
+    profilePicture: {
+      type: String,
+      default: "",
+      maxlength: 1500000,
     },
     role: {
       type: String,

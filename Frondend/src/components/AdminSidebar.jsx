@@ -8,6 +8,7 @@ const AdminSidebar = ({
   onNavigate,
   NAV_PAGES,
   setIsClick,
+  adminProfile,
 }) => {
   return (
     <div className="hidden fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2 md:flex flex-col">
@@ -38,14 +39,16 @@ const AdminSidebar = ({
           <div className="flex items-center gap-1">
             <div className="p-2">
               <img
-                src={profile}
-                alt=""
-                className="w-[40px] h-[40px] rounded-lg"
+                src={adminProfile?.profilePicture || profile}
+                alt="Admin profile"
+                className="h-[40px] w-[40px] rounded-lg object-cover"
               />
             </div>
             <div>
-              <h2 className="font-bold text-white">Dr. M. W. Barry</h2>
-              <p className="text-white/60">Principal Admin</p>
+              <h2 className="font-bold text-white">
+                {adminProfile?.fullName || adminProfile?.username || "Admin"}
+              </h2>
+              <p className="text-white/60">Administrator</p>
             </div>
           </div>
         </div>

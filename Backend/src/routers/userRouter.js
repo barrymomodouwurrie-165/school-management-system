@@ -74,6 +74,118 @@ const isAdminRequest = (req, res) => {
   return true;
 };
 
+const getAdminClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (claims.role !== "admin" || typeof claims.id !== "string") {
+    res.status(403).json({ message: "Only administrators can access this profile." });
+    return null;
+  }
+
+  return claims;
+};
+
+const serializeAdminProfile = (admin) => ({
+  id: admin._id,
+  fullName: admin.fullName || "",
+  username: admin.username,
+  profilePicture: admin.profilePicture || "",
+});
+
+userRouter.get("/admin/profile", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const admin = await AdminUser.findById(claims.id);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin account was not found." });
+    }
+
+    return res.status(200).json(serializeAdminProfile(admin));
+  } catch (error) {
+    console.error("Admin profile retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve admin profile." });
+  }
+});
+
+userRouter.put("/admin/profile", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
+  const username =
+    typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
+
+  if (!fullName || fullName.length > 120 || !username || username.length > 64) {
+    return res.status(400).json({
+      message: "Provide a full name (up to 120 characters) and username (up to 64 characters).",
+    });
+  }
+  if (password && password.length < 6) {
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters long." });
+  }
+  if (password.length > 128) {
+    return res.status(400).json({ message: "Password is too long." });
+  }
+
+  let profilePicture;
+  if (Object.hasOwn(body, "profilePicture")) {
+    profilePicture = body.profilePicture;
+    if (profilePicture !== null && profilePicture !== "") {
+      if (
+        typeof profilePicture !== "string" ||
+        profilePicture.length > 1500000 ||
+        !/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+          profilePicture,
+        )
+      ) {
+        return res.status(400).json({
+          message: "Profile picture must be a JPEG, PNG, or WebP image under 1.1 MB.",
+        });
+      }
+    }
+  }
+
+  try {
+    const admin = await AdminUser.findById(claims.id).select("+password");
+    if (!admin) {
+      return res.status(404).json({ message: "Admin account was not found." });
+    }
+
+    admin.fullName = fullName;
+    admin.username = username;
+    if (password) admin.password = password;
+    if (profilePicture !== undefined) admin.profilePicture = profilePicture;
+    await admin.save();
+
+    return res.status(200).json({
+      message: "Admin profile updated successfully.",
+      profile: serializeAdminProfile(admin),
+      accessToken: generateAccessToken(admin),
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "That username is already in use." });
+    }
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin profile update failed:", error.message);
+    return res.status(500).json({ message: "Unable to update admin profile." });
+  }
+});
+
 userRouter.get("/staff", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 
