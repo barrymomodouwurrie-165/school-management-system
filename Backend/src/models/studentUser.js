@@ -27,6 +27,7 @@ const studentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Active", "Suspended", "Transferred"],
+      default: "Active",
     },
   },
   { timestamps: true },

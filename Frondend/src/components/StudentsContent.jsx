@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import StudentData from "./StudentData";
+import StudentEditForm from "./StudentEditForm";
 import { getAdminStudents } from "../utils/adminApi";
 
 const StudentsContent = ({ isOpen, setIsOpen }) => {
@@ -9,6 +10,8 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -73,6 +76,24 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
     };
   });
 
+  if (editingStudent) {
+    return (
+      <StudentEditForm
+        student={editingStudent}
+        onCancel={() => setEditingStudent(null)}
+        onSaved={(updatedStudent, message) => {
+          setStudents((current) =>
+            current.map((student) =>
+              student._id === updatedStudent._id ? updatedStudent : student,
+            ),
+          );
+          setEditingStudent(null);
+          setSuccessMessage(message || "Student details updated successfully.");
+        }}
+      />
+    );
+  }
+
   return (
     <div className="p-4">
       <div className="flex items-start justify-between">
@@ -117,6 +138,11 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
           {error}
         </p>
       )}
+      {successMessage && (
+        <p role="status" className="mt-4 text-sm text-success">
+          {successMessage}
+        </p>
+      )}
       {isLoading ? (
         <p role="status" className="py-8 text-center">
           Loading student records...
@@ -132,7 +158,16 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
             <span>Action</span>
           </div>
           {studentRows.map((data) => (
-            <StudentData key={data.id} data={data} />
+            <StudentData
+              key={data.id}
+              data={data}
+              onEdit={() => {
+                setSuccessMessage("");
+                setEditingStudent(
+                  students.find((student) => student._id === data.id),
+                );
+              }}
+            />
           ))}
         </div>
       ) : (

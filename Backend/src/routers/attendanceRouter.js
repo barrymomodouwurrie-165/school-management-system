@@ -66,6 +66,20 @@ const getClassStudents = (className) =>
     .sort({ last_name: 1, first_name: 1 })
     .lean();
 
+const hideTransferredStudents = (session) => {
+  if (!session) return session;
+
+  return {
+    ...session,
+    entries: session.entries
+      .filter((entry) => entry.student?.status !== "Transferred")
+      .map((entry) => ({
+        ...entry,
+        student: entry.student?._id ?? entry.student,
+      })),
+  };
+};
+
 const buildAttendanceEntries = (students, entries, call) => {
   if (!Array.isArray(entries) || entries.length !== students.length) {
     return null;
@@ -217,14 +231,17 @@ attendanceRouter.get("/classes/:classId/sessions", async (req, res) => {
           .json({ message: "Date must use the YYYY-MM-DD format." });
       }
       query.date = date;
-      const session = await AttendanceSession.findOne(query).lean();
-      return res.status(200).json(session);
+      const session = await AttendanceSession.findOne(query)
+        .populate("entries.student", "status")
+        .lean();
+      return res.status(200).json(hideTransferredStudents(session));
     }
 
     const sessions = await AttendanceSession.find(query)
       .sort({ date: -1 })
+      .populate("entries.student", "status")
       .lean();
-    return res.status(200).json(sessions);
+    return res.status(200).json(sessions.map(hideTransferredStudents));
   } catch (error) {
     console.error("Attendance retrieval failed:", error.message);
     return res

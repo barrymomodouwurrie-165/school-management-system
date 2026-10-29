@@ -156,7 +156,7 @@ userRouter.get("/students", async (req, res) => {
   try {
     const students = await StudentUser.find()
       .select(
-        "student_id first_name last_name gender nationality ethnicity date_of_birth section class enrollment_date guardian_name guardian_phone guardian_address status",
+        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
       )
       .sort({ last_name: 1, first_name: 1 })
       .lean();
@@ -167,6 +167,98 @@ userRouter.get("/students", async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to retrieve student records." });
+  }
+});
+
+userRouter.put("/students/:id", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: "Invalid student record ID." });
+  }
+
+  const editableFields = [
+    "first_name",
+    "last_name",
+    "date_of_birth",
+    "nationality",
+    "phone_number",
+    "ethnicity",
+    "religion",
+    "previous_school",
+    "gender",
+    "section",
+    "class",
+    "enrollment_date",
+    "guardian_name",
+    "guardian_phone",
+    "guardian_address",
+  ];
+  const updates = {};
+  for (const field of editableFields) {
+    if (typeof req.body?.[field] !== "string" || !req.body[field].trim()) {
+      return res.status(400).json({
+        message: `${field.replaceAll("_", " ")} is required.`,
+      });
+    }
+    updates[field] = req.body[field].trim();
+  }
+
+  if (!["Junior", "Senior"].includes(updates.section)) {
+    return res.status(400).json({
+      message: "Section must be Junior or Senior.",
+    });
+  }
+
+  if (
+    req.body.status !== undefined &&
+    req.body.status !== "" &&
+    !["Active", "Suspended", "Transferred"].includes(req.body.status)
+  ) {
+    return res.status(400).json({ message: "Student status is invalid." });
+  }
+
+  const unset = {};
+  if (typeof req.body.guardian_email === "string" && req.body.guardian_email.trim()) {
+    updates.guardian_email = req.body.guardian_email.trim().toLowerCase();
+  } else {
+    unset.guardian_email = "";
+  }
+  if (req.body.status) {
+    updates.status = req.body.status;
+  } else {
+    unset.status = "";
+  }
+
+  try {
+    const student = await StudentUser.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates, ...(Object.keys(unset).length ? { $unset: unset } : {}) },
+      { new: true, runValidators: true },
+    )
+      .select(
+        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
+      )
+      .lean();
+
+    if (!student) {
+      return res.status(404).json({ message: "Student was not found." });
+    }
+
+    return res.status(200).json({
+      message: "Student details updated successfully.",
+      student,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "The student ID or username is already in use.",
+      });
+    }
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Student update failed:", error.message);
+    return res.status(500).json({ message: "Unable to update student details." });
   }
 });
 

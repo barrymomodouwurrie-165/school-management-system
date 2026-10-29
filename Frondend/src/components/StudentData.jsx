@@ -1,8 +1,7 @@
-import { Link } from "react-router";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaPen } from "react-icons/fa";
 import { useState } from "react";
 
-const StudentData = ({ data }) => {
+const StudentData = ({ data, onEdit }) => {
   const [isView, setIsView] = useState(false);
   const statusColor =
     data.color === "green"
@@ -22,14 +21,25 @@ const StudentData = ({ data }) => {
       >
         {data.status}
       </div>
-      <div className="flex items-end md:items-start justify-end gap-4 flex-col md:justify-start">
-        <Link
+      <div className="flex flex-col items-end justify-start gap-2 sm:flex-row sm:items-start sm:justify-center">
+        <button
+          type="button"
           onClick={() => setIsView(!isView)}
-          className="max-w-[20px]"
+          className="btn btn-ghost btn-xs"
           aria-label={`${isView ? "Hide" : "View"} details for ${data.student_name}`}
+          title={isView ? "Hide details" : "View details"}
         >
           {isView ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
-        </Link>
+        </button>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="btn btn-ghost btn-xs"
+          aria-label={`Edit ${data.student_name}`}
+          title="Edit student"
+        >
+          <FaPen size={12} />
+        </button>
       </div>
       {isView && (
         <div className="flex flex-col gap-2 mt-4 border-t pt-2 col-span-full">

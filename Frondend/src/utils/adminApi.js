@@ -56,6 +56,22 @@ export const getAdminStudents = async () => {
   }
 };
 
+export const updateAdminStudent = async (studentId, student) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/students/${encodeURIComponent(studentId)}`,
+      student,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update student details."),
+      { cause: error },
+    );
+  }
+};
+
 export const getStaffAssignments = async (staffId) => {
   try {
     const response = await axios.get(

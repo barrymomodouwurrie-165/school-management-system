@@ -104,6 +104,7 @@ const studentRegister = async (req, res) => {
       student_id: username,
       username,
       password,
+      status: "Active",
     });
 
     return res.status(201).json({
