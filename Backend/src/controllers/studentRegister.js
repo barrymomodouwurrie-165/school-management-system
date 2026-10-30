@@ -2,6 +2,60 @@ import { isAuthentic } from "../models/tokens.js";
 import StudentUser from "../models/studentUser.js";
 import StudentUsernameCounter from "../models/studentUsernameCounter.js";
 
+const STUDENT_ID_LIMITS = {
+  Junior: 780,
+  Senior: 700,
+};
+
+const getNextStudentSequence = async (section, academicYear) => {
+  const counterId = `student-username-${section}-${academicYear}`;
+  let counter = await StudentUsernameCounter.findById(counterId).lean();
+
+  if (!counter) {
+    const digits = section === "Junior" ? 3 : 4;
+    const idPattern = new RegExp(`^${academicYear}(\\d{${digits}})$`);
+    const existingStudents = await StudentUser.find({
+      $or: [{ student_id: idPattern }, { username: idPattern }],
+    })
+      .select("student_id username")
+      .lean();
+    const highestSequence = existingStudents.reduce((highest, student) => {
+      return [student.student_id, student.username].reduce(
+        (currentHighest, identifier) => {
+          const match = identifier.match(idPattern);
+          return match
+            ? Math.max(currentHighest, Number(match[1]))
+            : currentHighest;
+        },
+        highest,
+      );
+    }, 0);
+
+    try {
+      await StudentUsernameCounter.updateOne(
+        { _id: counterId },
+        { $setOnInsert: { sequence: highestSequence } },
+        { upsert: true },
+      );
+    } catch (error) {
+      if (error.code !== 11000) throw error;
+    }
+
+    counter = await StudentUsernameCounter.findById(counterId).lean();
+  }
+
+  if (!counter || counter.sequence >= STUDENT_ID_LIMITS[section]) {
+    return null;
+  }
+
+  const updatedCounter = await StudentUsernameCounter.findOneAndUpdate(
+    { _id: counterId, sequence: { $lt: STUDENT_ID_LIMITS[section] } },
+    { $inc: { sequence: 1 } },
+    { new: true },
+  );
+  return updatedCounter?.sequence ?? null;
+};
+
 const studentRegister = async (req, res) => {
   let claims;
   try {
@@ -84,23 +138,20 @@ const studentRegister = async (req, res) => {
 
   try {
     const academicYear = String(new Date().getFullYear());
-    const counter = await StudentUsernameCounter.findOneAndUpdate(
-      { _id: `student-username-${academicYear}` },
-      { $inc: { sequence: 1 } },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
-
-    if (counter.sequence > 999) {
+    const sectionName = normalizedSection === "senior" ? "Senior" : "Junior";
+    const sequence = await getNextStudentSequence(sectionName, academicYear);
+    if (sequence === null) {
       return res.status(409).json({
-        message: `The student username sequence for ${academicYear} is full.`,
+        message: `The ${sectionName.toLowerCase()} student ID sequence for ${academicYear} is full.`,
       });
     }
 
-    const username = `${academicYear}${String(counter.sequence).padStart(3, "0")}`;
+    const sequenceDigits = sectionName === "Junior" ? 3 : 4;
+    const username = `${academicYear}${String(sequence).padStart(sequenceDigits, "0")}`;
     const password = `${username}${sectionCode}`;
     const student = await StudentUser.create({
       ...studentData,
-      section: normalizedSection === "senior" ? "Senior" : "Junior",
+      section: sectionName,
       student_id: username,
       username,
       password,
