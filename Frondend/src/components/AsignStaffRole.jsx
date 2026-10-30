@@ -5,6 +5,23 @@ import {
   updateStaffAssignments,
 } from "../utils/adminApi";
 
+const subjectIsAvailableForClass = (subject, classroom) => {
+  if (
+    subject.section !== classroom.section ||
+    !subject.programs.includes(classroom.program)
+  ) {
+    return false;
+  }
+
+  const streamRule = subject.programStreams?.find(
+    (item) => item.program === classroom.program,
+  );
+  return (
+    !streamRule ||
+    streamRule.streamNumbers.includes(classroom.stream_number)
+  );
+};
+
 const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -65,8 +82,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
           classes.some(
             (classroom) =>
               assignedClasses.includes(classroom.name) &&
-              subject.section === classroom.section &&
-              subject.programs.includes(classroom.program),
+              subjectIsAvailableForClass(subject, classroom),
           ),
         )
         .map((subject) => subject.name),
@@ -86,8 +102,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
             classes.some(
               (classroom) =>
                 next.includes(classroom.name) &&
-                classroom.section === subject.section &&
-                subject.programs.includes(classroom.program),
+                subjectIsAvailableForClass(subject, classroom),
             ),
         ),
       ),

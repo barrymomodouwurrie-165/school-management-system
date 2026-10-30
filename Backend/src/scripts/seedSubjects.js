@@ -12,6 +12,7 @@ const LEGACY_SUBJECT_NAMES = {
   Literature: "Literature in English",
   "F.Accounting": "Financial Accounting",
   "C.Accounting": "Cost Accounting",
+  "Applied Electricals": "Applied Electricity",
 };
 
 try {
@@ -27,7 +28,11 @@ try {
       updateOne: {
         filter: { section: subject.section, name: subject.name },
         update: {
-          $setOnInsert: { ...subject, isActive: true },
+          $set: {
+            programs: subject.programs,
+            programStreams: subject.programStreams ?? [],
+          },
+          $setOnInsert: { isActive: true },
         },
         upsert: true,
       },
@@ -49,6 +54,11 @@ try {
     );
     await staff.save();
   }
+
+  await Subject.updateMany(
+    { section: "Senior", name: "Applied Electricals", isActive: true },
+    { $set: { isActive: false } },
+  );
 
   console.log(
     `Subject catalog ready: ${SUBJECT_CATALOG.length} subjects, ${result.upsertedCount} newly added.`,

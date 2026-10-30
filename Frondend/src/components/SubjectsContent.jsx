@@ -23,6 +23,21 @@ const sortSubjects = (subjects) =>
       first.name.localeCompare(second.name),
   );
 
+const formatSubjectPrograms = (subject) =>
+  subject.programs
+    .map((program) => {
+      const streamRule = subject.programStreams?.find(
+        (item) => item.program === program,
+      );
+      if (streamRule) {
+        return streamRule.streamNumbers
+          .map((streamNumber) => `${program} ${streamNumber}`)
+          .join(", ");
+      }
+      return program;
+    })
+    .join(", ");
+
 const SubjectsContent = () => {
   const [subjects, setSubjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -257,13 +272,11 @@ const SubjectsContent = () => {
                         <div>
                           <h4 className="font-semibold">{subject.name}</h4>
                           <p className="mt-1 text-xs text-base-content/70">
-                            {subject.programs
-                              .map((program) =>
-                                currentSection === "Junior"
-                                  ? `Class ${program}`
-                                  : program,
-                              )
-                              .join(", ")}
+                            {currentSection === "Junior"
+                              ? subject.programs
+                                  .map((program) => `Class ${program}`)
+                                  .join(", ")
+                              : formatSubjectPrograms(subject)}
                           </p>
                         </div>
                         <button

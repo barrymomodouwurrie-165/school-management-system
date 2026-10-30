@@ -377,7 +377,7 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
     }
 
     const classrooms = await ClassRoom.find({ status: "Active" })
-      .select("name section program class_teacher")
+      .select("name section program stream_number class_teacher")
       .populate("class_teacher", "staff_id first_name last_name")
       .sort({ name: 1 })
       .lean();
@@ -397,6 +397,7 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
         name: classroom.name,
         section: classroom.section,
         program: classroom.program,
+        stream_number: classroom.stream_number,
         classTeacher: classroom.class_teacher
           ? {
               staffId: classroom.class_teacher.staff_id,
@@ -459,7 +460,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
           name: { $in: requiredClassNames },
           status: "Active",
         })
-          .select("name section program class_teacher")
+          .select("name section program stream_number class_teacher")
           .populate("class_teacher", "staff_id first_name last_name")
           .lean()
       : [];

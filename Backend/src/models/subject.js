@@ -20,6 +20,28 @@ const subjectSchema = new mongoose.Schema(
         message: "A subject must be assigned to at least one class program.",
       },
     },
+    programStreams: {
+      type: [
+        {
+          _id: false,
+          program: {
+            type: String,
+            required: true,
+          },
+          streamNumbers: {
+            type: [Number],
+            required: true,
+            validate: {
+              validator: (streamNumbers) =>
+                streamNumbers.length > 0 &&
+                streamNumbers.every((streamNumber) => [1, 2].includes(streamNumber)),
+              message: "Stream numbers must include stream 1, stream 2, or both.",
+            },
+          },
+        },
+      ],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,
