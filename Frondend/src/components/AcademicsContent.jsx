@@ -34,7 +34,7 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
               ? "Create a classroom"
               : isActive === "exams"
                 ? "Create an exam"
-                : "Subjects are pending database setup"
+                : "Subjects are managed in the curriculum catalog"
           }
           className="btn btn-primary btn-sm flex justify-center rounded-md"
         >
@@ -45,7 +45,7 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
                 Add Class
               </>
             ) : isActive === "subjects" ? (
-              "Subjects pending database setup"
+              "Curriculum catalog"
             ) : (
               <>
                 <FaPlus />

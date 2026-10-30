@@ -197,6 +197,52 @@ export const createAcademicClass = async (classroom) => {
   }
 };
 
+export const getAcademicSubjects = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/subjects`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve subjects."),
+      { cause: error },
+    );
+  }
+};
+
+export const createAcademicSubject = async (subject) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/subjects`,
+      subject,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to add the subject."),
+      { cause: error },
+    );
+  }
+};
+
+export const deleteAcademicSubject = async (subjectId) => {
+  try {
+    const response = await axios.delete(
+      `${API_URL}/academics/subjects/${encodeURIComponent(subjectId)}`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to delete the subject."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAcademicExams = async () => {
   try {
     const response = await axios.get(

@@ -58,6 +58,42 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
     );
   };
 
+  const availableSubjectNames = [
+    ...new Set(
+      subjects
+        .filter((subject) =>
+          classes.some(
+            (classroom) =>
+              assignedClasses.includes(classroom.name) &&
+              subject.section === classroom.section &&
+              subject.programs.includes(classroom.program),
+          ),
+        )
+        .map((subject) => subject.name),
+    ),
+  ].sort((first, second) => first.localeCompare(second));
+
+  const toggleTeachingClass = (className) => {
+    const next = assignedClasses.includes(className)
+      ? assignedClasses.filter((item) => item !== className)
+      : [...assignedClasses, className];
+    setAssignedClasses(next);
+    setAssignedSubjects((selected) =>
+      selected.filter((subjectName) =>
+        subjects.some(
+          (subject) =>
+            subject.name === subjectName &&
+            classes.some(
+              (classroom) =>
+                next.includes(classroom.name) &&
+                classroom.section === subject.section &&
+                subject.programs.includes(classroom.program),
+            ),
+        ),
+      ),
+    );
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSaving(true);
@@ -155,16 +191,20 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
             title="Assign teaching classes"
             items={classes.map((classroom) => classroom.name)}
             selected={assignedClasses}
-            onToggle={(value) => toggleValue(value, setAssignedClasses)}
+            onToggle={toggleTeachingClass}
             emptyMessage="No active classes are available."
           />
 
           <SelectionSection
             title="Assign subjects to teach"
-            items={subjects}
+            items={availableSubjectNames}
             selected={assignedSubjects}
             onToggle={(value) => toggleValue(value, setAssignedSubjects)}
-            emptyMessage="No subjects are configured."
+            emptyMessage={
+              assignedClasses.length
+                ? "No subjects are available for the selected classes."
+                : "Select teaching classes to see their available subjects."
+            }
           />
 
           <SelectionSection

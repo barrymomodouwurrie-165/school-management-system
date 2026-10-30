@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import { Link } from "react-router";
-import { registerStaff } from "../utils/adminApi";
+import { getAcademicSubjects, registerStaff } from "../utils/adminApi";
 
 const STAFF_FIELDS = [
   { name: "first_name", label: "First name" },
@@ -23,7 +23,6 @@ const STAFF_FIELDS = [
     type: "select",
     options: ["Single", "Married"],
   },
-  { name: "staff_id", label: "Staff ID" },
   {
     name: "qualification",
     label: "Highest qualification",
@@ -39,14 +38,7 @@ const STAFF_FIELDS = [
   {
     name: "subject_taught",
     label: "Subject taught",
-    type: "select",
-    options: [
-      "English Language",
-      "Mathematics",
-      "Financial Accounting",
-      "Cost Accounting",
-      "Others",
-    ],
+    type: "subject",
   },
   { name: "department", label: "Department" },
   {
@@ -74,6 +66,27 @@ const STAFF_FIELDS = [
 const RegisterStaff = ({ isOpen, setIsOpen }) => {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [subjectsError, setSubjectsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getAcademicSubjects()
+      .then((subjects) => {
+        if (active) {
+          setSubjectOptions(
+            [...new Set(subjects.map((subject) => subject.name))].sort(),
+          );
+        }
+      })
+      .catch((error) => {
+        if (active) setSubjectsError(error.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -88,7 +101,9 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
       form.reset();
       setStatus({
         type: "success",
-        message: result.message || "Staff member registered successfully.",
+        message: result.staff?.staff_id
+          ? `${result.message} Staff ID: ${result.staff.staff_id}`
+          : result.message || "Staff member registered successfully.",
       });
     } catch (error) {
       setStatus({
@@ -120,24 +135,33 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
       <form onSubmit={handleSubmit} className="max-w-4xl p-2">
         <section className="mb-3 rounded-lg border p-4 shadow-md">
           <h3 className="mb-3 font-bold">Staff Details</h3>
+          <p className="mb-3 text-sm text-base-content/70">
+            A unique staff ID will be generated automatically after registration.
+          </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {STAFF_FIELDS.map((field) => (
               <div key={field.name} className="form-control">
                 <label className="label" htmlFor={`staff-${field.name}`}>
                   <span className="label-text font-bold">{field.label}</span>
                 </label>
-                {field.type === "select" ? (
+                {field.type === "select" || field.type === "subject" ? (
                   <select
                     id={`staff-${field.name}`}
                     name={field.name}
                     className="select select-bordered select-sm rounded-md"
                     defaultValue=""
                     required
+                    disabled={field.type === "subject" && !subjectOptions.length}
                   >
                     <option value="" disabled>
-                      Select {field.label.toLowerCase()}
+                      {field.type === "subject" && !subjectOptions.length
+                        ? "Loading subjects..."
+                        : `Select ${field.label.toLowerCase()}`}
                     </option>
-                    {field.options.map((option) => (
+                    {(field.type === "subject"
+                      ? subjectOptions
+                      : field.options
+                    ).map((option) => (
                       <option key={option} value={option}>
                         {option}
                       </option>
@@ -160,6 +184,11 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
           </div>
         </section>
 
+        {subjectsError && (
+          <p className="mb-3 text-sm text-error" role="alert">
+            Could not load the subject list: {subjectsError}
+          </p>
+        )}
         {status.message && (
           <p
             role={status.type === "error" ? "alert" : "status"}
@@ -181,7 +210,7 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !subjectOptions.length || Boolean(subjectsError)}
             className="btn btn-primary btn-sm rounded-lg"
           >
             {isSubmitting ? "Registering..." : "Register Staff"}

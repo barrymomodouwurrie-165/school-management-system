@@ -10,31 +10,21 @@ import AdminUser from "../models/adminUser.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
 import ClassRoom from "../models/classRoom.js";
+import Subject from "../models/subject.js";
+import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import staffRegister from "../controllers/staffRegister.js";
 import studentRegister from "../controllers/studentRegister.js";
 
 const userRouter = express.Router();
-const ASSIGNABLE_SUBJECTS = [
-  "Mathematics",
-  "English Language",
-  "G.Science",
-  "Civic",
-  "Agricultural Science",
-  "Financial Accounting",
-  "Cost Accounting",
-  "F.Accounting",
-  "C.Accounting",
-  "Physics",
-  "Government",
-  "History",
-  "Geography",
-  "Biology",
-  "Chemistry",
-  "S.E.S",
-  "Literature",
-  "I.R.k",
-  "Others",
-];
+const LEGACY_SUBJECT_NAMES = {
+  "G.Science": "General Science",
+  Civic: "Civic Education",
+  "S.E.S": "Social and Environmental Studies",
+  "I.R.k": "I.R.K",
+  Literature: "Literature in English",
+  "F.Accounting": "Financial Accounting",
+  "C.Accounting": "Cost Accounting",
+};
 const STAFF_POSITIONS = ["Teacher", "H.O.D", "H.O.B", "Admin"];
 const EDITABLE_STAFF_FIELDS = [
   "first_name",
@@ -46,7 +36,6 @@ const EDITABLE_STAFF_FIELDS = [
   "address",
   "ethnicity",
   "marital_status",
-  "staff_id",
   "qualification",
   "subject_taught",
   "department",
@@ -388,16 +377,26 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
     }
 
     const classrooms = await ClassRoom.find({ status: "Active" })
-      .select("name class_teacher")
+      .select("name section program class_teacher")
       .populate("class_teacher", "staff_id first_name last_name")
       .sort({ name: 1 })
       .lean();
+    const subjects = await Subject.find().sort({ section: 1, name: 1 }).lean();
 
     return res.status(200).json({
-      staff,
-      subjects: ASSIGNABLE_SUBJECTS,
+      staff: {
+        ...staff,
+        subject_taught:
+          LEGACY_SUBJECT_NAMES[staff.subject_taught] ?? staff.subject_taught,
+        assigned_subjects: (staff.assigned_subjects ?? []).map(
+          (subject) => LEGACY_SUBJECT_NAMES[subject] ?? subject,
+        ),
+      },
+      subjects,
       classes: classrooms.map((classroom) => ({
         name: classroom.name,
+        section: classroom.section,
+        program: classroom.program,
         classTeacher: classroom.class_teacher
           ? {
               staffId: classroom.class_teacher.staff_id,
@@ -446,10 +445,6 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
   ];
   const normalizedSubjects = [...new Set(assignedSubjects.map((item) => item.trim()))];
 
-  if (normalizedSubjects.some((subject) => !ASSIGNABLE_SUBJECTS.includes(subject))) {
-    return res.status(400).json({ message: "One or more selected subjects are invalid." });
-  }
-
   try {
     const staff = await StaffUser.findOne({ staff_id: req.params.staffId });
     if (!staff) {
@@ -464,13 +459,48 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
           name: { $in: requiredClassNames },
           status: "Active",
         })
-          .select("name class_teacher")
+          .select("name section program class_teacher")
           .populate("class_teacher", "staff_id first_name last_name")
           .lean()
       : [];
     if (classrooms.length !== requiredClassNames.length) {
       return res.status(400).json({
         message: "One or more selected classes are unavailable or inactive.",
+      });
+    }
+
+    const subjects = normalizedSubjects.length
+      ? await Subject.find({
+          name: { $in: normalizedSubjects },
+          isActive: true,
+        }).lean()
+      : [];
+    const subjectsByName = new Map(
+      normalizedSubjects.map((name) => [
+        name,
+        subjects.filter((subject) => subject.name === name),
+      ]),
+    );
+    if ([...subjectsByName.values()].some((matches) => !matches.length)) {
+      return res.status(400).json({
+        message: "One or more selected subjects are invalid.",
+      });
+    }
+
+    const teachingClasses = classrooms.filter((classroom) =>
+      normalizedClasses.includes(classroom.name),
+    );
+    const unavailableSubject = normalizedSubjects.find(
+      (name) =>
+        !subjectsByName.get(name).some((subject) =>
+          teachingClasses.some((classroom) =>
+            isSubjectAvailableForClass(subject, classroom),
+          ),
+        ),
+    );
+    if (unavailableSubject) {
+      return res.status(400).json({
+        message: `${unavailableSubject} is not available for any of the selected teaching classes.`,
       });
     }
 

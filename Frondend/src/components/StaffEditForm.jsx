@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { updateAdminStaff } from "../utils/adminApi";
+import { useEffect, useState } from "react";
+import { getAcademicSubjects, updateAdminStaff } from "../utils/adminApi";
 
 const STAFF_FIELDS = [
   { name: "first_name", label: "First name" },
@@ -15,7 +15,6 @@ const STAFF_FIELDS = [
     label: "Marital status",
     options: ["Single", "Married"],
   },
-  { name: "staff_id", label: "Staff ID" },
   {
     name: "qualification",
     label: "Highest qualification",
@@ -29,13 +28,7 @@ const STAFF_FIELDS = [
   {
     name: "subject_taught",
     label: "Primary subject",
-    options: [
-      "English Language",
-      "Mathematics",
-      "Financial Accounting",
-      "Cost Accounting",
-      "Others",
-    ],
+    subject: true,
   },
   { name: "department", label: "Department" },
   { name: "section", label: "Section", options: ["Junior", "Senior"] },
@@ -56,6 +49,27 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [subjectsError, setSubjectsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getAcademicSubjects()
+      .then((subjects) => {
+        if (active) {
+          setSubjectOptions(
+            [...new Set(subjects.map((subject) => subject.name))].sort(),
+          );
+        }
+      })
+      .catch((error) => {
+        if (active) setSubjectsError(error.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -104,10 +118,15 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
         <section className="grid grid-cols-1 gap-3 rounded-lg border p-4 shadow-sm sm:grid-cols-2">
           {STAFF_FIELDS.map((field) => {
             const currentValue = values[field.name];
+            const fieldOptions = field.subject
+              ? subjectOptions
+              : field.options;
             const options =
-              field.options && currentValue && !field.options.includes(currentValue)
-                ? [currentValue, ...field.options]
-                : field.options;
+              fieldOptions &&
+              currentValue &&
+              !fieldOptions.includes(currentValue)
+                ? [currentValue, ...fieldOptions]
+                : fieldOptions;
 
             return (
               <label
@@ -149,6 +168,11 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
           })}
         </section>
 
+        {subjectsError && (
+          <p className="my-3 text-sm text-error" role="alert">
+            Could not load the subject list: {subjectsError}
+          </p>
+        )}
         {status.message && (
           <p
             role={status.type === "error" ? "alert" : "status"}
@@ -165,7 +189,7 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={onCancel}
-            disabled={isSaving}
+            disabled={isSaving || Boolean(subjectsError)}
           >
             Cancel
           </button>

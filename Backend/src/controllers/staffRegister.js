@@ -1,5 +1,45 @@
 import { isAuthentic } from "../models/tokens.js";
 import StaffUser from "../models/staffUser.js";
+import StaffIdCounter from "../models/staffIdCounter.js";
+
+const getNextStaffId = async () => {
+  const year = String(new Date().getFullYear());
+  const staffIdPattern = new RegExp(`^bk-${year}(\\d+)$`);
+  const counter = await StaffIdCounter.findById(year).lean();
+
+  if (!counter) {
+    const existingStaff = await StaffUser.find({
+      staff_id: staffIdPattern,
+    })
+      .select("staff_id")
+      .lean();
+    const highestSequence = existingStaff.reduce((highest, staff) => {
+      const match = staff.staff_id.match(staffIdPattern);
+      return match ? Math.max(highest, Number(match[1])) : highest;
+    }, 0);
+
+    try {
+      await StaffIdCounter.updateOne(
+        { _id: year },
+        { $setOnInsert: { sequence: highestSequence } },
+        { upsert: true },
+      );
+    } catch (error) {
+      if (error.code !== 11000) throw error;
+    }
+  }
+
+  const updatedCounter = await StaffIdCounter.findOneAndUpdate(
+    { _id: year },
+    { $inc: { sequence: 1 } },
+    { new: true },
+  );
+  if (!updatedCounter) {
+    throw new Error("Unable to allocate the next staff ID.");
+  }
+
+  return `bk-${year}${String(updatedCounter.sequence).padStart(3, "0")}`;
+};
 
 const registerStaff = async (req, res) => {
   let claims;
@@ -34,7 +74,6 @@ const registerStaff = async (req, res) => {
     "address",
     "ethnicity",
     "marital_status",
-    "staff_id",
     "qualification",
     "subject_taught",
     "department",
@@ -67,8 +106,10 @@ const registerStaff = async (req, res) => {
   }
 
   try {
+    const staffId = await getNextStaffId();
     const staff = await StaffUser.create({
       ...staffData,
+      staff_id: staffId,
       email: staffData.email.trim().toLowerCase(),
       username,
       password,
@@ -91,7 +132,8 @@ const registerStaff = async (req, res) => {
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({
-        message: "The staff ID, username, or email is already in use.",
+        message:
+          "The username or email is already in use, or a generated staff ID conflicted. Please retry.",
       });
     }
     if (error.name === "ValidationError") {
