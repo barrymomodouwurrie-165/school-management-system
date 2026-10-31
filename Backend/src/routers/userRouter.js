@@ -238,6 +238,80 @@ userRouter.get("/teacher/profile", async (req, res) => {
   }
 });
 
+userRouter.get("/student/profile", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    return res
+      .status(403)
+      .json({ message: "Only students can access their profile." });
+  }
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select(
+        "student_id first_name last_name gender date_of_birth nationality phone_number ethnicity religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
+      )
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const classroom = await ClassRoom.findOne({
+      name: student.class,
+      status: "Active",
+    })
+      .populate(
+        "class_teacher",
+        "first_name last_name phone_number email",
+      )
+      .lean();
+    const classTeacher = classroom?.class_teacher;
+
+    return res.status(200).json({
+      id: String(student._id),
+      fullName: `${student.first_name} ${student.last_name}`,
+      studentId: student.student_id,
+      section: student.section,
+      className: student.class,
+      enrollmentDate: student.enrollment_date,
+      status: student.status,
+      gender: student.gender,
+      dateOfBirth: student.date_of_birth,
+      nationality: student.nationality,
+      phoneNumber: student.phone_number,
+      ethnicity: student.ethnicity,
+      religion: student.religion,
+      previousSchool: student.previous_school,
+      guardian: {
+        name: student.guardian_name,
+        phoneNumber: student.guardian_phone,
+        email: student.guardian_email ?? "",
+        address: student.guardian_address,
+      },
+      classTeacher: classTeacher
+        ? {
+            name: `${classTeacher.first_name} ${classTeacher.last_name}`,
+            phoneNumber: classTeacher.phone_number,
+            email: classTeacher.email,
+          }
+        : null,
+    });
+  } catch (error) {
+    console.error("Student profile retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve student profile." });
+  }
+});
+
 userRouter.get("/staff", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 

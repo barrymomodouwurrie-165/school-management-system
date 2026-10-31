@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   FaBars,
@@ -8,6 +8,7 @@ import {
   FaRobot,
   FaFlag,
   FaUsers,
+  FaUserCircle,
   FaSignOutAlt,
 } from "react-icons/fa";
 import { MdExitToApp } from "react-icons/md";
@@ -23,12 +24,45 @@ import ViewResult from "../components/StudentSideBarComponents/ViewResult";
 import ReportStudent from "../components/StudentSideBarComponents/ReportStudent";
 import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestion";
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
+import StudentProfilePage from "../components/StudentSideBarComponents/StudentProfilePage";
+import { getStudentProfile } from "../utils/studentApi";
+
+const formatEnrollmentDate = (value) => {
+  if (!value) return "Not provided";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(date);
+};
 
 const StudentDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
   const [viewResult, setViewResult] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getStudentProfile()
+      .then((studentProfile) => {
+        if (active) setProfile(studentProfile);
+      })
+      .catch((error) => {
+        if (active) setProfileError(error.message);
+      })
+      .finally(() => {
+        if (active) setIsProfileLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const PAGES = {
     announcements: Announcement,
@@ -40,6 +74,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     "report-student": ReportStudent,
     suggestion: SendSuggestion,
     complaint: SendComplaint,
+    profile: StudentProfilePage,
   };
 
   const ActivePage = PAGES[activePage] && PAGES[activePage];
@@ -58,6 +93,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
       ],
     },
     { id: "ai", label: "AiAssistance", icon: FaRobot },
+    { id: "profile", label: "My Profile", icon: FaUserCircle },
     {
       id: "reports",
       label: "Reports",
@@ -86,6 +122,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         NAV_ITEMS={NAV_ITEMS}
         viewResult={viewResult}
         setViewResult={setViewResult}
+        profile={profile}
       />
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-4 flex justify-end">
@@ -100,7 +137,14 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         <div className="p-2 grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr_auto] border-t-2 border-primary rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div className=" w-[50px] h-[50px] flex items-center justify-center bg-blue-950/70 rounded-lg text-white font-bold">
-              KS
+              {profile?.fullName
+                ? profile.fullName
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((name) => name[0])
+                    .join("")
+                    .toUpperCase()
+                : "--"}
             </div>
             <Link
               className="md:hidden btn btn-ghost"
@@ -148,8 +192,17 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
             <div className="md:flex items-center justify-between">
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-bold text-blue-600">
-                  Welcome Back, Kebba Samba
+                  {isProfileLoading
+                    ? "Loading your profile..."
+                    : profile
+                      ? `Welcome back, ${profile.fullName}`
+                      : "Welcome back"}
                 </h1>
+                {profileError && (
+                  <p className="text-sm text-error" role="alert">
+                    {profileError}
+                  </p>
+                )}
                 <div className="flex flex-col">
                   <div className="grid grid-cols-3 ">
                     <span className="text-xs text-base-content/70">
@@ -163,17 +216,29 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
                     </span>
                   </div>
                   <div className="grid grid-cols-3">
-                    <span className="text-sm">2024001</span>
-                    <span className="text-sm">10 Science One</span>
-                    <span className="text-sm">Sept 12, 2024</span>
+                    <span className="text-sm">
+                      {isProfileLoading ? "Loading..." : profile?.studentId || "Not available"}
+                    </span>
+                    <span className="text-sm">
+                      {isProfileLoading ? "Loading..." : profile?.className || "Not assigned"}
+                    </span>
+                    <span className="text-sm">
+                      {isProfileLoading
+                        ? "Loading..."
+                        : formatEnrollmentDate(profile?.enrollmentDate)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="font-sans text-base-content/70">
-                      Class Teacher: Mr. M.Jallow
+                      Class Teacher:{" "}
+                      {isProfileLoading
+                        ? "Loading..."
+                        : profile?.classTeacher?.name || "Not assigned"}
                     </span>
                     <button
+                      type="button"
                       onClick={() => setViewDetail(!viewDetail)}
                       className="btn btn-outline btn-sm rounded-md"
                     >
@@ -183,27 +248,15 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
                   {viewDetail && (
                     <span>
                       <p>
-                        <b>Tel: </b>+220833986565
+                        <b>Tel: </b>
+                        {profile?.classTeacher?.phoneNumber || "Not provided"}
                       </p>
                       <p>
-                        <b>Email: </b>barrymomodouwurry165@gmail.com
+                        <b>Email: </b>
+                        {profile?.classTeacher?.email || "Not provided"}
                       </p>
                     </span>
                   )}
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col border-l border-base-content/50 p-4">
-                  <span className="text-xl font-bold">3.88</span>
-                  <span className="text-xs text-base-content/70">
-                    CURRENT CGPA
-                  </span>
-                </div>
-                <div className="flex flex-col border-l border-base-content/50 p-4">
-                  <span className="text-xl font-bold">94%</span>
-                  <span className="text-xs text-base-content/70">
-                    OVERALL ATTENDANCE
-                  </span>
                 </div>
               </div>
             </div>
@@ -214,6 +267,9 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         <ViewResult viewResult={viewResult} setViewResult={setViewResult} />
       ) : (
         <ActivePage
+          profile={profile}
+          isLoading={isProfileLoading}
+          error={profileError}
           setViewResult={setViewResult}
           viewResult={viewResult}
           onBack={() => {
