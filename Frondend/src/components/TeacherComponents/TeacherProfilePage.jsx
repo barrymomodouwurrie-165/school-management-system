@@ -1,188 +1,129 @@
-import { useState } from "react";
-import {
-  FaUserCircle,
-  FaCamera,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-} from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaUserCircle } from "react-icons/fa";
 
-const TeacherProfilePage = () => {
-  const [preview, setPreview] = useState(null);
-  const [profile, setProfile] = useState({
-    id: "100001",
-    name: "N.A Mendy",
-    email: "nicola@gmail.com",
-    phone: "+220833986565",
-    department: "Mathematics",
-    subject: "Mathematics",
-  });
+const TeacherProfilePage = ({ profile, isLoading, error }) => {
+  if (isLoading) {
+    return <p className="mx-auto max-w-4xl p-4">Loading your profile...</p>;
+  }
 
-  const handleFieldChange = (field) => (e) => {
-    const value = e.target.value;
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
+  if (error || !profile) {
+    return (
+      <main className="mx-auto max-w-4xl p-4">
+        <h1 className="text-lg font-bold">MY PROFILE</h1>
+        <p className="mt-3 text-error" role="alert">
+          {error || "Your teacher profile is unavailable."}
+        </p>
+      </main>
+    );
+  }
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setProfile((prev) => ({
-      ...prev,
-      image: preview || prev.image,
-    }));
-  };
-
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    if (file) setPreview(URL.createObjectURL(file));
-  };
+  const assignedSubjects = profile.assignedSubjects.length
+    ? profile.assignedSubjects
+    : profile.primarySubject
+      ? [profile.primarySubject]
+      : [];
+  const showValue = (value) => value || "Not provided";
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex flex-col gap-1">
-        <p className="text-base-content/70">Academic Session: 2024/2025</p>
-        <p className="Text-lg">My profile</p>
-        <p className="text-base-content/70 text-sm md:text-base">
-          Manage your personal contact details, staff credentials, and school
-          profile details
+    <main className="mx-auto max-w-4xl p-4">
+      <header className="mb-5">
+        <h1 className="text-lg font-bold">MY PROFILE</h1>
+        <p className="text-sm text-base-content/70">
+          Your staff details and teaching assignments.
         </p>
-      </div>
-      <div className="p-4 rounded-md shadow-md my-4">
-        <div className="">
-          <form action="">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="form-control">
-                <label className="label cursor-pointer" htmlFor="image">
-                  {preview ? (
-                    <div className="relative">
-                      <img
-                        className="rounded-full h-[80px] w-[80px] border-4 border-blue-600/20"
-                        src={preview}
-                        alt={preview}
-                      />
-                      <FaCamera
-                        className="absolute bottom-0 left-14 text-blue-600"
-                        size={14}
-                      />
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <FaUserCircle className="rounded-full h-[80px] w-[80px] border-2" />
-                      <FaCamera
-                        className="absolute bottom-0 left-14 text-blue-600"
-                        size={14}
-                      />
-                    </div>
-                  )}
-                </label>
-                <input
-                  type="file"
-                  onChange={handleImage}
-                  accept="image/*"
-                  className="hidden cursor-pointer"
-                  name=""
-                  id="image"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold">Mr. {profile.name}</span>
-                <p className="text-base-content/70">
-                  {profile.subject} Teacher
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="bg-blue-600/10 text-blue-600/70 p-1 rounded-md">
-                    {profile.department} Department
-                  </span>
-                  <span className="bg-blue-600/10 text-blue-600/70 p-1 rounded-md">
-                    ID: {profile.id}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="form-control rounded-md shadow-sm">
-              <label className="label" htmlFor="name">
-                <span className="label-text">Full Name</span>
-              </label>
-              <div className="relative">
-                <input
-                  onChange={handleFieldChange("name")}
-                  value={profile.name}
-                  className="input input-ghost input-sm w-1/2 rounded-md pl-8"
-                  type="text"
-                  id="name"
-                />
-                <FaUser className="relative bottom-6 left-2" />
-              </div>
-            </div>
-            <div className="form-control rounded-md shadow-sm">
-              <label className="label" htmlFor="email">
-                <span className="label-text">Email</span>
-              </label>
-              <div className="relative">
-                <input
-                  onChange={handleFieldChange("email")}
-                  value={profile.email}
-                  className="input input-ghost input-sm w-1/2 rounded-md pl-8"
-                  type="text"
-                  id="email"
-                />
-                <FaEnvelope className="relative bottom-6 left-2" />
-              </div>
-            </div>
-            <div className="form-control rounded-md shadow-sm">
-              <label className="label" htmlFor="phone">
-                <span className="label-text">Tel Number</span>
-              </label>
-              <div className="relative">
-                <input
-                  onChange={handleFieldChange("phone")}
-                  value={profile.phone}
-                  className="input input-ghost input-sm w-1/2 rounded-md pl-8"
-                  type="text"
-                  id="phone"
-                />
-                <FaPhone className="relative bottom-6 left-2" />
-              </div>
-            </div>
-            <p className="mt-4 text-lg text-blue-600/70">
-              INSTITUTIONAL ASSIGNMENT (READ ONLY)
+      </header>
+
+      <section className="rounded-lg border border-base-300 bg-base-100 p-5 shadow-md md:p-7">
+        <div className="mb-6 flex items-center gap-4 border-b border-base-300 pb-5">
+          {profile.profilePicture ? (
+            <img
+              src={profile.profilePicture}
+              alt={`${profile.fullName} profile`}
+              className="h-20 w-20 rounded-full border-2 border-primary/20 object-cover"
+            />
+          ) : (
+            <FaUserCircle
+              className="h-20 w-20 rounded-full border-2 border-base-300 text-base-content/40"
+              aria-hidden="true"
+            />
+          )}
+          <div>
+            <h2 className="text-xl font-bold">{profile.fullName}</h2>
+            <p className="text-sm text-base-content/70">
+              {showValue(profile.position)} · Staff ID: {profile.staffId}
             </p>
-            <div className="rounded-md bg-blue-600/10 flex flex-col gap-4 p-4">
-              <div className="flex items-center justify-between">
-                <p>Department</p>
-                <span className="p-1 rounded-lg text-bold bg-blue-600/30">
-                  Mathematics
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <p>Assigned Classes</p>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="p-1 rounded-md bg-white">10 Agic one</span>
-                  <span className="p-1 rounded-md bg-white">
-                    11 Science one
-                  </span>
-                  <span className="p-1 rounded-md bg-white">
-                    12 science one
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-4 justify-end my-4">
-              <button className="btn btn-outline btn-sm rounded-md">
-                Discard Changes
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                className="btn btn-primary btn-sm rounded-md"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ProfileDetail
+            icon={<FaEnvelope aria-hidden="true" />}
+            label="Email"
+            value={showValue(profile.email)}
+          />
+          <ProfileDetail
+            icon={<FaPhone aria-hidden="true" />}
+            label="Phone"
+            value={showValue(profile.phoneNumber)}
+          />
+          <ProfileDetail label="Gender" value={showValue(profile.gender)} />
+          <ProfileDetail label="Section" value={showValue(profile.section)} />
+          <ProfileDetail
+            label="Department"
+            value={showValue(profile.department)}
+          />
+          <ProfileDetail
+            label="Primary subject"
+            value={showValue(profile.primarySubject)}
+          />
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <AssignmentList
+            title="Teaching subjects"
+            items={assignedSubjects}
+          />
+          <AssignmentList
+            title="Teaching classes"
+            items={profile.assignedClasses}
+          />
+          <AssignmentList
+            title="Class teacher for"
+            items={profile.classTeacherClasses}
+          />
+        </div>
+      </section>
+    </main>
   );
 };
+
+const ProfileDetail = ({ icon, label, value }) => (
+  <div className="rounded-md border border-base-300 p-3">
+    <p className="flex items-center gap-2 text-xs font-semibold uppercase text-base-content/60">
+      {icon}
+      {label}
+    </p>
+    <p className="mt-1 break-words font-medium">{value}</p>
+  </div>
+);
+
+const AssignmentList = ({ title, items = [] }) => (
+  <section className="rounded-md border border-base-300 p-3">
+    <h3 className="mb-2 font-semibold">{title}</h3>
+    {items.length ? (
+      <ul className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="rounded-md bg-primary/10 px-2 py-1 text-sm"
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-sm text-base-content/60">No assignments</p>
+    )}
+  </section>
+);
 
 export default TeacherProfilePage;

@@ -175,6 +175,69 @@ userRouter.put("/admin/profile", async (req, res) => {
   }
 });
 
+userRouter.get("/teacher/profile", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  if (claims.role !== "teacher" || typeof claims.id !== "string") {
+    return res
+      .status(403)
+      .json({ message: "Only teachers can access their profile." });
+  }
+
+  try {
+    const staff = await StaffUser.findById(claims.id)
+      .select(
+        "first_name last_name gender email phone_number staff_id department subject_taught assigned_subjects assigned_classes staff_position section profile_image",
+      )
+      .lean();
+    if (!staff) {
+      return res.status(404).json({ message: "Teacher account was not found." });
+    }
+
+    const classes = await ClassRoom.find({
+      class_teacher: staff._id,
+      status: "Active",
+    })
+      .select("name")
+      .sort({ name: 1 })
+      .lean();
+
+    return res.status(200).json({
+      id: String(staff._id),
+      firstName: staff.first_name,
+      lastName: staff.last_name,
+      fullName: `${staff.first_name} ${staff.last_name}`,
+      gender: staff.gender,
+      email: staff.email,
+      phoneNumber: staff.phone_number,
+      staffId: staff.staff_id,
+      department: staff.department,
+      primarySubject:
+        LEGACY_SUBJECT_NAMES[staff.subject_taught] ?? staff.subject_taught,
+      assignedSubjects: (staff.assigned_subjects ?? []).map(
+        (subject) => LEGACY_SUBJECT_NAMES[subject] ?? subject,
+      ),
+      assignedClasses: staff.assigned_classes ?? [],
+      classTeacherClasses: classes.map((classroom) => classroom.name),
+      position: staff.staff_position,
+      section: staff.section,
+      profilePicture: staff.profile_image ?? "",
+    });
+  } catch (error) {
+    console.error("Teacher profile retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve teacher profile." });
+  }
+});
+
 userRouter.get("/staff", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 

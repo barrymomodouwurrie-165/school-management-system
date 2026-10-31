@@ -93,14 +93,13 @@ const AdminDashboard = ({
     { id: "academics", label: "Academics", logo: FaBookOpen },
     { id: "submissions", label: "Submissions", logo: FaFlag },
     { id: "attendance", label: "Attendance", logo: FaCalendarCheck },
-    
 
     {
       id: "message",
       label: "Message",
       logo: FaComments,
       children: [
-        { id: "public-newscm-history-item:c%3A%5CUsers%5CMomodou%20Wurrie%20Barry%5CDesktop%5CSchool-Management-System?%7B%22repositoryId%22%3A%22scm0%22%2C%22historyItemId%22%3A%221fdfb0eecac2b04f54a7939e2e1176ad4470f7f8%22%2C%22historyItemParentId%22%3A%220919776cf15ce95fc6063bd9776f43307215c39f%22%2C%22historyItemDisplayId%22%3A%221fdfb0e%22%7Ds", label: "Compose News" },
+        { id: "public-news", label: "Compose News" },
         { id: "private-message", label: "Compose Message" },
       ],
     },

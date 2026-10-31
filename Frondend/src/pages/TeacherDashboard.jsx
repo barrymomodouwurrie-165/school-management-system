@@ -9,8 +9,9 @@ import ReportStudent from "../components/TeacherComponents/ReportStudent";
 import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
 import CheckStudentAttendance from "../components/TeacherComponents/CheckStudentAttendance";
 import { MdExitToApp } from "react-icons/md";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { getTeacherProfile } from "../utils/teacherApi";
 import {
   FaBullhorn,
   // FaChalkboardTeacher,
@@ -26,6 +27,27 @@ import {
 const TeacherDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
   const [open, setOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState("");
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    getTeacherProfile()
+      .then((teacherProfile) => {
+        if (active) setProfile(teacherProfile);
+      })
+      .catch((error) => {
+        if (active) setProfileError(error.message);
+      })
+      .finally(() => {
+        if (active) setIsProfileLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const PAGES = {
     announcements: Announcement,
@@ -138,13 +160,32 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
               </div>
             </div>
           ) : (
-            <h1 className="text-2xl font-bold text-blue-600">
-              Welcome Back, Mr. N. Mendy (100001)
-            </h1>
+            <div className="py-2">
+              <h1 className="text-2xl font-bold text-blue-600">
+                {isProfileLoading
+                  ? "Loading your profile..."
+                  : profile
+                    ? `Welcome back, ${profile.fullName} (${profile.staffId})`
+                    : "Welcome back"}
+              </h1>
+              {profileError && (
+                <p className="mt-1 text-sm text-error" role="alert">
+                  {profileError}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
-      <ActivePage />
+      {activePage === "profile" ? (
+        <TeacherProfilePage
+          profile={profile}
+          isLoading={isProfileLoading}
+          error={profileError}
+        />
+      ) : (
+        <ActivePage />
+      )}
     </div>
   );
 };

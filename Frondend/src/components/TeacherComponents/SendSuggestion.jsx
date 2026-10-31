@@ -116,7 +116,7 @@ const SendSuggestion = () => {
                 <FaQuestion />
               </span>
               <div className="flex flex-col text-sm md:text-base">
-                <p>Include my name (Mr. N.A Mendy)</p>
+                <p>Include my name</p>
                 <p className="text-blue-600/70">
                   Your credentials will accompany this submission to the
                   academic committee
