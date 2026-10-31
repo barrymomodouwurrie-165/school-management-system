@@ -69,3 +69,24 @@ export const getStudentAttendance = async () => {
     );
   }
 };
+
+export const getStudentSubjects = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to view your class subjects.");
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/users/student/subjects`, {
+      headers: { Authorization: ["Bearer", accessToken].join(" ") },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to retrieve your class subjects.",
+      { cause: error },
+    );
+  }
+};

@@ -24,6 +24,7 @@ import ReportStudent from "../components/StudentSideBarComponents/ReportStudent"
 import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestion";
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 import StudentProfilePage from "../components/StudentSideBarComponents/StudentProfilePage";
+import MySubjects from "../components/StudentSideBarComponents/MySubjects";
 import { getStudentProfile } from "../utils/studentApi";
 import LogoutButton from "../components/LogoutButton";
 
@@ -75,6 +76,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     suggestion: SendSuggestion,
     complaint: SendComplaint,
     profile: StudentProfilePage,
+    "my-subjects": MySubjects,
   };
 
   const ActivePage = PAGES[activePage] && PAGES[activePage];
@@ -84,10 +86,11 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     { id: "classmates", label: "Classmates", icon: FaUsers },
     { id: "attendance", label: "Attendance", icon: FaClipboardCheck },
     {
-      id: "exams",
-      label: "Exams",
+      id: "academics",
+      label: "Academics",
       icon: FaFileAlt,
       children: [
+        { id: "my-subjects", label: "My Subjects" },
         { id: "check-result", label: "Check Result" },
         { id: "exam-details", label: "Check Exam Details" },
       ],

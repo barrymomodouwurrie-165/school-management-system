@@ -362,6 +362,82 @@ userRouter.get("/student/classmates", async (req, res) => {
   }
 });
 
+userRouter.get("/student/subjects", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    return res
+      .status(403)
+      .json({ message: "Only students can view their class subjects." });
+  }
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("class")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const classroom = await ClassRoom.findOne({ name: student.class }).lean();
+    if (!classroom) {
+      return res.status(404).json({
+        message: "Your current classroom could not be found.",
+      });
+    }
+
+    const subjects = await Subject.find({
+      section: classroom.section,
+      isActive: true,
+    })
+      .sort({ name: 1 })
+      .lean();
+    const assignedStaff = await StaffUser.find({
+      assigned_classes: classroom.name,
+    })
+      .select("first_name last_name assigned_subjects subject_taught")
+      .lean();
+
+    return res.status(200).json({
+      className: classroom.name,
+      subjects: subjects
+        .filter((subject) => isSubjectAvailableForClass(subject, classroom))
+        .map((subject) => {
+          const subjectTeachers = assignedStaff
+            .filter((staff) => {
+              const taughtSubjects = staff.assigned_subjects?.length
+                ? staff.assigned_subjects
+                : [staff.subject_taught];
+              return taughtSubjects.some(
+                (taughtSubject) =>
+                  (LEGACY_SUBJECT_NAMES[taughtSubject] ?? taughtSubject) ===
+                  subject.name,
+              );
+            })
+            .map((staff) => `${staff.first_name} ${staff.last_name}`);
+
+          return {
+            id: String(subject._id),
+            name: subject.name,
+            teachers: subjectTeachers,
+          };
+        }),
+    });
+  } catch (error) {
+    console.error("Student subjects retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve your class subjects." });
+  }
+});
+
 userRouter.get("/staff", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 
