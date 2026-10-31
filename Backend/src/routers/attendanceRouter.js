@@ -41,6 +41,28 @@ const getAdminClaims = (req, res) => {
   return claims;
 };
 
+const getStudentClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    res.status(403).json({ message: "Only students can view their attendance." });
+    return null;
+  }
+
+  return claims;
+};
+
+const getCurrentAcademicYear = (date = new Date()) => {
+  const startYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
+  return `${startYear}/${String(startYear + 1).slice(-2)}`;
+};
+
 const getClassDate = (value) => {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null;
@@ -139,6 +161,102 @@ const getGenderAnalysis = (entries, gender) => {
     absent: { count: absent, percentage: getPercentage(absent, students.length) },
   };
 };
+
+attendanceRouter.get("/student/me", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("_id")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const academicYear =
+      typeof req.query.academicYear === "string"
+        ? req.query.academicYear
+        : getCurrentAcademicYear();
+    if (!/^\d{4}\/\d{2,4}$/.test(academicYear)) {
+      return res.status(400).json({
+        message: "Academic year must use the YYYY/YY or YYYY/YYYY format.",
+      });
+    }
+
+    const sessions = await AttendanceSession.find({
+      academicYear,
+      "entries.student": student._id,
+    })
+      .sort({ date: -1 })
+      .select("date entries secondCallSavedAt")
+      .lean();
+
+    let completedDays = 0;
+    let attendedDays = 0;
+    let absences = 0;
+    const recentDays = sessions.slice(0, 5).map((session) => {
+      const entry = session.entries.find(
+        (item) => String(item.student) === String(student._id),
+      );
+      let status;
+      if (entry?.firstCall) {
+        status = "Present";
+      } else if (entry?.secondCall) {
+        status = "Late";
+      } else if (session.secondCallSavedAt) {
+        status = "Absent";
+      } else {
+        status = "Pending";
+      }
+
+      if (session.secondCallSavedAt) {
+        completedDays += 1;
+        if (status === "Absent") {
+          absences += 1;
+        } else {
+          attendedDays += 1;
+        }
+      }
+
+      return {
+        date: session.date,
+        status,
+        isComplete: Boolean(session.secondCallSavedAt),
+      };
+    });
+
+    for (const session of sessions.slice(5)) {
+      const entry = session.entries.find(
+        (item) => String(item.student) === String(student._id),
+      );
+      if (!session.secondCallSavedAt) continue;
+
+      completedDays += 1;
+      if (entry?.firstCall || entry?.secondCall) {
+        attendedDays += 1;
+      } else {
+        absences += 1;
+      }
+    }
+
+    return res.status(200).json({
+      academicYear,
+      overallAttendance:
+        completedDays === 0
+          ? 0
+          : Math.round((attendedDays / completedDays) * 1000) / 10,
+      classesRecorded: completedDays,
+      absences,
+      recentDays,
+    });
+  } catch (error) {
+    console.error("Student attendance retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve your attendance." });
+  }
+});
 
 attendanceRouter.get("/admin/sessions", async (req, res) => {
   const claims = getAdminClaims(req, res);
