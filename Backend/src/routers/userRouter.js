@@ -312,6 +312,56 @@ userRouter.get("/student/profile", async (req, res) => {
   }
 });
 
+userRouter.get("/student/classmates", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    return res
+      .status(403)
+      .json({ message: "Only students can view classmates." });
+  }
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("class")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const classmates = await StudentUser.find({
+      class: student.class,
+      _id: { $ne: student._id },
+      status: "Active",
+    })
+      .select("student_id first_name last_name gender guardian_address")
+      .sort({ last_name: 1, first_name: 1 })
+      .lean();
+
+    return res.status(200).json(
+      classmates.map((classmate) => ({
+        id: String(classmate._id),
+        studentId: classmate.student_id,
+        name: `${classmate.first_name} ${classmate.last_name}`,
+        gender: classmate.gender,
+        address: classmate.guardian_address,
+      })),
+    );
+  } catch (error) {
+    console.error("Student classmates retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve your classmates." });
+  }
+});
+
 userRouter.get("/staff", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 

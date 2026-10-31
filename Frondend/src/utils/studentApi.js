@@ -22,3 +22,24 @@ export const getStudentProfile = async () => {
     );
   }
 };
+
+export const getStudentClassmates = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to view your classmates.");
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/users/student/classmates`, {
+      headers: { Authorization: ["Bearer", accessToken].join(" ") },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to retrieve your classmates.",
+      { cause: error },
+    );
+  }
+};
