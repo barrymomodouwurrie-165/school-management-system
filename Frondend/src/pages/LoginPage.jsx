@@ -10,7 +10,7 @@ import {
 import { RiAdminFill } from "react-icons/ri";
 import { FiLogIn } from "react-icons/fi";
 import { RiArrowGoBackLine } from "react-icons/ri";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import axios from "axios";
 
@@ -18,7 +18,13 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const LoginPage = ({ theme, toggleTheme }) => {
   const [seePassword, setSeePassword] = useState(false);
-  const [role, setRole] = useState("admin");
+  const location = useLocation();
+  const requestedRole = new URLSearchParams(location.search).get("role");
+  const [role, setRole] = useState(
+    ["admin", "teacher", "student"].includes(requestedRole)
+      ? requestedRole
+      : "admin",
+  );
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -64,7 +70,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
           : "bg-slate-50 text-slate-800"
       }`}
     >
-      <div className="flex justify-end p-4">
+      <div className="flex justify-end p-2">
         <button
           type="button"
           onClick={toggleTheme}
@@ -73,13 +79,13 @@ const LoginPage = ({ theme, toggleTheme }) => {
           {theme === "corporate" ? "Dark mode" : "Light mode"}
         </button>
       </div>
-      <div className="max-w-xl mx-auto p-4">
-        <div className=" max-w-[20rem] mx-auto py-2 mb-4 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
+      <div className="max-w-xl mx-auto px-4 py-1">
+        <div className=" max-w-[20rem] mx-auto py-1 mb-2 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
           <FaGraduationCap size={24} />
           <span className="font-bold">EDUCORE ADMIN</span>
         </div>
         <div className="card bg-white max-w-md mx-auto border-t-4 border-l-2 border-r-2 border-primary rounded-lg">
-          <div className="px-3 py-6">
+          <div className="px-3 py-3">
             <div className="flex flex-col items-center">
               <h2 className="text-primary/90 font-bold text-2xl">
                 Welcome Back
@@ -89,7 +95,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
               </p>
             </div>
             <div>
-              <h2 className="font-bold mb-2">ACCESS ROLE</h2>
+              <h2 className="font-bold mb-1">ACCESS ROLE</h2>
               <div className="grid grid-cols-2 gap-2 justify-center">
                 <button
                   type="button"
@@ -120,7 +126,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
             </div>
             <form className="card" onSubmit={handleLogin}>
               <div className="form-control">
-                <label className="label" htmlFor="email">
+                <label className="label py-1 min-h-0" htmlFor="email">
                   <span className="label-text font-bold">
                     EMAIL OR USERNAME
                   </span>
@@ -143,7 +149,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
                 </div>
               </div>
               <div className="form-control">
-                <label className="label" htmlFor="password">
+                <label className="label py-1 min-h-0" htmlFor="password">
                   <span className="label-text font-bold">PASSWORD</span>
                 </label>
                 <div className="relative">
@@ -187,7 +193,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
                   {error}
                 </p>
               )}
-              <div className="card-actions justify-between my-4">
+              <div className="card-actions justify-between my-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -203,31 +209,46 @@ const LoginPage = ({ theme, toggleTheme }) => {
               </div>
             </form>
           </div>
-          <div className="w-full bg-base-content/10 p-4 rounded-b-lg">
-            <div className="flex items-center gap-2 justify-center">
+          <div className="w-full bg-base-content/10 p-2 rounded-b-lg">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-center">
               <span className="text-base-content/70">New faculty member?</span>
-              <Link className="text-primary">Request access</Link>
+              <a
+                href="mailto:info@school.edu.gh?subject=Faculty%20access%20request"
+                className="text-primary"
+              >
+                Request access
+              </a>
             </div>
           </div>
         </div>
       </div>
       <div className="w-full">
-        <div className="text-xs md:text-sm max-w-6xl mx-auto px-8 py-2 flex items-top justify-between border-primary/50 border-t">
-          <div>
+        <footer className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-primary/50 px-4 py-3 text-center text-xs md:flex-row md:items-center md:justify-between md:text-left md:text-sm">
+          <div className="text-base-content/70">
             <span>
               &copy;2026 Barry's Junior and Secondary School Management. all
               rights reserved.
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link>Privacy & Policy</Link>
-            <Link>Terms of Service</Link>
-            <Link className="flex items-center gap-1">
+          <nav
+            aria-label="Legal and support links"
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
+          >
+            <a href="mailto:info@school.edu.gh?subject=Privacy%20policy%20request">
+              Privacy Policy
+            </a>
+            <a href="mailto:info@school.edu.gh?subject=Terms%20of%20service%20request">
+              Terms of Service
+            </a>
+            <a
+              href="mailto:info@school.edu.gh?subject=Help%20center"
+              className="flex items-center gap-1"
+            >
               <FaQuestionCircle />
               Help Center
-            </Link>
-          </div>
-        </div>
+            </a>
+          </nav>
+        </footer>
       </div>
     </div>
   );

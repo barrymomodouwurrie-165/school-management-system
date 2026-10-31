@@ -1,5 +1,4 @@
-import { Link } from "react-router";
-import { FaSignOutAlt } from "react-icons/fa";
+import LogoutButton from "../LogoutButton";
 import TeacherSideBarNav from "./TeacherSideBarNav";
 
 const TeacherSideBar = ({ activePage, onNavigate, NAV_PAGES, setIsClick }) => {
@@ -22,10 +21,7 @@ const TeacherSideBar = ({ activePage, onNavigate, NAV_PAGES, setIsClick }) => {
             setIsClick={setIsClick}
           />
           <div>
-            <Link className=" btn btn-ghost ">
-              <FaSignOutAlt size={18} />
-              Logout
-            </Link>
+            <LogoutButton />
           </div>
         </div>
       </div>

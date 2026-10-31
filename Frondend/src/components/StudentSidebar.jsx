@@ -1,4 +1,5 @@
-import { FaSignOutAlt, FaUserCircle } from "react-icons/fa";
+import { FaUserCircle } from "react-icons/fa";
+import LogoutButton from "./LogoutButton";
 import SideBarNav from "./StudentSideBarComponents/SideBarNav";
 
 const StudentSidebar = ({
@@ -40,10 +41,7 @@ const StudentSidebar = ({
             setViewResult={setViewResult}
           />
           <div>
-            <button className=" btn btn-ghost ">
-              <FaSignOutAlt size={18} />
-              Logout
-            </button>
+            <LogoutButton />
           </div>
         </div>
       </div>

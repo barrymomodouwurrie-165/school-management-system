@@ -23,12 +23,12 @@ import {
   FaComments,
   FaCog,
   FaUsers,
-  FaSignOutAlt,
   FaTachometerAlt,
   FaFlag,
   FaCalendarCheck,
 } from "react-icons/fa";
 import { getAdminProfile } from "../utils/adminApi";
+import LogoutButton from "../components/LogoutButton";
 
 const AdminDashboard = ({
   theme,
@@ -152,10 +152,7 @@ const AdminDashboard = ({
                 setIsClick={setIsClick}
               />
               <div>
-                <Link className=" btn btn-ghost ">
-                  <FaSignOutAlt size={18} />
-                  Logout
-                </Link>
+                <LogoutButton />
               </div>
             </div>
             <div className=" z-50 w-[210px] py-4 border-t border-base-content/70 flex-shrink-0">

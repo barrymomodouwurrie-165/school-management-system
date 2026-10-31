@@ -12,6 +12,7 @@ import { MdExitToApp } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getTeacherProfile } from "../utils/teacherApi";
+import LogoutButton from "../components/LogoutButton";
 import {
   FaBullhorn,
   // FaChalkboardTeacher,
@@ -21,7 +22,6 @@ import {
   FaFlag,
   FaUserCircle,
   FaBars,
-  FaSignOutAlt,
 } from "react-icons/fa";
 
 const TeacherDashboard = ({ theme, toggleTheme }) => {
@@ -151,10 +151,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
                     //   setIsClick={setIsClick}
                   />
                   <div>
-                    <button className=" btn btn-ghost ">
-                      <FaSignOutAlt size={18} />
-                      Logout
-                    </button>
+                    <LogoutButton />
                   </div>
                 </div>
               </div>

@@ -9,7 +9,6 @@ import {
   FaFlag,
   FaUsers,
   FaUserCircle,
-  FaSignOutAlt,
 } from "react-icons/fa";
 import { MdExitToApp } from "react-icons/md";
 import StudentSidebar from "../components/StudentSidebar";
@@ -26,6 +25,7 @@ import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestio
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 import StudentProfilePage from "../components/StudentSideBarComponents/StudentProfilePage";
 import { getStudentProfile } from "../utils/studentApi";
+import LogoutButton from "../components/LogoutButton";
 
 const formatEnrollmentDate = (value) => {
   if (!value) return "Not provided";
@@ -178,10 +178,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
                     setViewResult={setViewResult}
                   />
                   <div>
-                    <button className=" btn btn-ghost ">
-                      <FaSignOutAlt size={18} />
-                      Logout
-                    </button>
+                    <LogoutButton />
                   </div>
                 </div>
               </div>

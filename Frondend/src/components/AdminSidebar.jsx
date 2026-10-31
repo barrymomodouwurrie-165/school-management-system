@@ -1,6 +1,5 @@
-import { Link } from "react-router";
 import profile from "../assets/profile.webp";
-import { FaSignOutAlt } from "react-icons/fa";
+import LogoutButton from "./LogoutButton";
 import AdminSidebarNav from "./AdminSidebarNav";
 
 const AdminSidebar = ({
@@ -29,10 +28,7 @@ const AdminSidebar = ({
             setIsClick={setIsClick}
           />
           <div>
-            <Link className=" btn btn-ghost ">
-              <FaSignOutAlt size={18} />
-              Logout
-            </Link>
+            <LogoutButton />
           </div>
         </div>
         <div className=" z-50 w-[210px] py-4 border-t border-base-content/70 flex-shrink-0">

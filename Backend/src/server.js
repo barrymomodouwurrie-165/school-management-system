@@ -30,4 +30,3 @@ connectDB().then(() => {
   });
 });
 
-// Persists admin posts, limits feeds to the 5 latest news articles and 8 latest announcements, and filters announcements by audience.
