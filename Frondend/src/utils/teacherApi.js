@@ -22,3 +22,75 @@ export const getTeacherProfile = async () => {
     );
   }
 };
+
+const getTeacherConfig = () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to access teacher records.");
+  }
+  return { headers: { Authorization: ["Bearer", accessToken].join(" ") } };
+};
+
+const getErrorMessage = (error, fallback) =>
+  error.response?.data?.message || error.message || fallback;
+
+export const getTeacherClasses = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/classes`,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve your assigned classes."),
+      { cause: error },
+    );
+  }
+};
+
+export const getTeacherResults = async (filters) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/results`,
+      { ...getTeacherConfig(), params: filters },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve student results."),
+      { cause: error },
+    );
+  }
+};
+
+export const saveTeacherResults = async (results) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/teacher/results`,
+      results,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to save student results."),
+      { cause: error },
+    );
+  }
+};
+
+export const getTeacherExams = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/exams`,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve scheduled exams."),
+      { cause: error },
+    );
+  }
+};

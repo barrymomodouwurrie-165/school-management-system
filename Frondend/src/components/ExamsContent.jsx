@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createAcademicExam, getAcademicExams } from "../utils/adminApi";
+import { getTeacherExams } from "../utils/teacherApi";
 
 const formatDate = (value) => {
   const date = String(value).slice(0, 10);
@@ -11,7 +12,7 @@ const formatDate = (value) => {
   }).format(new Date(Date.UTC(year, month - 1, day)));
 };
 
-const ExamsContent = ({ addButton, setAddButton }) => {
+const ExamsContent = ({ addButton, setAddButton, readOnly = false }) => {
   const [exams, setExams] = useState([]);
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -23,7 +24,7 @@ const ExamsContent = ({ addButton, setAddButton }) => {
 
   useEffect(() => {
     let active = true;
-    getAcademicExams()
+    (readOnly ? getTeacherExams() : getAcademicExams())
       .then((result) => {
         if (active) setExams(result);
       })
@@ -42,7 +43,7 @@ const ExamsContent = ({ addButton, setAddButton }) => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [readOnly]);
 
   const handleCreateExam = async (event) => {
     event.preventDefault();
@@ -91,7 +92,7 @@ const ExamsContent = ({ addButton, setAddButton }) => {
         </p>
       )}
 
-      {addButton === "addExam" ? (
+      {!readOnly && addButton === "addExam" ? (
         <form
           onSubmit={handleCreateExam}
           className="space-y-3 rounded-md p-4 shadow-md"

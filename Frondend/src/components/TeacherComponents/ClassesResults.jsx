@@ -1,41 +1,57 @@
-import { useState } from "react";
+const ClassesResults = ({ data, marks, onMarkChange }) => {
+  const test = marks.testScore;
+  const exam = marks.examScore;
+  const total =
+    test !== "" && exam !== ""
+      ? Number((Number(test) + Number(exam)).toFixed(2))
+      : "";
+  const grade =
+    total === ""
+      ? ""
+      : total >= 80
+        ? "A"
+        : total >= 70
+          ? "B"
+          : total >= 60
+            ? "C"
+            : total >= 50
+              ? "D"
+              : total >= 40
+                ? "E"
+                : "F";
 
-const ClassesResults = ({ data }) => {
-  const [test, setTest] = useState("");
-  const [exam, setExam] = useState("");
-
-  const handleChange = (setter, max) => (e) => {
-    const digits = e.target.value.replace(/\D/g, "");
-    setter(digits === "" ? "" : String(Math.min(Number(digits), max)));
-  };
-
-  const total = (Number(test) || 0) + (Number(exam) || 0);
   return (
-    <div className="grid grid-cols-5 text-xs md:text-base px-2 py-2 border-b hover:bg-blue-600/10">
-      <span>{data.id}</span>
+    <div className="grid min-w-[680px] grid-cols-6 text-xs md:text-base px-2 py-2 border-b hover:bg-blue-600/10">
+      <span>{data.studentId}</span>
       <span>{data.name}</span>
       <input
-        inputMode="numeric"
-        pattern="[0-9]*"
-        onChange={handleChange(setTest, 30)}
+        aria-label={`Test score for ${data.name}`}
+        inputMode="decimal"
+        min="0"
+        max="30"
+        step="any"
+        onChange={(event) =>
+          onMarkChange(data.id, "testScore", event.target.value)
+        }
         value={test}
-        type="text"
-        className="input input-bordered input-xs max-w-12"
+        type="number"
+        className="input input-bordered input-xs max-w-16"
       />
       <input
-        inputMode="numeric"
-        pattern="[0-9]*"
-        onChange={handleChange(setExam, 70)}
+        aria-label={`Exam score for ${data.name}`}
+        inputMode="decimal"
+        min="0"
+        max="70"
+        step="any"
+        onChange={(event) =>
+          onMarkChange(data.id, "examScore", event.target.value)
+        }
         value={exam}
-        type="text"
-        className="input input-bordered input-xs max-w-12"
+        type="number"
+        className="input input-bordered input-xs max-w-16"
       />
-      <input
-        value={total}
-        type="text"
-        className="input input-bordered input-xs max-w-12"
-        readOnly
-      />
+      <span className="py-1">{total}</span>
+      <span className="py-1">{grade}</span>
     </div>
   );
 };

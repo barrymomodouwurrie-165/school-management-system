@@ -183,6 +183,8 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
           isLoading={isProfileLoading}
           error={profileError}
         />
+      ) : activePage === "exam-details" ? (
+        <ExamsContent readOnly />
       ) : (
         <ActivePage />
       )}

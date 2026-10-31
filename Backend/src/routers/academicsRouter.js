@@ -4,7 +4,9 @@ import ClassRoom from "../models/classRoom.js";
 import Exam from "../models/exam.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
+import StudentResult from "../models/studentResult.js";
 import Subject from "../models/subject.js";
+import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import { isAuthentic } from "../models/tokens.js";
 
 const academicsRouter = express.Router();
@@ -44,6 +46,69 @@ const getAdminClaims = (req, res) => {
   return claims;
 };
 
+const getTeacherClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (claims.role !== "teacher" || typeof claims.id !== "string") {
+    res.status(403).json({ message: "Only teachers can access these records." });
+    return null;
+  }
+
+  return claims;
+};
+
+const getTeacherClassContext = async (teacherId, className) => {
+  const [staff, classroom] = await Promise.all([
+    StaffUser.findById(teacherId)
+      .select("assigned_classes assigned_subjects subject_taught")
+      .lean(),
+    ClassRoom.findOne({ name: className, status: "Active" }).lean(),
+  ]);
+  if (!staff || !classroom || !staff.assigned_classes?.includes(className)) {
+    return null;
+  }
+
+  const assignedSubjects =
+    staff.assigned_subjects?.length > 0
+      ? staff.assigned_subjects
+      : staff.subject_taught
+        ? [staff.subject_taught]
+        : [];
+  const catalogSubjects = await Subject.find({
+    name: { $in: assignedSubjects },
+    section: classroom.section,
+    isActive: true,
+  }).lean();
+  const allowedSubjects = catalogSubjects
+    .filter((subject) => isSubjectAvailableForClass(subject, classroom))
+    .map((subject) => subject.name);
+
+  return { staff, classroom, allowedSubjects };
+};
+
+const getResultGrade = (total) => {
+  if (total >= 80) return "A";
+  if (total >= 70) return "B";
+  if (total >= 60) return "C";
+  if (total >= 50) return "D";
+  if (total >= 40) return "E";
+  return "F";
+};
+
+const isAcademicYear = (value) => {
+  if (typeof value !== "string" || !/^\d{4}\/\d{4}$/.test(value)) {
+    return false;
+  }
+  const [start, end] = value.split("/").map(Number);
+  return end === start + 1;
+};
+
 academicsRouter.get("/classes", async (req, res) => {
   if (!getAdminClaims(req, res)) return;
 
@@ -73,6 +138,284 @@ academicsRouter.get("/classes", async (req, res) => {
   } catch (error) {
     console.error("Academic class retrieval failed:", error.message);
     return res.status(500).json({ message: "Unable to retrieve classes." });
+  }
+});
+
+academicsRouter.get("/teacher/classes", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const staff = await StaffUser.findById(claims.id)
+      .select("assigned_classes assigned_subjects subject_taught")
+      .lean();
+    if (!staff) {
+      return res.status(404).json({ message: "Teacher account was not found." });
+    }
+
+    const classrooms = staff.assigned_classes?.length
+      ? await ClassRoom.find({
+          name: { $in: staff.assigned_classes },
+          status: "Active",
+        })
+          .sort({ grade: 1, program: 1, stream_number: 1, name: 1 })
+          .lean()
+      : [];
+    const studentClasses = classrooms.map((classroom) => classroom.name);
+    const [students, subjects] = await Promise.all([
+      studentClasses.length
+        ? StudentUser.find({
+            class: { $in: studentClasses },
+            status: { $ne: "Transferred" },
+          })
+            .select("_id student_id first_name last_name class status")
+            .sort({ last_name: 1, first_name: 1 })
+            .lean()
+        : [],
+      Subject.find({ isActive: true }).sort({ name: 1 }).lean(),
+    ]);
+
+    const assignedSubjects =
+      staff.assigned_subjects?.length > 0
+        ? staff.assigned_subjects
+        : staff.subject_taught
+          ? [staff.subject_taught]
+          : [];
+
+    return res.status(200).json(
+      classrooms.map((classroom) => ({
+        _id: classroom._id,
+        name: classroom.name,
+        section: classroom.section,
+        program: classroom.program,
+        stream_number: classroom.stream_number,
+        subjects: subjects
+          .filter(
+            (subject) =>
+              assignedSubjects.includes(subject.name) &&
+              subject.section === classroom.section &&
+              isSubjectAvailableForClass(subject, classroom),
+          )
+          .map((subject) => subject.name),
+        students: students
+          .filter((student) => student.class === classroom.name)
+          .map((student) => ({
+            id: String(student._id),
+            studentId: student.student_id,
+            name: `${student.first_name} ${student.last_name}`,
+          })),
+      })),
+    );
+  } catch (error) {
+    console.error("Teacher result classes retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve your assigned classes." });
+  }
+});
+
+academicsRouter.get("/teacher/results", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const { className, subject, academicYear, evaluationPeriod } = req.query;
+  if (
+    typeof className !== "string" ||
+    typeof subject !== "string" ||
+    !isAcademicYear(academicYear) ||
+    !["First Term", "Second Term", "Third Term"].includes(evaluationPeriod)
+  ) {
+    return res.status(400).json({
+      message: "Provide a class, subject, academic year, and evaluation period.",
+    });
+  }
+
+  try {
+    const context = await getTeacherClassContext(claims.id, className);
+    if (!context || !context.allowedSubjects.includes(subject)) {
+      return res
+        .status(403)
+        .json({ message: "You are not assigned to teach this subject in this class." });
+    }
+
+    const activeStudentIds = await StudentUser.distinct("_id", {
+      class: className,
+      status: { $ne: "Transferred" },
+    });
+    const results = await StudentResult.find({
+      className,
+      subject,
+      academicYear,
+      evaluationPeriod,
+      student: { $in: activeStudentIds },
+    })
+      .select("student testScore examScore total grade updatedAt")
+      .lean();
+
+    return res.status(200).json(
+      results.map((result) => ({
+        studentId: String(result.student),
+        testScore: result.testScore,
+        examScore: result.examScore,
+        total: result.total,
+        grade: result.grade,
+        updatedAt: result.updatedAt,
+      })),
+    );
+  } catch (error) {
+    console.error("Teacher results retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve student results." });
+  }
+});
+
+academicsRouter.post("/teacher/results", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const { className, subject, academicYear, evaluationPeriod } = req.body ?? {};
+  const entries = req.body?.entries;
+  if (
+    typeof className !== "string" ||
+    typeof subject !== "string" ||
+    !isAcademicYear(academicYear) ||
+    !["First Term", "Second Term", "Third Term"].includes(evaluationPeriod) ||
+    !Array.isArray(entries) ||
+    !entries.length
+  ) {
+    return res.status(400).json({
+      message: "Provide a class, subject, year, term, and at least one result.",
+    });
+  }
+
+  const studentIds = entries.map((entry) => entry?.studentId);
+  if (
+    studentIds.some(
+      (studentId) =>
+        typeof studentId !== "string" || !mongoose.isValidObjectId(studentId),
+    ) ||
+    new Set(studentIds).size !== studentIds.length
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Each result must contain a unique valid student ID." });
+  }
+
+  const validEntries = [];
+  for (const entry of entries) {
+    const testScore = entry.testScore;
+    const examScore = entry.examScore;
+    if (
+      typeof testScore !== "number" ||
+      typeof examScore !== "number" ||
+      !Number.isFinite(testScore) ||
+      !Number.isFinite(examScore) ||
+      testScore < 0 ||
+      testScore > 30 ||
+      examScore < 0 ||
+      examScore > 70
+    ) {
+      return res.status(400).json({
+        message: "Test scores must be 0-30 and exam scores must be 0-70.",
+      });
+    }
+    validEntries.push({ studentId: entry.studentId, testScore, examScore });
+  }
+
+  try {
+    const context = await getTeacherClassContext(claims.id, className);
+    if (!context || !context.allowedSubjects.includes(subject)) {
+      return res
+        .status(403)
+        .json({ message: "You are not assigned to teach this subject in this class." });
+    }
+
+    const students = await StudentUser.find({
+      _id: { $in: studentIds },
+      class: className,
+      status: { $ne: "Transferred" },
+    })
+      .select("_id student_id first_name last_name")
+      .lean();
+    if (students.length !== studentIds.length) {
+      return res.status(400).json({
+        message: "One or more students are not active members of this class.",
+      });
+    }
+
+    const studentById = new Map(
+      students.map((student) => [String(student._id), student]),
+    );
+    const operations = validEntries.map((entry) => {
+      const student = studentById.get(entry.studentId);
+      const total = Number((entry.testScore + entry.examScore).toFixed(2));
+      return {
+        updateOne: {
+          filter: {
+            student: student._id,
+            className,
+            subject,
+            academicYear,
+            evaluationPeriod,
+          },
+          update: {
+            $set: {
+              studentId: student.student_id,
+              studentName: `${student.first_name} ${student.last_name}`,
+              testScore: entry.testScore,
+              examScore: entry.examScore,
+              total,
+              grade: getResultGrade(total),
+              enteredBy: claims.id,
+            },
+          },
+          upsert: true,
+        },
+      };
+    });
+
+    await StudentResult.bulkWrite(operations);
+    return res.status(200).json({
+      message: `Saved results for ${validEntries.length} student${validEntries.length === 1 ? "" : "s"}.`,
+      savedCount: validEntries.length,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Teacher results save failed:", error.message);
+    return res.status(500).json({ message: "Unable to save student results." });
+  }
+});
+
+academicsRouter.get("/teacher/exams", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const staff = await StaffUser.findById(claims.id)
+      .select("assigned_classes")
+      .lean();
+    if (!staff) {
+      return res.status(404).json({ message: "Teacher account was not found." });
+    }
+
+    const sections = staff.assigned_classes?.length
+      ? await ClassRoom.distinct("section", {
+          name: { $in: staff.assigned_classes },
+          status: "Active",
+        })
+      : [];
+    if (!sections.length) return res.status(200).json([]);
+
+    const exams = await Exam.find({
+      section: { $in: [...sections, "Both"] },
+    })
+      .sort({ startDate: 1, title: 1 })
+      .lean();
+    return res.status(200).json(exams.map(serializeExam));
+  } catch (error) {
+    console.error("Teacher exam retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve scheduled exams." });
   }
 });
 
