@@ -25,12 +25,14 @@ import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestio
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 import StudentProfilePage from "../components/StudentSideBarComponents/StudentProfilePage";
 import MySubjects from "../components/StudentSideBarComponents/MySubjects";
-import { getStudentProfile } from "../utils/studentApi";
+import {
+  getStudentAttendance,
+  getStudentCgpa,
+  getStudentProfile,
+} from "../utils/studentApi";
 import LogoutButton from "../components/LogoutButton";
 
-const StudentExamDetails = () => (
-  <ExamsContent viewer="student" readOnly />
-);
+const StudentExamDetails = () => <ExamsContent viewer="student" readOnly />;
 
 const formatEnrollmentDate = (value) => {
   if (!value) return "Not provided";
@@ -51,6 +53,12 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
   const [profile, setProfile] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+    cgpa: null,
+    attendance: null,
+  });
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -63,6 +71,42 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
       })
       .finally(() => {
         if (active) setIsProfileLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([getStudentCgpa(), getStudentAttendance()])
+      .then(([cgpaResult, attendanceResult]) => {
+        if (!active) return;
+        const failures = [];
+        if (cgpaResult.status === "fulfilled") {
+          setDashboardMetrics((current) => ({
+            ...current,
+            cgpa:
+              cgpaResult.value.publishedSubjectCount > 0
+                ? cgpaResult.value.cgpa
+                : null,
+          }));
+        } else {
+          failures.push(cgpaResult.reason.message);
+        }
+        if (attendanceResult.status === "fulfilled") {
+          setDashboardMetrics((current) => ({
+            ...current,
+            attendance: attendanceResult.value.overallAttendance,
+          }));
+        } else {
+          failures.push(attendanceResult.reason.message);
+        }
+        setMetricsError(failures.join(" "));
+      })
+      .finally(() => {
+        if (active) setMetricsLoading(false);
       });
 
     return () => {
@@ -194,7 +238,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
           ) : viewResult ? (
             ""
           ) : (
-            <div className="md:flex items-center justify-between">
+            <div className="md:flex items-center justify-between gap-6">
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-bold text-blue-600">
                   {isProfileLoading
@@ -209,25 +253,29 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
                   </p>
                 )}
                 <div className="flex flex-col">
-                  <div className="grid grid-cols-3 ">
+                  <div className="grid grid-cols-3 gap-0.5 mb-1">
                     <span className="text-xs text-base-content/70">
                       STUDENT ID
                     </span>
                     <span className="text-xs text-base-content/70">
                       CURRENT CLASS
                     </span>
-                    <span className="text-xs text-base-content/70">
+                    <span className="text-xs text-base-content/70 md:ml-1">
                       DATE ENROLLED
                     </span>
                   </div>
                   <div className="grid grid-cols-3">
                     <span className="text-sm">
-                      {isProfileLoading ? "Loading..." : profile?.studentId || "Not available"}
+                      {isProfileLoading
+                        ? "Loading..."
+                        : profile?.studentId || "Not available"}
                     </span>
                     <span className="text-sm">
-                      {isProfileLoading ? "Loading..." : profile?.className || "Not assigned"}
+                      {isProfileLoading
+                        ? "Loading..."
+                        : profile?.className || "Not assigned"}
                     </span>
-                    <span className="text-sm">
+                    <span className="text-sm md:ml-1">
                       {isProfileLoading
                         ? "Loading..."
                         : formatEnrollmentDate(profile?.enrollmentDate)}
@@ -264,16 +312,47 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
                   )}
                 </div>
               </div>
+              <section
+                aria-label="Academic and attendance summary"
+                className="mt-5 flex shrink-0 items-center border-t border-base-300 pt-4 md:mt-0 md:border-l md:border-t-0 md:pl-6 md:pt-0"
+              >
+                <div className="pr-5 text-center">
+                  <p className="text-xs font-medium text-base-content/70">
+                    Current CGPA
+                  </p>
+                  <p className="text-lg font-bold">
+                    {metricsLoading
+                      ? "..."
+                      : dashboardMetrics.cgpa === null
+                        ? "N/A"
+                        : `${dashboardMetrics.cgpa.toFixed(2)} / 5.00`}
+                  </p>
+                </div>
+                <div className="border-l border-base-300 pl-5 text-center">
+                  <p className="text-xs font-medium text-base-content/70">
+                    Current Attendance
+                  </p>
+                  <p className="text-lg font-bold">
+                    {metricsLoading
+                      ? "..."
+                      : dashboardMetrics.attendance === null
+                        ? "N/A"
+                        : `${dashboardMetrics.attendance}%`}
+                  </p>
+                </div>
+              </section>
+              {metricsError && (
+                <p className="text-xs text-error md:max-w-48" role="alert">
+                  {metricsError}
+                </p>
+              )}
             </div>
           )}
         </div>
       </div>
       {viewResult ? (
         selectedResult && (
-          <ViewResult
-            result={selectedResult}
-            setViewResult={setViewResult}
-          />
+          <ViewResult result={selectedResult} setViewResult={setViewResult} />
         )
       ) : (
         <ActivePage

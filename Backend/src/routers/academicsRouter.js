@@ -171,6 +171,39 @@ academicsRouter.get("/results/student/options", async (req, res) => {
   }
 });
 
+academicsRouter.get("/results/student/cgpa", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const student = await StudentUser.findById(claims.id).select("_id").lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+    const records = await StudentResult.find({
+      student: student._id,
+      published: true,
+    })
+      .select("grade")
+      .lean();
+    const cgpa =
+      records.length === 0
+        ? 0
+        : records.reduce((sum, record) => sum + gradePoints[record.grade], 0) /
+          records.length;
+
+    return res.status(200).json({
+      cgpa: Number(cgpa.toFixed(2)),
+      publishedSubjectCount: records.length,
+    });
+  } catch (error) {
+    console.error("Student CGPA retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve your CGPA." });
+  }
+});
+
 academicsRouter.get("/results/student", async (req, res) => {
   const claims = getStudentClaims(req, res);
   if (!claims) return;

@@ -158,3 +158,25 @@ export const getStudentResult = async (filters) => {
     );
   }
 };
+
+export const getStudentCgpa = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to view your CGPA.");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/results/student/cgpa`,
+      { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to retrieve your CGPA.",
+      { cause: error },
+    );
+  }
+};
