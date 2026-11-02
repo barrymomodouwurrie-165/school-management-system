@@ -198,7 +198,8 @@ academicsRouter.get("/results/student", async (req, res) => {
       evaluationPeriod,
       published: true,
     })
-      .select("subject testScore examScore total grade")
+      .select("subject testScore examScore total grade publishedAt publishedBy")
+      .populate("publishedBy", "fullName username")
       .sort({ subject: 1 })
       .lean();
 
@@ -212,12 +213,67 @@ academicsRouter.get("/results/student", async (req, res) => {
       F: "Needs improvement",
     };
     const totalMarks = records.reduce((sum, record) => sum + record.total, 0);
+    const gpa =
+      records.length === 0
+        ? 0
+        : records.reduce(
+            (sum, record) => sum + gradePoints[record.grade],
+            0,
+          ) / records.length;
+    const cumulativeRecords = await StudentResult.find({
+      student: student._id,
+      published: true,
+    })
+      .select("grade")
+      .lean();
+    const cgpa =
+      cumulativeRecords.length === 0
+        ? 0
+        : cumulativeRecords.reduce(
+            (sum, record) => sum + gradePoints[record.grade],
+            0,
+          ) / cumulativeRecords.length;
+    const averageMarks =
+      records.length === 0 ? 0 : totalMarks / records.length;
+    const subjectCounts = records.reduce(
+      (counts, record) => {
+        if (["A", "B", "C", "D"].includes(record.grade)) {
+          counts.credits += 1;
+        } else if (record.grade === "E") {
+          counts.passed += 1;
+        } else if (record.grade === "F") {
+          counts.failed += 1;
+        }
+        return counts;
+      },
+      { credits: 0, passed: 0, failed: 0 },
+    );
+    const averageRemark =
+      averageMarks >= 80
+        ? "Excellent"
+        : averageMarks >= 70
+          ? "Very Good"
+          : averageMarks >= 60
+            ? "Good"
+            : averageMarks >= 40
+              ? "Pass"
+              : "Fail";
+    const publishingAdmin = [...records]
+      .sort(
+        (first, second) =>
+          new Date(second.publishedAt ?? 0) - new Date(first.publishedAt ?? 0),
+      )
+      .find((record) => record.publishedBy)?.publishedBy;
 
     return res.status(200).json({
       student: {
         fullName: `${student.first_name} ${student.last_name}`,
         studentId: student.student_id,
       },
+      publishingAdminName:
+        publishingAdmin?.fullName?.trim() ||
+        publishingAdmin?.username ||
+        "Admin name unavailable",
       className: className.trim(),
       academicYear,
       evaluationPeriod,
@@ -230,22 +286,11 @@ academicsRouter.get("/results/student", async (req, res) => {
         gradePoint: gradePoints[record.grade],
         remark: remarks[record.grade],
       })),
-      totalMarks,
-      averageMarks:
-        records.length === 0
-          ? 0
-          : Number((totalMarks / records.length).toFixed(2)),
-      gpa:
-        records.length === 0
-          ? 0
-          : Number(
-              (
-                records.reduce(
-                  (sum, record) => sum + gradePoints[record.grade],
-                  0,
-                ) / records.length
-              ).toFixed(2),
-            ),
+      averageMarks: Number(averageMarks.toFixed(2)),
+      averageRemark,
+      subjectCounts,
+      gpa: Number(gpa.toFixed(2)),
+      cgpa: Number(cgpa.toFixed(2)),
     });
   } catch (error) {
     console.error("Student result retrieval failed:", error.message);
