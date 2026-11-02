@@ -319,3 +319,19 @@ export const publishAdminResults = async (resultSelection) => {
     );
   }
 };
+
+export const publishAllAdminResults = async (termSelection) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/results/admin/publish-all`,
+      termSelection,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to publish all results."),
+      { cause: error },
+    );
+  }
+};

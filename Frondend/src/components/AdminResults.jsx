@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   getAdminResultOptions,
   getAdminResultsForPublishing,
+  publishAllAdminResults,
   publishAdminResults,
 } from "../utils/adminApi";
 
@@ -20,6 +21,7 @@ const AdminResults = () => {
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [loadedSelectionKey, setLoadedSelectionKey] = useState("");
   const [publishingSubject, setPublishingSubject] = useState("");
+  const [isPublishingAll, setIsPublishingAll] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -106,6 +108,30 @@ const AdminResults = () => {
     }
   };
 
+  const handlePublishAll = async () => {
+    if (!selection.academicYear || !selection.evaluationPeriod) return;
+
+    setIsPublishingAll(true);
+    setError("");
+    setMessage("");
+    try {
+      const result = await publishAllAdminResults({
+        academicYear: selection.academicYear,
+        evaluationPeriod: selection.evaluationPeriod,
+      });
+      setMessage(result.message);
+      if (selection.className) {
+        const updatedSubjects = await getAdminResultsForPublishing(selection);
+        setSubjects(updatedSubjects);
+        setLoadedSelectionKey(JSON.stringify(selection));
+      }
+    } catch (publishError) {
+      setError(publishError.message);
+    } finally {
+      setIsPublishingAll(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <header>
@@ -189,6 +215,25 @@ const AdminResults = () => {
                 ))}
               </select>
             </label>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-base-content/70">
+              Publish every saved result across all classes and subjects for
+              the selected year and term.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handlePublishAll}
+              disabled={
+                !selection.academicYear ||
+                !selection.evaluationPeriod ||
+                isPublishingAll ||
+                Boolean(publishingSubject)
+              }
+            >
+              {isPublishingAll ? "Publishing all..." : "Publish All"}
+            </button>
           </div>
 
           {!hasSelection ? (

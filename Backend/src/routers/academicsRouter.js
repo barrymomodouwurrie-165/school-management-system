@@ -436,6 +436,56 @@ academicsRouter.post("/results/admin/publish", async (req, res) => {
   }
 });
 
+academicsRouter.post("/results/admin/publish-all", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  const { academicYear, evaluationPeriod } = req.body ?? {};
+  if (!isAcademicYear(academicYear) || !isEvaluationPeriod(evaluationPeriod)) {
+    return res.status(400).json({
+      message: "Provide a valid academic year and term.",
+    });
+  }
+
+  try {
+    const termFilter = { academicYear, evaluationPeriod };
+    const totalCount = await StudentResult.countDocuments(termFilter);
+    if (!totalCount) {
+      return res.status(404).json({
+        message: "No saved results were found for this academic year and term.",
+      });
+    }
+
+    const filter = { ...termFilter, published: { $ne: true } };
+    const pendingCount = await StudentResult.countDocuments(filter);
+    if (!pendingCount) {
+      return res.status(200).json({
+        message: `All ${totalCount} saved result${totalCount === 1 ? " is" : "s are"} already published.`,
+        publishedCount: 0,
+      });
+    }
+
+    await StudentResult.updateMany(filter, {
+      $set: {
+        published: true,
+        publishedAt: new Date(),
+        publishedBy: claims.id,
+      },
+    });
+
+    return res.status(200).json({
+      message: `Published ${pendingCount} result${pendingCount === 1 ? "" : "s"} across all classes and subjects for ${evaluationPeriod}, ${academicYear}.`,
+      publishedCount: pendingCount,
+    });
+  } catch (error) {
+    if (error.name === "CastError" || error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin bulk result publishing failed:", error.message);
+    return res.status(500).json({ message: "Unable to publish all results." });
+  }
+});
+
 academicsRouter.get("/classes", async (req, res) => {
   if (!getAdminClaims(req, res)) return;
 
