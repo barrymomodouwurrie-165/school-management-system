@@ -181,7 +181,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
           error={profileError}
         />
       ) : activePage === "exam-details" ? (
-        <ExamsContent readOnly />
+        <ExamsContent viewer="teacher" readOnly />
       ) : (
         <ActivePage />
       )}

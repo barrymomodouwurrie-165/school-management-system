@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createAcademicExam, getAcademicExams } from "../utils/adminApi";
 import { getTeacherExams } from "../utils/teacherApi";
+import { getStudentExams } from "../utils/studentApi";
 
 const formatDate = (value) => {
   const date = String(value).slice(0, 10);
@@ -12,7 +13,12 @@ const formatDate = (value) => {
   }).format(new Date(Date.UTC(year, month - 1, day)));
 };
 
-const ExamsContent = ({ addButton, setAddButton, readOnly = false }) => {
+const ExamsContent = ({
+  addButton,
+  setAddButton,
+  readOnly = false,
+  viewer = "admin",
+}) => {
   const [exams, setExams] = useState([]);
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -24,7 +30,11 @@ const ExamsContent = ({ addButton, setAddButton, readOnly = false }) => {
 
   useEffect(() => {
     let active = true;
-    (readOnly ? getTeacherExams() : getAcademicExams())
+    (viewer === "student"
+      ? getStudentExams()
+      : viewer === "teacher"
+        ? getTeacherExams()
+        : getAcademicExams())
       .then((result) => {
         if (active) setExams(result);
       })
@@ -43,7 +53,7 @@ const ExamsContent = ({ addButton, setAddButton, readOnly = false }) => {
     return () => {
       active = false;
     };
-  }, [readOnly]);
+  }, [viewer]);
 
   const handleCreateExam = async (event) => {
     event.preventDefault();

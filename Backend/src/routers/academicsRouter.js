@@ -63,6 +63,23 @@ const getTeacherClaims = (req, res) => {
   return claims;
 };
 
+const getStudentClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    res.status(403).json({ message: "Only students can view scheduled exams." });
+    return null;
+  }
+
+  return claims;
+};
+
 const getTeacherClassContext = async (teacherId, className) => {
   const [staff, classroom] = await Promise.all([
     StaffUser.findById(teacherId)
@@ -415,6 +432,30 @@ academicsRouter.get("/teacher/exams", async (req, res) => {
     return res.status(200).json(exams.map(serializeExam));
   } catch (error) {
     console.error("Teacher exam retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve scheduled exams." });
+  }
+});
+
+academicsRouter.get("/student/exams", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("section")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const exams = await Exam.find({
+      section: { $in: [student.section, "Both"] },
+    })
+      .sort({ startDate: 1, title: 1 })
+      .lean();
+    return res.status(200).json(exams.map(serializeExam));
+  } catch (error) {
+    console.error("Student exam retrieval failed:", error.message);
     return res.status(500).json({ message: "Unable to retrieve scheduled exams." });
   }
 });

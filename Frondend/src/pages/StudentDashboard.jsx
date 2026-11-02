@@ -28,6 +28,10 @@ import MySubjects from "../components/StudentSideBarComponents/MySubjects";
 import { getStudentProfile } from "../utils/studentApi";
 import LogoutButton from "../components/LogoutButton";
 
+const StudentExamDetails = () => (
+  <ExamsContent viewer="student" readOnly />
+);
+
 const formatEnrollmentDate = (value) => {
   if (!value) return "Not provided";
   const date = new Date(value);
@@ -71,7 +75,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     attendance: Attendance,
     ai: AiAssistance,
     "check-result": ResultCheck,
-    "exam-details": ExamsContent,
+    "exam-details": StudentExamDetails,
     "report-student": ReportStudent,
     suggestion: SendSuggestion,
     complaint: SendComplaint,
@@ -92,7 +96,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
       children: [
         { id: "my-subjects", label: "My Subjects" },
         { id: "check-result", label: "Check Result" },
-        { id: "exam-details", label: "Check Exam Details" },
+        { id: "exam-details", label: "Exam Details" },
       ],
     },
     { id: "ai", label: "AiAssistance", icon: FaRobot },
