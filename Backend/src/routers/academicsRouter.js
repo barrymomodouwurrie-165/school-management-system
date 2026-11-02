@@ -126,6 +126,271 @@ const isAcademicYear = (value) => {
   return end === start + 1;
 };
 
+const isEvaluationPeriod = (value) =>
+  ["First Term", "Second Term", "Third Term"].includes(value);
+
+academicsRouter.get("/results/student/options", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("class")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const [academicYears, classes, terms] = await Promise.all([
+      StudentResult.distinct("academicYear", { student: student._id }),
+      StudentResult.distinct("className", { student: student._id }),
+      StudentResult.distinct("evaluationPeriod", { student: student._id }),
+    ]);
+
+    return res.status(200).json({
+      academicYears: academicYears.sort((first, second) =>
+        second.localeCompare(first),
+      ),
+      classes: [...new Set([...classes, student.class])]
+        .filter((className) => typeof className === "string" && className.trim())
+        .sort(),
+      terms: ["First Term", "Second Term", "Third Term"].filter((term) =>
+        terms.includes(term),
+      ),
+    });
+  } catch (error) {
+    console.error("Student result options retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve result selections." });
+  }
+});
+
+academicsRouter.get("/results/student", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  const { academicYear, className, evaluationPeriod } = req.query;
+  if (
+    !isAcademicYear(academicYear) ||
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    !isEvaluationPeriod(evaluationPeriod)
+  ) {
+    return res.status(400).json({
+      message: "Provide a valid academic year, class, and evaluation period.",
+    });
+  }
+
+  try {
+    const student = await StudentUser.findById(claims.id)
+      .select("student_id first_name last_name")
+      .lean();
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+
+    const records = await StudentResult.find({
+      student: student._id,
+      academicYear,
+      className: className.trim(),
+      evaluationPeriod,
+      published: true,
+    })
+      .select("subject testScore examScore total grade")
+      .sort({ subject: 1 })
+      .lean();
+
+    const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+    const remarks = {
+      A: "Excellent",
+      B: "Very good",
+      C: "Good",
+      D: "Satisfactory",
+      E: "Pass",
+      F: "Needs improvement",
+    };
+    const totalMarks = records.reduce((sum, record) => sum + record.total, 0);
+
+    return res.status(200).json({
+      student: {
+        fullName: `${student.first_name} ${student.last_name}`,
+        studentId: student.student_id,
+      },
+      className: className.trim(),
+      academicYear,
+      evaluationPeriod,
+      subjects: records.map((record) => ({
+        name: record.subject,
+        testScore: record.testScore,
+        examScore: record.examScore,
+        total: record.total,
+        grade: record.grade,
+        gradePoint: gradePoints[record.grade],
+        remark: remarks[record.grade],
+      })),
+      totalMarks,
+      averageMarks:
+        records.length === 0
+          ? 0
+          : Number((totalMarks / records.length).toFixed(2)),
+      gpa:
+        records.length === 0
+          ? 0
+          : Number(
+              (
+                records.reduce(
+                  (sum, record) => sum + gradePoints[record.grade],
+                  0,
+                ) / records.length
+              ).toFixed(2),
+            ),
+    });
+  } catch (error) {
+    console.error("Student result retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve your result." });
+  }
+});
+
+academicsRouter.get("/results/admin/options", async (req, res) => {
+  if (!getAdminClaims(req, res)) return;
+
+  try {
+    const [academicYears, storedClasses, classrooms, terms] = await Promise.all([
+      StudentResult.distinct("academicYear"),
+      StudentResult.distinct("className"),
+      ClassRoom.find().select("name").sort({ name: 1 }).lean(),
+      StudentResult.distinct("evaluationPeriod"),
+    ]);
+
+    return res.status(200).json({
+      academicYears: academicYears.sort((first, second) =>
+        second.localeCompare(first),
+      ),
+      classes: [...new Set([...storedClasses, ...classrooms.map((item) => item.name)])].sort(),
+      terms: ["First Term", "Second Term", "Third Term"].filter((term) =>
+        terms.includes(term),
+      ),
+    });
+  } catch (error) {
+    console.error("Admin result options retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve result selections." });
+  }
+});
+
+academicsRouter.get("/results/admin", async (req, res) => {
+  if (!getAdminClaims(req, res)) return;
+
+  const { academicYear, className, evaluationPeriod } = req.query;
+  if (
+    !isAcademicYear(academicYear) ||
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    !isEvaluationPeriod(evaluationPeriod)
+  ) {
+    return res.status(400).json({
+      message: "Provide a valid academic year, class, and evaluation period.",
+    });
+  }
+
+  try {
+    const subjects = await StudentResult.aggregate([
+      {
+        $match: {
+          academicYear,
+          className: className.trim(),
+          evaluationPeriod,
+        },
+      },
+      {
+        $group: {
+          _id: "$subject",
+          totalStudents: { $sum: 1 },
+          publishedCount: {
+            $sum: { $cond: [{ $eq: ["$published", true] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+    return res.status(200).json(
+      subjects.map((subject) => ({
+        subject: subject._id,
+        totalStudents: subject.totalStudents,
+        publishedCount: subject.publishedCount,
+        isPublished:
+          subject.totalStudents > 0 &&
+          subject.publishedCount === subject.totalStudents,
+      })),
+    );
+  } catch (error) {
+    console.error("Admin result summary retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve results for publishing." });
+  }
+});
+
+academicsRouter.post("/results/admin/publish", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  const { academicYear, className, evaluationPeriod, subject } = req.body ?? {};
+  if (
+    !isAcademicYear(academicYear) ||
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    !isEvaluationPeriod(evaluationPeriod) ||
+    typeof subject !== "string" ||
+    !subject.trim() ||
+    subject.length > 100
+  ) {
+    return res.status(400).json({
+      message: "Provide a valid academic year, class, term, and subject.",
+    });
+  }
+
+  try {
+    const filter = {
+      academicYear,
+      className: className.trim(),
+      evaluationPeriod,
+      subject: subject.trim(),
+      published: { $ne: true },
+    };
+    const pendingCount = await StudentResult.countDocuments(filter);
+    if (!pendingCount) {
+      return res.status(404).json({
+        message: "No unpublished results were found for this subject selection.",
+      });
+    }
+
+    await StudentResult.updateMany(filter, {
+      $set: {
+        published: true,
+        publishedAt: new Date(),
+        publishedBy: claims.id,
+      },
+    });
+
+    return res.status(200).json({
+      message: `${subject.trim()} results published for ${pendingCount} student${pendingCount === 1 ? "" : "s"}.`,
+      publishedCount: pendingCount,
+    });
+  } catch (error) {
+    if (error.name === "CastError" || error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin result publishing failed:", error.message);
+    return res.status(500).json({ message: "Unable to publish results." });
+  }
+});
+
 academicsRouter.get("/classes", async (req, res) => {
   if (!getAdminClaims(req, res)) return;
 
@@ -383,6 +648,9 @@ academicsRouter.post("/teacher/results", async (req, res) => {
               total,
               grade: getResultGrade(total),
               enteredBy: claims.id,
+              published: false,
+              publishedAt: null,
+              publishedBy: null,
             },
           },
           upsert: true,

@@ -111,3 +111,50 @@ export const getStudentExams = async () => {
     );
   }
 };
+
+export const getStudentResultOptions = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to check your results.");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/results/student/options`,
+      { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to load result selections.",
+      { cause: error },
+    );
+  }
+};
+
+export const getStudentResult = async (filters) => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to check your results.");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/results/student`,
+      {
+        headers: { Authorization: ["Bearer", accessToken].join(" ") },
+        params: filters,
+      },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to retrieve your result.",
+      { cause: error },
+    );
+  }
+};

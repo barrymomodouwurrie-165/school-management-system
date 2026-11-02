@@ -47,6 +47,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
   const [open, setOpen] = useState(false);
   const [viewDetail, setViewDetail] = useState(false);
   const [viewResult, setViewResult] = useState(false);
+  const [selectedResult, setSelectedResult] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
@@ -268,13 +269,19 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         </div>
       </div>
       {viewResult ? (
-        <ViewResult viewResult={viewResult} setViewResult={setViewResult} />
+        selectedResult && (
+          <ViewResult
+            result={selectedResult}
+            setViewResult={setViewResult}
+          />
+        )
       ) : (
         <ActivePage
           profile={profile}
           isLoading={isProfileLoading}
           error={profileError}
           setViewResult={setViewResult}
+          setSelectedResult={setSelectedResult}
           viewResult={viewResult}
           onBack={() => {
             setActivePage("announcements");

@@ -273,3 +273,49 @@ export const createAcademicExam = async (exam) => {
     );
   }
 };
+
+export const getAdminResultOptions = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/results/admin/options`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve result selections."),
+      { cause: error },
+    );
+  }
+};
+
+export const getAdminResultsForPublishing = async (filters) => {
+  try {
+    const response = await axios.get(`${API_URL}/academics/results/admin`, {
+      ...getAdminConfig(),
+      params: filters,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve results for publishing."),
+      { cause: error },
+    );
+  }
+};
+
+export const publishAdminResults = async (resultSelection) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/results/admin/publish`,
+      resultSelection,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to publish results."),
+      { cause: error },
+    );
+  }
+};

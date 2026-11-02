@@ -56,6 +56,17 @@ const studentResultSchema = new mongoose.Schema(
       enum: ["A", "B", "C", "D", "E", "F"],
       required: true,
     },
+    published: {
+      type: Boolean,
+      default: false,
+    },
+    publishedAt: {
+      type: Date,
+    },
+    publishedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AdminUser",
+    },
     enteredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "StaffUser",
