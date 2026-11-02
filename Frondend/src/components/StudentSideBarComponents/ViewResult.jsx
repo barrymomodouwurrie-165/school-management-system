@@ -1,5 +1,21 @@
 import logo from "../../assets/logo.jpg";
 
+const getTeacherRemark = (averageMarks) => {
+  if (averageMarks >= 80) {
+    return "Excellent performance. Keep up the outstanding work.";
+  }
+  if (averageMarks >= 70) {
+    return "Very good performance. Keep working hard to achieve even more.";
+  }
+  if (averageMarks >= 60) {
+    return "Good effort. Continue to practice and build on this progress.";
+  }
+  if (averageMarks >= 40) {
+    return "You passed. More consistent study will help improve your results.";
+  }
+  return "You need to improve. Please seek support and devote more time to your studies.";
+};
+
 const ViewResult = ({ result, setViewResult }) => {
   return (
     <main className="mx-auto max-w-5xl p-4">
@@ -53,6 +69,21 @@ const ViewResult = ({ result, setViewResult }) => {
           </p>
         </section>
 
+        <section className="mb-6 grid gap-3 border-y border-slate-300 py-3 sm:grid-cols-3">
+          <Summary
+            label="Subjects with Credit (A-D)"
+            value={result.subjectCounts.credits}
+          />
+          <Summary
+            label="Subjects Passed (E)"
+            value={result.subjectCounts.passed}
+          />
+          <Summary
+            label="Subjects Failed (F)"
+            value={result.subjectCounts.failed}
+          />
+        </section>
+
         <div className="overflow-x-auto">
           <table className="result-mark-table table table-sm">
             <thead>
@@ -103,19 +134,11 @@ const ViewResult = ({ result, setViewResult }) => {
               label="Average Marks"
               value={`${result.averageMarks.toFixed(2)} / 100`}
             />
-            <Summary
-              label="Subjects with Credit (A-D)"
-              value={result.subjectCounts.credits}
-            />
-            <Summary
-              label="Subjects Passed (E)"
-              value={result.subjectCounts.passed}
-            />
-            <Summary
-              label="Subjects Failed (F)"
-              value={result.subjectCounts.failed}
-            />
             <Summary label="Remark" value={result.averageRemark} />
+            <Summary
+              label="Teacher's Remark"
+              value={getTeacherRemark(result.averageMarks)}
+            />
             <Summary label="CGPA" value={`${result.cgpa.toFixed(2)} / 5.00`} />
           </div>
         </section>
