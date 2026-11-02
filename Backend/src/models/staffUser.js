@@ -104,6 +104,24 @@ const staffSchema = new mongoose.Schema(
       type: [String],
       default: undefined,
     },
+    class_subject_assignments: {
+      type: [
+        {
+          _id: false,
+          className: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+          subjects: {
+            type: [String],
+            required: true,
+            default: [],
+          },
+        },
+      ],
+      default: [],
+    },
     role: {
       type: String,
       enum: ["teacher"],

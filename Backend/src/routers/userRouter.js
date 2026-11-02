@@ -402,7 +402,9 @@ userRouter.get("/student/subjects", async (req, res) => {
     const assignedStaff = await StaffUser.find({
       assigned_classes: classroom.name,
     })
-      .select("first_name last_name assigned_subjects subject_taught")
+      .select(
+        "first_name last_name assigned_subjects subject_taught class_subject_assignments",
+      )
       .lean();
 
     return res.status(200).json({
@@ -415,7 +417,12 @@ userRouter.get("/student/subjects", async (req, res) => {
               const taughtSubjects = staff.assigned_subjects?.length
                 ? staff.assigned_subjects
                 : [staff.subject_taught];
-              return taughtSubjects.some(
+              const classAssignment = staff.class_subject_assignments?.find(
+                (assignment) => assignment.className === classroom.name,
+              );
+              const subjectsForClass =
+                classAssignment?.subjects ?? taughtSubjects;
+              return subjectsForClass.some(
                 (taughtSubject) =>
                   (LEGACY_SUBJECT_NAMES[taughtSubject] ?? taughtSubject) ===
                   subject.name,
@@ -632,7 +639,7 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
   try {
     const staff = await StaffUser.findOne({ staff_id: req.params.staffId })
       .select(
-        "first_name last_name staff_id department staff_position subject_taught assigned_subjects assigned_classes",
+        "first_name last_name staff_id department staff_position subject_taught assigned_subjects assigned_classes class_subject_assignments",
       )
       .lean();
     if (!staff) {
@@ -653,6 +660,14 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
           LEGACY_SUBJECT_NAMES[staff.subject_taught] ?? staff.subject_taught,
         assigned_subjects: (staff.assigned_subjects ?? []).map(
           (subject) => LEGACY_SUBJECT_NAMES[subject] ?? subject,
+        ),
+        class_subject_assignments: (staff.class_subject_assignments ?? []).map(
+          (assignment) => ({
+            className: assignment.className,
+            subjects: assignment.subjects.map(
+              (subject) => LEGACY_SUBJECT_NAMES[subject] ?? subject,
+            ),
+          }),
         ),
       },
       subjects,
@@ -686,8 +701,13 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
 userRouter.put("/staff/:staffId/assignments", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
 
-  const { assignedClasses, assignedSubjects, classTeacherClasses, staffPosition } =
-    req.body ?? {};
+  const {
+    assignedClasses,
+    assignedSubjects,
+    classSubjectAssignments,
+    classTeacherClasses,
+    staffPosition,
+  } = req.body ?? {};
   const isStringArray = (value) =>
     Array.isArray(value) &&
     value.every((item) => typeof item === "string" && item.trim());
@@ -695,6 +715,14 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
   if (
     !isStringArray(assignedClasses) ||
     !isStringArray(assignedSubjects) ||
+    !Array.isArray(classSubjectAssignments) ||
+    classSubjectAssignments.some(
+      (assignment) =>
+        !assignment ||
+        typeof assignment.className !== "string" ||
+        !assignment.className.trim() ||
+        !isStringArray(assignment.subjects),
+    ) ||
     !isStringArray(classTeacherClasses) ||
     !STAFF_POSITIONS.includes(staffPosition)
   ) {
@@ -708,6 +736,36 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
     ...new Set(classTeacherClasses.map((item) => item.trim())),
   ];
   const normalizedSubjects = [...new Set(assignedSubjects.map((item) => item.trim()))];
+  const normalizedClassSubjectAssignments = classSubjectAssignments.map(
+    (assignment) => ({
+      className: assignment.className.trim(),
+      subjects: [...new Set(assignment.subjects.map((subject) => subject.trim()))],
+    }),
+  );
+  const classSubjectClassNames = normalizedClassSubjectAssignments.map(
+    (assignment) => assignment.className,
+  );
+  if (
+    new Set(classSubjectClassNames).size !== classSubjectClassNames.length ||
+    classSubjectClassNames.length !== normalizedClasses.length ||
+    normalizedClasses.some((className) => !classSubjectClassNames.includes(className)) ||
+    normalizedClassSubjectAssignments.some((assignment) => !assignment.subjects.length)
+  ) {
+    return res.status(400).json({
+      message: "Choose at least one subject for each assigned teaching class.",
+    });
+  }
+  if (
+    normalizedClassSubjectAssignments.some(
+      (assignment) =>
+        new Set(assignment.subjects).size !== assignment.subjects.length ||
+        assignment.subjects.some((subject) => !normalizedSubjects.includes(subject)),
+    )
+  ) {
+    return res.status(400).json({
+      message: "Class subject selections must come from the assigned subject list.",
+    });
+  }
 
   try {
     const staff = await StaffUser.findOne({ staff_id: req.params.staffId });
@@ -751,20 +809,24 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
       });
     }
 
-    const teachingClasses = classrooms.filter((classroom) =>
-      normalizedClasses.includes(classroom.name),
+    const unavailableAssignment = normalizedClassSubjectAssignments.find(
+      (assignment) => {
+        const classroom = classrooms.find(
+          (item) => item.name === assignment.className,
+        );
+        return assignment.subjects.some(
+          (name) =>
+            !subjectsByName
+              .get(name)
+              ?.some((subject) =>
+                isSubjectAvailableForClass(subject, classroom),
+              ),
+        );
+      },
     );
-    const unavailableSubject = normalizedSubjects.find(
-      (name) =>
-        !subjectsByName.get(name).some((subject) =>
-          teachingClasses.some((classroom) =>
-            isSubjectAvailableForClass(subject, classroom),
-          ),
-        ),
-    );
-    if (unavailableSubject) {
+    if (unavailableAssignment) {
       return res.status(400).json({
-        message: `${unavailableSubject} is not available for any of the selected teaching classes.`,
+        message: `One or more selected subjects are not available for ${unavailableAssignment.className}.`,
       });
     }
 
@@ -818,6 +880,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
     );
     staff.assigned_classes = normalizedClasses;
     staff.assigned_subjects = normalizedSubjects;
+    staff.class_subject_assignments = normalizedClassSubjectAssignments;
     staff.staff_position = staffPosition;
     await staff.save();
 
@@ -827,6 +890,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
         staff_id: staff.staff_id,
         assigned_classes: staff.assigned_classes,
         assigned_subjects: staff.assigned_subjects,
+        class_subject_assignments: staff.class_subject_assignments,
         staff_position: staff.staff_position,
       },
     });

@@ -26,7 +26,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [assignedClasses, setAssignedClasses] = useState([]);
-  const [assignedSubjects, setAssignedSubjects] = useState([]);
+  const [classSubjectAssignments, setClassSubjectAssignments] = useState({});
   const [classTeacherClasses, setClassTeacherClasses] = useState([]);
   const [staffPosition, setStaffPosition] = useState("Teacher");
   const [department, setDepartment] = useState("");
@@ -41,10 +41,39 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
         if (!active) return;
         setClasses(result.classes);
         setSubjects(result.subjects);
-        setAssignedClasses(result.staff.assigned_classes ?? []);
-        setAssignedSubjects(
+        const existingClasses = result.staff.assigned_classes ?? [];
+        const existingSubjects =
           result.staff.assigned_subjects ??
-            (result.staff.subject_taught ? [result.staff.subject_taught] : []),
+          (result.staff.subject_taught ? [result.staff.subject_taught] : []);
+        const savedAssignments = new Map(
+          (result.staff.class_subject_assignments ?? []).map((assignment) => [
+            assignment.className,
+            assignment.subjects,
+          ]),
+        );
+        setAssignedClasses(existingClasses);
+        setClassSubjectAssignments(
+          Object.fromEntries(
+            existingClasses.map((className) => {
+              const classroom = result.classes.find(
+                (item) => item.name === className,
+              );
+              const savedSubjects = savedAssignments.get(className);
+              const selectedSubjects = savedSubjects
+                ? savedSubjects
+                : existingSubjects.filter((subjectName) => {
+                    const subject = result.subjects.find(
+                      (item) => item.name === subjectName,
+                    );
+                    return (
+                      subject &&
+                      classroom &&
+                      subjectIsAvailableForClass(subject, classroom)
+                    );
+                  });
+              return [className, selectedSubjects];
+            }),
+          ),
         );
         setClassTeacherClasses(result.classTeacherClasses);
         setStaffPosition(result.staff.staff_position);
@@ -90,33 +119,65 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   ].sort((first, second) => first.localeCompare(second));
 
   const toggleTeachingClass = (className) => {
-    const next = assignedClasses.includes(className)
-      ? assignedClasses.filter((item) => item !== className)
-      : [...assignedClasses, className];
-    setAssignedClasses(next);
-    setAssignedSubjects((selected) =>
-      selected.filter((subjectName) =>
-        subjects.some(
-          (subject) =>
-            subject.name === subjectName &&
-            classes.some(
-              (classroom) =>
-                next.includes(classroom.name) &&
-                subjectIsAvailableForClass(subject, classroom),
-            ),
-        ),
-      ),
-    );
+    if (assignedClasses.includes(className)) {
+      setAssignedClasses((current) =>
+        current.filter((item) => item !== className),
+      );
+      setClassSubjectAssignments((current) => {
+        const next = { ...current };
+        delete next[className];
+        return next;
+      });
+      return;
+    }
+
+    setAssignedClasses((current) => [...current, className]);
+    setClassSubjectAssignments((current) => ({
+      ...current,
+      [className]: [],
+    }));
+  };
+
+  const toggleClassSubject = (className, subjectName) => {
+    setClassSubjectAssignments((current) => {
+      const selected = current[className] ?? [];
+      return {
+        ...current,
+        [className]: selected.includes(subjectName)
+          ? selected.filter((subject) => subject !== subjectName)
+          : [...selected, subjectName],
+      };
+    });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const classesWithoutSubjects = assignedClasses.filter(
+      (className) => !classSubjectAssignments[className]?.length,
+    );
+    if (classesWithoutSubjects.length) {
+      setStatus({
+        type: "error",
+        message: `Choose at least one subject for ${classesWithoutSubjects.join(", ")}.`,
+      });
+      return;
+    }
+
     setIsSaving(true);
     setStatus({ type: "", message: "" });
     try {
+      const selectedSubjects = [
+        ...new Set(
+          Object.values(classSubjectAssignments).flat(),
+        ),
+      ];
       const result = await updateStaffAssignments(staffId, {
         assignedClasses,
-        assignedSubjects,
+        assignedSubjects: selectedSubjects,
+        classSubjectAssignments: assignedClasses.map((className) => ({
+          className,
+          subjects: classSubjectAssignments[className] ?? [],
+        })),
         classTeacherClasses,
         staffPosition,
       });
@@ -210,17 +271,47 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
             emptyMessage="No active classes are available."
           />
 
-          <SelectionSection
-            title="Assign subjects to teach"
-            items={availableSubjectNames}
-            selected={assignedSubjects}
-            onToggle={(value) => toggleValue(value, setAssignedSubjects)}
-            emptyMessage={
-              assignedClasses.length
-                ? "No subjects are available for the selected classes."
-                : "Select teaching classes to see their available subjects."
-            }
-          />
+          <section className="space-y-3 rounded-md p-4 shadow-md">
+            <div>
+              <h2 className="font-bold">Choose subjects for each class</h2>
+              <p className="text-sm text-base-content/70">
+                Each class can have a different selection. Newly added classes
+                start with no subjects selected.
+              </p>
+            </div>
+            {assignedClasses.length ? (
+              assignedClasses.map((className) => {
+                const classroom = classes.find(
+                  (item) => item.name === className,
+                );
+                const classSubjects = availableSubjectNames.filter((name) => {
+                  const subject = subjects.find((item) => item.name === name);
+                  return (
+                    subject &&
+                    classroom &&
+                    subjectIsAvailableForClass(subject, classroom)
+                  );
+                });
+                return (
+                  <SelectionSection
+                    key={className}
+                    title={className}
+                    items={classSubjects}
+                    selected={classSubjectAssignments[className] ?? []}
+                    onToggle={(subjectName) =>
+                      toggleClassSubject(className, subjectName)
+                    }
+                    emptyMessage="No available subjects match this class."
+                    description="Select the subject(s) this teacher will teach in this class."
+                  />
+                );
+              })
+            ) : (
+              <p className="text-sm text-base-content/70">
+                Select one or more teaching classes first.
+              </p>
+            )}
+          </section>
 
           <SelectionSection
             title="Make class teacher"
@@ -275,9 +366,13 @@ const SelectionSection = ({
   getDescription,
   isDisabled,
   emptyMessage,
+  description,
 }) => (
   <section className="rounded-md p-4 shadow-md">
     <h2 className="mb-3 font-bold">{title}</h2>
+    {description && (
+      <p className="mb-3 text-sm text-base-content/70">{description}</p>
+    )}
     {!items.length ? (
       <p className="text-sm text-base-content/70">{emptyMessage}</p>
     ) : (

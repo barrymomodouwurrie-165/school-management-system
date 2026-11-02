@@ -83,7 +83,9 @@ const getStudentClaims = (req, res) => {
 const getTeacherClassContext = async (teacherId, className) => {
   const [staff, classroom] = await Promise.all([
     StaffUser.findById(teacherId)
-      .select("assigned_classes assigned_subjects subject_taught")
+      .select(
+        "assigned_classes assigned_subjects subject_taught class_subject_assignments",
+      )
       .lean(),
     ClassRoom.findOne({ name: className, status: "Active" }).lean(),
   ]);
@@ -92,11 +94,14 @@ const getTeacherClassContext = async (teacherId, className) => {
   }
 
   const assignedSubjects =
-    staff.assigned_subjects?.length > 0
+    staff.class_subject_assignments?.find(
+      (assignment) => assignment.className === className,
+    )?.subjects ??
+    (staff.assigned_subjects?.length > 0
       ? staff.assigned_subjects
       : staff.subject_taught
         ? [staff.subject_taught]
-        : [];
+        : []);
   const catalogSubjects = await Subject.find({
     name: { $in: assignedSubjects },
     section: classroom.section,
@@ -524,7 +529,9 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
 
   try {
     const staff = await StaffUser.findById(claims.id)
-      .select("assigned_classes assigned_subjects subject_taught")
+      .select(
+        "assigned_classes assigned_subjects subject_taught class_subject_assignments",
+      )
       .lean();
     if (!staff) {
       return res.status(404).json({ message: "Teacher account was not found." });
@@ -552,13 +559,6 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
       Subject.find({ isActive: true }).sort({ name: 1 }).lean(),
     ]);
 
-    const assignedSubjects =
-      staff.assigned_subjects?.length > 0
-        ? staff.assigned_subjects
-        : staff.subject_taught
-          ? [staff.subject_taught]
-          : [];
-
     return res.status(200).json(
       classrooms.map((classroom) => ({
         _id: classroom._id,
@@ -569,7 +569,15 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
         subjects: subjects
           .filter(
             (subject) =>
-              assignedSubjects.includes(subject.name) &&
+              (staff.class_subject_assignments?.find(
+                (assignment) => assignment.className === classroom.name,
+              )?.subjects ??
+                (staff.assigned_subjects?.length > 0
+                  ? staff.assigned_subjects
+                  : staff.subject_taught
+                    ? [staff.subject_taught]
+                    : [])
+              ).includes(subject.name) &&
               subject.section === classroom.section &&
               isSubjectAvailableForClass(subject, classroom),
           )
@@ -927,15 +935,21 @@ academicsRouter.delete("/subjects/:id", async (req, res) => {
       $or: [
         { subject_taught: subject.name },
         { assigned_subjects: subject.name },
+        { "class_subject_assignments.subjects": subject.name },
       ],
     })
-      .select("subject_taught assigned_subjects")
+      .select("subject_taught assigned_subjects class_subject_assignments")
       .lean();
     const operations = staffMembers.map((staff) => {
       const remainingAssignments = (staff.assigned_subjects ?? []).filter(
         (name) => name !== subject.name,
       );
-      const update = { $pull: { assigned_subjects: subject.name } };
+      const update = {
+        $pull: {
+          assigned_subjects: subject.name,
+          "class_subject_assignments.$[].subjects": subject.name,
+        },
+      };
       if (staff.subject_taught === subject.name) {
         update.$set = {
           subject_taught: remainingAssignments[0] ?? "Unassigned",
