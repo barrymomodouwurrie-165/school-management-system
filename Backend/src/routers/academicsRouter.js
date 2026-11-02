@@ -134,6 +134,77 @@ const isAcademicYear = (value) => {
 const isEvaluationPeriod = (value) =>
   ["First Term", "Second Term", "Third Term"].includes(value);
 
+const JUNIOR_CORE_SUBJECTS = [
+  "English Language",
+  "Mathematics",
+  "General Science",
+  "Social and Environmental Studies",
+  "French",
+];
+
+const getJuniorGrade = (total) => {
+  if (total >= 80) return { grade: "A1", aggregate: 1, remark: "Excellent" };
+  if (total >= 70) return { grade: "B2", aggregate: 2, remark: "Very Good" };
+  if (total >= 65) return { grade: "B3", aggregate: 3, remark: "Good" };
+  if (total >= 60) return { grade: "C4", aggregate: 4, remark: "Credit" };
+  if (total >= 55) return { grade: "C5", aggregate: 5, remark: "Credit" };
+  if (total >= 50) return { grade: "C6", aggregate: 6, remark: "Credit" };
+  if (total >= 45) return { grade: "D7", aggregate: 7, remark: "Pass" };
+  if (total >= 40) return { grade: "E8", aggregate: 8, remark: "Pass" };
+  return { grade: "F9", aggregate: 9, remark: "Fail" };
+};
+
+const calculateJuniorAggregate = (records) => {
+  const recordsBySubject = new Map(
+    records.map((record) => [record.subject, record]),
+  );
+  const missingCoreSubjects = JUNIOR_CORE_SUBJECTS.filter(
+    (subject) => !recordsBySubject.has(subject),
+  );
+  const coreResults = JUNIOR_CORE_SUBJECTS.map(
+    (subject) =>
+      recordsBySubject.get(subject) ?? {
+        subject,
+        total: 0,
+        testScore: null,
+        examScore: null,
+        isMissing: true,
+      },
+  );
+  const otherSubjects = records.filter(
+    (record) => !JUNIOR_CORE_SUBJECTS.includes(record.subject),
+  );
+  if (otherSubjects.length < 1) {
+    return {
+      aggregate: null,
+      selectedSubjects: coreResults.map((record) => record.subject),
+      missingCoreSubjects,
+      defaultedCoreSubjects: missingCoreSubjects,
+      additionalSubjectsNeeded: Math.max(0, 1 - otherSubjects.length),
+    };
+  }
+
+  const bestAdditionalResults = [...otherSubjects]
+    .sort(
+      (first, second) =>
+        getJuniorGrade(first.total).aggregate -
+        getJuniorGrade(second.total).aggregate,
+    )
+    .slice(0, 1);
+  const selectedRecords = [...coreResults, ...bestAdditionalResults];
+
+  return {
+    aggregate: selectedRecords.reduce(
+      (sum, record) => sum + getJuniorGrade(record.total).aggregate,
+      0,
+    ),
+    selectedSubjects: selectedRecords.map((record) => record.subject),
+    missingCoreSubjects,
+    defaultedCoreSubjects: missingCoreSubjects,
+    additionalSubjectsNeeded: 0,
+  };
+};
+
 academicsRouter.get("/results/student/options", async (req, res) => {
   const claims = getStudentClaims(req, res);
   if (!claims) return;
@@ -171,23 +242,55 @@ academicsRouter.get("/results/student/options", async (req, res) => {
   }
 });
 
-academicsRouter.get("/results/student/cgpa", async (req, res) => {
+academicsRouter.get("/results/student/summary", async (req, res) => {
   const claims = getStudentClaims(req, res);
   if (!claims) return;
 
   try {
-    const student = await StudentUser.findById(claims.id).select("_id").lean();
+    const student = await StudentUser.findById(claims.id)
+      .select("_id section")
+      .lean();
     if (!student) {
       return res.status(404).json({ message: "Student account was not found." });
     }
 
-    const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
     const records = await StudentResult.find({
       student: student._id,
       published: true,
     })
-      .select("grade")
+      .select("grade subject total academicYear evaluationPeriod")
       .lean();
+    if (student.section === "Junior") {
+      const latestYear = records
+        .map((record) => record.academicYear)
+        .sort((first, second) => second.localeCompare(first))[0];
+      const termOrder = ["First Term", "Second Term", "Third Term"];
+      const latestTerm = latestYear
+        ? termOrder
+            .filter((term) =>
+              records.some(
+                (record) =>
+                  record.academicYear === latestYear &&
+                  record.evaluationPeriod === term,
+              ),
+            )
+            .at(-1)
+        : null;
+      const latestRecords = records.filter(
+        (record) =>
+          record.academicYear === latestYear &&
+          record.evaluationPeriod === latestTerm,
+      );
+      return res.status(200).json({
+        section: student.section,
+        metric: "aggregate",
+        aggregate: calculateJuniorAggregate(latestRecords),
+        academicYear: latestYear ?? null,
+        evaluationPeriod: latestTerm,
+      });
+    }
+
+    const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
     const cgpa =
       records.length === 0
         ? 0
@@ -195,12 +298,16 @@ academicsRouter.get("/results/student/cgpa", async (req, res) => {
           records.length;
 
     return res.status(200).json({
+      section: student.section,
+      metric: "cgpa",
       cgpa: Number(cgpa.toFixed(2)),
       publishedSubjectCount: records.length,
     });
   } catch (error) {
-    console.error("Student CGPA retrieval failed:", error.message);
-    return res.status(500).json({ message: "Unable to retrieve your CGPA." });
+    console.error("Student academic summary retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve your academic summary." });
   }
 });
 
@@ -223,7 +330,7 @@ academicsRouter.get("/results/student", async (req, res) => {
 
   try {
     const student = await StudentUser.findById(claims.id)
-      .select("student_id first_name last_name")
+      .select("student_id first_name last_name section")
       .lean();
     if (!student) {
       return res.status(404).json({ message: "Student account was not found." });
@@ -240,6 +347,95 @@ academicsRouter.get("/results/student", async (req, res) => {
       .populate("publishedBy", "fullName username")
       .sort({ subject: 1 })
       .lean();
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+    })
+      .select("section")
+      .lean();
+    const resultSection = classroom?.section ?? student.section;
+
+    const totalMarks = records.reduce((sum, record) => sum + record.total, 0);
+    const averageMarks =
+      records.length === 0 ? 0 : totalMarks / records.length;
+    const averageRemark =
+      averageMarks >= 80
+        ? "Excellent"
+        : averageMarks >= 70
+          ? "Very Good"
+          : averageMarks >= 60
+            ? "Good"
+            : averageMarks >= 40
+              ? "Pass"
+              : "Fail";
+    const publishingAdmin = [...records]
+      .sort(
+        (first, second) =>
+          new Date(second.publishedAt ?? 0) - new Date(first.publishedAt ?? 0),
+      )
+      .find((record) => record.publishedBy)?.publishedBy;
+
+    if (resultSection === "Junior") {
+      const aggregate = calculateJuniorAggregate(records);
+      const missingCoreSubjects = JUNIOR_CORE_SUBJECTS.filter(
+        (subject) => !records.some((record) => record.subject === subject),
+      );
+      const displayRecords = [
+        ...records,
+        ...missingCoreSubjects.map((subject) => ({
+          subject,
+          testScore: null,
+          examScore: null,
+          total: 0,
+          isMissing: true,
+        })),
+      ].sort((first, second) => first.subject.localeCompare(second.subject));
+      const subjectCounts = displayRecords.reduce(
+        (counts, record) => {
+          const { aggregate: subjectAggregate } = getJuniorGrade(record.total);
+          if (subjectAggregate <= 6) {
+            counts.credits += 1;
+          } else if (subjectAggregate <= 8) {
+            counts.passed += 1;
+          } else {
+            counts.failed += 1;
+          }
+          return counts;
+        },
+        { credits: 0, passed: 0, failed: 0 },
+      );
+
+      return res.status(200).json({
+        student: {
+          fullName: `${student.first_name} ${student.last_name}`,
+          studentId: student.student_id,
+        },
+        publishingAdminName:
+          publishingAdmin?.fullName?.trim() ||
+          publishingAdmin?.username ||
+          "Admin name unavailable",
+        className: className.trim(),
+        section: resultSection,
+        academicYear,
+        evaluationPeriod,
+        subjects: displayRecords.map((record) => {
+          const juniorGrade = getJuniorGrade(record.total);
+          return {
+            name: record.subject,
+            testScore: record.isMissing ? "-" : record.testScore,
+            examScore: record.isMissing ? "-" : record.examScore,
+            total: record.isMissing ? "-" : record.total,
+            grade: juniorGrade.grade,
+            aggregateScore: juniorGrade.aggregate,
+            remark: juniorGrade.remark,
+            isMissing: Boolean(record.isMissing),
+          };
+        }),
+        averageMarks: Number(averageMarks.toFixed(2)),
+        averageRemark,
+        subjectCounts,
+        aggregate,
+      });
+    }
 
     const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
     const remarks = {
@@ -250,7 +446,6 @@ academicsRouter.get("/results/student", async (req, res) => {
       E: "Pass",
       F: "Needs improvement",
     };
-    const totalMarks = records.reduce((sum, record) => sum + record.total, 0);
     const gpa =
       records.length === 0
         ? 0
@@ -271,8 +466,6 @@ academicsRouter.get("/results/student", async (req, res) => {
             (sum, record) => sum + gradePoints[record.grade],
             0,
           ) / cumulativeRecords.length;
-    const averageMarks =
-      records.length === 0 ? 0 : totalMarks / records.length;
     const subjectCounts = records.reduce(
       (counts, record) => {
         if (["A", "B", "C", "D"].includes(record.grade)) {
@@ -286,23 +479,6 @@ academicsRouter.get("/results/student", async (req, res) => {
       },
       { credits: 0, passed: 0, failed: 0 },
     );
-    const averageRemark =
-      averageMarks >= 80
-        ? "Excellent"
-        : averageMarks >= 70
-          ? "Very Good"
-          : averageMarks >= 60
-            ? "Good"
-            : averageMarks >= 40
-              ? "Pass"
-              : "Fail";
-    const publishingAdmin = [...records]
-      .sort(
-        (first, second) =>
-          new Date(second.publishedAt ?? 0) - new Date(first.publishedAt ?? 0),
-      )
-      .find((record) => record.publishedBy)?.publishedBy;
-
     return res.status(200).json({
       student: {
         fullName: `${student.first_name} ${student.last_name}`,
@@ -313,17 +489,20 @@ academicsRouter.get("/results/student", async (req, res) => {
         publishingAdmin?.username ||
         "Admin name unavailable",
       className: className.trim(),
+      section: resultSection,
       academicYear,
       evaluationPeriod,
-      subjects: records.map((record) => ({
-        name: record.subject,
-        testScore: record.testScore,
-        examScore: record.examScore,
-        total: record.total,
-        grade: record.grade,
-        gradePoint: gradePoints[record.grade],
-        remark: remarks[record.grade],
-      })),
+      subjects: records.map((record) => {
+        return {
+          name: record.subject,
+          testScore: record.testScore,
+          examScore: record.examScore,
+          total: record.total,
+          grade: record.grade,
+          gradePoint: gradePoints[record.grade],
+          remark: remarks[record.grade],
+        };
+      }),
       averageMarks: Number(averageMarks.toFixed(2)),
       averageRemark,
       subjectCounts,

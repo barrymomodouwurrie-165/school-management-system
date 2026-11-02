@@ -71,15 +71,27 @@ const ViewResult = ({ result, setViewResult }) => {
 
         <section className="mb-6 grid gap-3 border-y border-slate-300 py-3 sm:grid-cols-3">
           <Summary
-            label="Subjects with Credit (A-D)"
+            label={
+              result.section === "Junior"
+                ? "Credit Subjects (A1-C6)"
+                : "Subjects with Credit (A-D)"
+            }
             value={result.subjectCounts.credits}
           />
           <Summary
-            label="Subjects Passed (E)"
+            label={
+              result.section === "Junior"
+                ? "Passed Subjects (D7-E8)"
+                : "Subjects Passed (E)"
+            }
             value={result.subjectCounts.passed}
           />
           <Summary
-            label="Subjects Failed (F)"
+            label={
+              result.section === "Junior"
+                ? "Failed Subjects (F9)"
+                : "Subjects Failed (F)"
+            }
             value={result.subjectCounts.failed}
           />
         </section>
@@ -104,7 +116,9 @@ const ViewResult = ({ result, setViewResult }) => {
                   <td>{subject.examScore}</td>
                   <td>{subject.total}</td>
                   <td>
-                    {subject.grade} ({subject.gradePoint.toFixed(1)})
+                    {result.section === "Junior"
+                      ? subject.grade
+                      : `${subject.grade} (${subject.gradePoint.toFixed(1)})`}
                   </td>
                   <td>{subject.remark}</td>
                 </tr>
@@ -129,7 +143,19 @@ const ViewResult = ({ result, setViewResult }) => {
             <h2 className="border-b border-slate-400 pb-2 text-right font-bold">
               Result Summary
             </h2>
-            <Summary label="GPA" value={`${result.gpa.toFixed(2)} / 5.00`} />
+            <Summary label="Total Subjects" value={result.subjects.length} />
+            {result.section === "Junior" ? (
+              <Summary
+                label="Aggregate"
+                value={
+                  result.aggregate.aggregate === null
+                    ? "Incomplete"
+                    : result.aggregate.aggregate
+                }
+              />
+            ) : (
+              <Summary label="GPA" value={`${result.gpa.toFixed(2)} / 5.00`} />
+            )}
             <Summary
               label="Average Marks"
               value={`${result.averageMarks.toFixed(2)} / 100`}
@@ -139,14 +165,29 @@ const ViewResult = ({ result, setViewResult }) => {
               label="Teacher's Remark"
               value={getTeacherRemark(result.averageMarks)}
             />
-            <Summary label="CGPA" value={`${result.cgpa.toFixed(2)} / 5.00`} />
+            {result.section !== "Junior" && (
+              <Summary
+                label="CGPA"
+                value={`${result.cgpa.toFixed(2)} / 5.00`}
+              />
+            )}
+            {result.section === "Junior" &&
+              result.aggregate.defaultedCoreSubjects.length > 0 && (
+                <p className="pt-2 text-xs text-red-700">
+                  Missing core subjects are recorded as a dash and F9
+                  (aggregate 9):{" "}
+                  {result.aggregate.defaultedCoreSubjects.join(", ")}.
+                </p>
+              )}
+            {result.section === "Junior" &&
+              result.aggregate.aggregate === null && (
+                <p className="pt-2 text-xs text-red-700">
+                  {result.aggregate.additionalSubjectsNeeded > 0 &&
+                    "At least one additional subject result is required."}
+                </p>
+              )}
           </div>
         </section>
-
-        <p className="mt-5 text-right text-xs text-slate-500">
-          GPA and CGPA use grade points: A=5, B=4, C=3, D=2, E=1, F=0.
-          CGPA includes all published results.
-        </p>
 
       </article>
     </main>

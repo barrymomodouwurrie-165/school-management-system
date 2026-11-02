@@ -159,15 +159,15 @@ export const getStudentResult = async (filters) => {
   }
 };
 
-export const getStudentCgpa = async () => {
+export const getStudentAcademicSummary = async () => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {
-    throw new Error("Please sign in again to view your CGPA.");
+    throw new Error("Please sign in again to view your academic summary.");
   }
 
   try {
     const response = await axios.get(
-      `${API_URL}/academics/results/student/cgpa`,
+      `${API_URL}/academics/results/student/summary`,
       { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
     );
     return response.data;
@@ -175,7 +175,7 @@ export const getStudentCgpa = async () => {
     throw new Error(
       error.response?.data?.message ||
         error.message ||
-        "Unable to retrieve your CGPA.",
+      "Unable to retrieve your academic summary.",
       { cause: error },
     );
   }

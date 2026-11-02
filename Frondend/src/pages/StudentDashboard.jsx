@@ -27,7 +27,7 @@ import StudentProfilePage from "../components/StudentSideBarComponents/StudentPr
 import MySubjects from "../components/StudentSideBarComponents/MySubjects";
 import {
   getStudentAttendance,
-  getStudentCgpa,
+  getStudentAcademicSummary,
   getStudentProfile,
 } from "../utils/studentApi";
 import LogoutButton from "../components/LogoutButton";
@@ -54,7 +54,8 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
   const [dashboardMetrics, setDashboardMetrics] = useState({
-    cgpa: null,
+    academicMetric: null,
+    academicMetricLabel: "CGPA",
     attendance: null,
   });
   const [metricsLoading, setMetricsLoading] = useState(true);
@@ -64,7 +65,14 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     let active = true;
     getStudentProfile()
       .then((studentProfile) => {
-        if (active) setProfile(studentProfile);
+        if (active) {
+          setProfile(studentProfile);
+          setDashboardMetrics((current) => ({
+            ...current,
+            academicMetricLabel:
+              studentProfile.section === "Junior" ? "Aggregate" : "CGPA",
+          }));
+        }
       })
       .catch((error) => {
         if (active) setProfileError(error.message);
@@ -80,20 +88,26 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([getStudentCgpa(), getStudentAttendance()])
-      .then(([cgpaResult, attendanceResult]) => {
+    Promise.allSettled([
+      getStudentAcademicSummary(),
+      getStudentAttendance(),
+    ]).then(([academicResult, attendanceResult]) => {
         if (!active) return;
         const failures = [];
-        if (cgpaResult.status === "fulfilled") {
+        if (academicResult.status === "fulfilled") {
+          const academicSummary = academicResult.value;
+          const isJunior = academicSummary.section === "Junior";
           setDashboardMetrics((current) => ({
             ...current,
-            cgpa:
-              cgpaResult.value.publishedSubjectCount > 0
-                ? cgpaResult.value.cgpa
+            academicMetricLabel: isJunior ? "Aggregate" : "CGPA",
+            academicMetric: isJunior
+              ? academicSummary.aggregate?.aggregate ?? null
+              : academicSummary.publishedSubjectCount > 0
+                ? academicSummary.cgpa
                 : null,
           }));
         } else {
-          failures.push(cgpaResult.reason.message);
+          failures.push(academicResult.reason.message);
         }
         if (attendanceResult.status === "fulfilled") {
           setDashboardMetrics((current) => ({
@@ -318,14 +332,16 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
               >
                 <div className="pr-5 text-center">
                   <p className="text-xs font-medium text-base-content/70">
-                    Current CGPA
+                    {dashboardMetrics.academicMetricLabel}
                   </p>
                   <p className="text-lg font-bold">
                     {metricsLoading
                       ? "..."
-                      : dashboardMetrics.cgpa === null
+                      : dashboardMetrics.academicMetric === null
                         ? "N/A"
-                        : `${dashboardMetrics.cgpa.toFixed(2)} / 5.00`}
+                        : dashboardMetrics.academicMetricLabel === "CGPA"
+                          ? `${dashboardMetrics.academicMetric.toFixed(2)} / 5.00`
+                          : dashboardMetrics.academicMetric}
                   </p>
                 </div>
                 <div className="border-l border-base-300 pl-5 text-center">
