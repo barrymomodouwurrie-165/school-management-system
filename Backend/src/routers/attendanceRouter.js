@@ -262,15 +262,36 @@ attendanceRouter.get("/admin/sessions", async (req, res) => {
   const claims = getAdminClaims(req, res);
   if (!claims) return;
 
+  const date =
+    req.query.date === undefined
+      ? getClassDate(new Date().toISOString().slice(0, 10))
+      : getClassDate(req.query.date);
+  if (!date) {
+    return res
+      .status(400)
+      .json({ message: "Date must use the YYYY-MM-DD format." });
+  }
+
   try {
-    const [sessions, classrooms] = await Promise.all([
+    const [sessions, classrooms, activeClassrooms, dailySessions] = await Promise.all([
       AttendanceSession.find()
         .sort({ date: -1, createdAt: -1 })
         .populate("markingTeacher", "first_name last_name")
         .populate("entries.student", "gender")
         .lean(),
       ClassRoom.find().select("name").sort({ name: 1 }).lean(),
+      ClassRoom.find({ status: "Active" })
+        .select("name")
+        .sort({ name: 1 })
+        .lean(),
+      AttendanceSession.find({ date })
+        .select("className firstCallSavedAt secondCallSavedAt markingTeacher")
+        .populate("markingTeacher", "first_name last_name")
+        .lean(),
     ]);
+    const dailySessionByClass = new Map(
+      dailySessions.map((session) => [session.className, session]),
+    );
 
     return res.status(200).json({
       classes: [
@@ -279,6 +300,22 @@ attendanceRouter.get("/admin/sessions", async (req, res) => {
           ...sessions.map((session) => session.className),
         ]),
       ].sort(),
+      dailyAttendance: {
+        date: date.toISOString().slice(0, 10),
+        classes: activeClassrooms.map((classroom) => {
+          const session = dailySessionByClass.get(classroom.name);
+          return {
+            className: classroom.name,
+            isMarked: Boolean(session?.firstCallSavedAt),
+            isComplete: Boolean(session?.secondCallSavedAt),
+            firstCallSavedAt: session?.firstCallSavedAt ?? null,
+            secondCallSavedAt: session?.secondCallSavedAt ?? null,
+            markingTeacher: session?.markingTeacher
+              ? `${session.markingTeacher.first_name} ${session.markingTeacher.last_name}`
+              : null,
+          };
+        }),
+      },
       sessions: sessions.map((session) => ({
         ...session,
         analysis: {

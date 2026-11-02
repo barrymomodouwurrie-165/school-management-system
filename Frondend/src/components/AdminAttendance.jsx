@@ -8,6 +8,7 @@ const getAttendanceStatus = (entry) => {
 };
 
 const formatPercentage = (percentage) => `${percentage.toFixed(1)}%`;
+const getToday = () => new Date().toISOString().slice(0, 10);
 
 const GenderAnalysis = ({ label, analysis }) => (
   <div className="rounded-lg border border-slate-200 p-4">
@@ -30,6 +31,7 @@ const GenderAnalysis = ({ label, analysis }) => (
 const AdminAttendance = ({ isOpen }) => {
   const [sessions, setSessions] = useState([]);
   const [classNames, setClassNames] = useState([]);
+  const [dailyAttendance, setDailyAttendance] = useState(null);
   const [selectedClass, setSelectedClass] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [notifications, setNotifications] = useState([]);
@@ -43,26 +45,26 @@ const AdminAttendance = ({ isOpen }) => {
 
     const refreshAttendance = async () => {
       try {
-        const result = await getAdminAttendanceSessions();
+        const result = await getAdminAttendanceSessions(dateFilter || undefined);
         if (!active) return;
 
         const previousById = previousSessions.current;
         if (previousById) {
-          const newlyCompleted = result.sessions.filter(
+          const newlyMarked = result.sessions.filter(
             (session) =>
-              session.secondCallSavedAt &&
-              !previousById.get(session._id)?.secondCallSavedAt,
+              session.firstCallSavedAt &&
+              !previousById.has(session._id),
           );
-          if (newlyCompleted.length) {
+          if (newlyMarked.length) {
             setNotifications((current) => [
-              ...newlyCompleted.map((session) => ({
+              ...newlyMarked.map((session) => ({
                 id: session._id,
                 className: session.className,
                 date: String(session.date).slice(0, 10),
               })),
               ...current.filter(
                 (notification) =>
-                  !newlyCompleted.some(
+                  !newlyMarked.some(
                     (session) => session._id === notification.id,
                   ),
               ),
@@ -75,6 +77,7 @@ const AdminAttendance = ({ isOpen }) => {
         );
         setSessions(result.sessions);
         setClassNames(result.classes);
+        setDailyAttendance(result.dailyAttendance);
         setSelectedClass((current) => current || result.classes[0] || "");
         setError("");
       } catch (requestError) {
@@ -95,7 +98,12 @@ const AdminAttendance = ({ isOpen }) => {
       active = false;
       window.clearTimeout(refreshTimer);
     };
-  }, []);
+  }, [dateFilter]);
+
+  const markedClasses =
+    dailyAttendance?.classes.filter((classroom) => classroom.isMarked) ?? [];
+  const unmarkedClasses =
+    dailyAttendance?.classes.filter((classroom) => !classroom.isMarked) ?? [];
 
   const filteredSessions = useMemo(
     () =>
@@ -115,7 +123,7 @@ const AdminAttendance = ({ isOpen }) => {
         <h1 className="text-xl font-bold">CLASS ATTENDANCE</h1>
         <p className="mt-1 text-sm text-base-content/70">
           Select one class to review its saved attendance and analysis. New
-          completed sessions are checked automatically every 10 seconds.
+          registers are checked automatically every 10 seconds.
         </p>
 
         <div className="my-5 flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow-sm">
@@ -147,6 +155,7 @@ const AdminAttendance = ({ isOpen }) => {
               className="input input-bordered input-sm"
               value={dateFilter}
               onChange={(event) => setDateFilter(event.target.value)}
+              max={getToday()}
             />
           </label>
           <p className="text-sm text-base-content/70">
@@ -166,7 +175,7 @@ const AdminAttendance = ({ isOpen }) => {
               >
                 <span>
                   Attendance for <strong>{notification.className}</strong> on{" "}
-                  {notification.date} is complete.
+                  {notification.date} has been marked.
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -307,6 +316,84 @@ const AdminAttendance = ({ isOpen }) => {
               </article>
             ))}
           </div>
+        )}
+
+        {dailyAttendance && (
+          <section className="mt-6 rounded-lg bg-white p-4 shadow-sm">
+            <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="font-bold">Daily register status</h2>
+                <p className="text-sm text-base-content/70">
+                  {dailyAttendance.date}
+                </p>
+              </div>
+              <p className="text-sm">
+                <strong>{markedClasses.length}</strong> of{" "}
+                <strong>{dailyAttendance.classes.length}</strong> classes marked
+              </p>
+            </header>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h3 className="mb-2 font-semibold text-success">
+                  Marked classes ({markedClasses.length})
+                </h3>
+                {markedClasses.length ? (
+                  <ul className="space-y-2">
+                    {markedClasses.map((classroom) => (
+                      <li
+                        key={classroom.className}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-success/20 bg-success/5 p-3"
+                      >
+                        <button
+                          type="button"
+                          className="font-medium underline-offset-2 hover:underline"
+                          onClick={() => {
+                            setSelectedClass(classroom.className);
+                            setDateFilter(dailyAttendance.date);
+                          }}
+                        >
+                          {classroom.className}
+                        </button>
+                        <span className="text-sm text-base-content/70">
+                          {classroom.isComplete
+                            ? "Complete"
+                            : "First call only"}
+                          {classroom.markingTeacher
+                            ? ` · ${classroom.markingTeacher}`
+                            : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="rounded-md border border-base-300 p-3 text-sm text-base-content/70">
+                    No classes have been marked yet.
+                  </p>
+                )}
+              </div>
+              <div>
+                <h3 className="mb-2 font-semibold text-warning">
+                  Not marked ({unmarkedClasses.length})
+                </h3>
+                {unmarkedClasses.length ? (
+                  <ul className="space-y-2">
+                    {unmarkedClasses.map((classroom) => (
+                      <li
+                        key={classroom.className}
+                        className="rounded-md border border-warning/20 bg-warning/5 p-3"
+                      >
+                        {classroom.className}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="rounded-md border border-base-300 p-3 text-sm text-base-content/70">
+                    All active classes have been marked.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
         )}
       </div>
     </main>

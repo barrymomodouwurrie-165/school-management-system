@@ -66,11 +66,14 @@ export const saveClassAttendanceCall = async (classId, attendance) => {
   }
 };
 
-export const getAdminAttendanceSessions = async () => {
+export const getAdminAttendanceSessions = async (date) => {
   try {
     const response = await axios.get(
       `${API_URL}/attendance/admin/sessions`,
-      requestConfig(),
+      {
+        ...requestConfig(),
+        params: date ? { date } : undefined,
+      },
     );
     return response.data;
   } catch (error) {
