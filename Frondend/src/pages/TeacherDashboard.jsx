@@ -8,6 +8,7 @@ import EnterResults from "../components/TeacherComponents/EnterResults";
 import ReportStudent from "../components/TeacherComponents/ReportStudent";
 import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
 import CheckStudentAttendance from "../components/TeacherComponents/CheckStudentAttendance";
+import MyStudents from "../components/TeacherComponents/MyStudents";
 import { MdExitToApp } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -55,6 +56,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
     "mark-attendance": MarkAttendance,
     "view-attention": CheckStudentAttendance,
     "enter-results": EnterResults,
+    "my-students": MyStudents,
     "exam-details": ExamsContent,
     "report-student": ReportStudent,
     "send-suggestion": SendSuggestion,
@@ -78,6 +80,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
       logo: FaPenAlt,
       children: [
         { id: "enter-results", label: "Enter Results" },
+        { id: "my-students", label: "My Students" },
         { id: "exam-details", label: "Exam Details" },
       ],
     },

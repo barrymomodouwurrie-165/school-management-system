@@ -811,6 +811,134 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
   }
 });
 
+academicsRouter.get("/teacher/students", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const staff = await StaffUser.findById(claims.id)
+      .select("assigned_classes")
+      .lean();
+    if (!staff) {
+      return res.status(404).json({ message: "Teacher account was not found." });
+    }
+
+    const classrooms = staff.assigned_classes?.length
+      ? await ClassRoom.find({
+          name: { $in: staff.assigned_classes },
+          status: "Active",
+        })
+          .select("name section")
+          .lean()
+      : [];
+    const classNames = classrooms.map((classroom) => classroom.name);
+    const students = classNames.length
+      ? await StudentUser.find({
+          class: { $in: classNames },
+          status: { $ne: "Transferred" },
+        })
+          .select("student_id first_name last_name gender class section")
+          .lean()
+      : [];
+    const studentIds = students.map((student) => student._id);
+    const results = studentIds.length
+      ? await StudentResult.find({
+          student: { $in: studentIds },
+          published: true,
+        })
+          .select("student grade subject total academicYear evaluationPeriod")
+          .lean()
+      : [];
+    const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+    const studentPoints = new Map();
+    const juniorResults = new Map();
+    for (const result of results) {
+      const key = String(result.student);
+      if (gradePoints[result.grade] !== undefined) {
+        const total = studentPoints.get(key) ?? { points: 0, count: 0 };
+        total.points += gradePoints[result.grade];
+        total.count += 1;
+        studentPoints.set(key, total);
+      }
+      const studentRecords = juniorResults.get(key) ?? [];
+      studentRecords.push(result);
+      juniorResults.set(key, studentRecords);
+    }
+
+    const studentsWithRankMetric = students.map((student) => {
+      const section = classrooms.find(
+        (classroom) => classroom.name === student.class,
+      )?.section;
+      const studentKey = String(student._id);
+      const points = studentPoints.get(studentKey);
+      const cgpa =
+        section !== "Senior"
+          ? null
+          : points?.count
+            ? Number((points.points / points.count).toFixed(2))
+            : null;
+      const records = juniorResults.get(studentKey) ?? [];
+      const latestYear = records
+        .map((record) => record.academicYear)
+        .sort((first, second) => second.localeCompare(first))[0];
+      const termOrder = ["First Term", "Second Term", "Third Term"];
+      const latestTerm = latestYear
+        ? termOrder
+            .filter((term) =>
+              records.some(
+                (record) =>
+                  record.academicYear === latestYear &&
+                  record.evaluationPeriod === term,
+              ),
+            )
+            .at(-1)
+        : null;
+      const aggregate =
+        section !== "Junior" || !latestTerm
+          ? null
+          : calculateJuniorAggregate(
+              records.filter(
+                (record) =>
+                  record.academicYear === latestYear &&
+                  record.evaluationPeriod === latestTerm,
+              ),
+            ).aggregate;
+
+      return {
+        studentId: student.student_id,
+        name: `${student.first_name} ${student.last_name}`,
+        gender: student.gender,
+        className: student.class,
+        section,
+        cgpa,
+        aggregate,
+      };
+    });
+    studentsWithRankMetric.sort((first, second) => {
+      if (first.section !== second.section) {
+        return first.section === "Senior" ? -1 : 1;
+      }
+      const firstMetric = first.section === "Junior" ? first.aggregate : first.cgpa;
+      const secondMetric =
+        second.section === "Junior" ? second.aggregate : second.cgpa;
+      if (firstMetric === null) return secondMetric === null ? first.name.localeCompare(second.name) : 1;
+      if (secondMetric === null) return -1;
+      return (
+        (first.section === "Junior"
+          ? firstMetric - secondMetric
+          : secondMetric - firstMetric) || first.name.localeCompare(second.name)
+      );
+    });
+
+    return res.status(200).json(studentsWithRankMetric);
+  } catch (error) {
+    console.error("Teacher student list retrieval failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to retrieve students in your assigned classes.",
+    });
+  }
+});
+
 academicsRouter.get("/teacher/results", async (req, res) => {
   const claims = getTeacherClaims(req, res);
   if (!claims) return;

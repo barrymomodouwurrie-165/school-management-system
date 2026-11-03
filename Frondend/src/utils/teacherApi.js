@@ -49,6 +49,21 @@ export const getTeacherClasses = async () => {
   }
 };
 
+export const getTeacherStudents = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/students`,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve your students."),
+      { cause: error },
+    );
+  }
+};
+
 export const getTeacherResults = async (filters) => {
   try {
     const response = await axios.get(
