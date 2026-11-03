@@ -5,6 +5,7 @@ import TeacherProfilePage from "../components/TeacherComponents/TeacherProfilePa
 import MarkAttendance from "../components/TeacherComponents/MarkAttendance";
 import ExamsContent from "../components/ExamsContent";
 import EnterResults from "../components/TeacherComponents/EnterResults";
+import TeacherRemarks from "../components/TeacherComponents/TeacherRemarks";
 import ReportStudent from "../components/TeacherComponents/ReportStudent";
 import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
 import CheckStudentAttendance from "../components/TeacherComponents/CheckStudentAttendance";
@@ -56,6 +57,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
     "mark-attendance": MarkAttendance,
     "view-attention": CheckStudentAttendance,
     "enter-results": EnterResults,
+    "teacher-remarks": TeacherRemarks,
     "my-students": MyStudents,
     "exam-details": ExamsContent,
     "report-student": ReportStudent,
@@ -80,6 +82,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
       logo: FaPenAlt,
       children: [
         { id: "enter-results", label: "Enter Results" },
+        { id: "teacher-remarks", label: "Teacher Remarks" },
         { id: "my-students", label: "My Students" },
         { id: "exam-details", label: "Exam Details" },
       ],

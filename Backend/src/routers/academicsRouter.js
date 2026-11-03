@@ -5,6 +5,7 @@ import Exam from "../models/exam.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
 import StudentResult from "../models/studentResult.js";
+import StudentResultRemark from "../models/studentResultRemark.js";
 import ResultEntryWindow from "../models/resultEntryWindow.js";
 import { publishResultEntryAnnouncement } from "../services/resultEntryNotifications.js";
 import Subject from "../models/subject.js";
@@ -366,12 +367,23 @@ academicsRouter.get("/results/student", async (req, res) => {
       .populate("publishedBy", "fullName username")
       .sort({ subject: 1 })
       .lean();
-    const classroom = await ClassRoom.findOne({
-      name: className.trim(),
-    })
-      .select("section")
-      .lean();
+    const [classroom, savedTeacherRemark] = await Promise.all([
+      ClassRoom.findOne({
+        name: className.trim(),
+      })
+        .select("section")
+        .lean(),
+      StudentResultRemark.findOne({
+        student: student._id,
+        className: className.trim(),
+        academicYear,
+        evaluationPeriod,
+      })
+        .select("remark")
+        .lean(),
+    ]);
     const resultSection = classroom?.section ?? student.section;
+    const teacherRemark = savedTeacherRemark?.remark?.trim() || "";
 
     const totalMarks = records.reduce((sum, record) => sum + record.total, 0);
     const averageMarks =
@@ -451,6 +463,7 @@ academicsRouter.get("/results/student", async (req, res) => {
         }),
         averageMarks: Number(averageMarks.toFixed(2)),
         averageRemark,
+        teacherRemark,
         subjectCounts,
         aggregate,
       });
@@ -524,6 +537,7 @@ academicsRouter.get("/results/student", async (req, res) => {
       }),
       averageMarks: Number(averageMarks.toFixed(2)),
       averageRemark,
+      teacherRemark,
       subjectCounts,
       gpa: Number(gpa.toFixed(2)),
       cgpa: Number(cgpa.toFixed(2)),
@@ -876,14 +890,15 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
       return res.status(404).json({ message: "Teacher account was not found." });
     }
 
-    const classrooms = staff.assigned_classes?.length
-      ? await ClassRoom.find({
-          name: { $in: staff.assigned_classes },
-          status: "Active",
-        })
-          .sort({ grade: 1, program: 1, stream_number: 1, name: 1 })
-          .lean()
-      : [];
+    const classrooms = await ClassRoom.find({
+      status: "Active",
+      $or: [
+        { name: { $in: staff.assigned_classes ?? [] } },
+        { class_teacher: claims.id },
+      ],
+    })
+      .sort({ grade: 1, program: 1, stream_number: 1, name: 1 })
+      .lean();
     const studentClasses = classrooms.map((classroom) => classroom.name);
     const [students, subjects] = await Promise.all([
       studentClasses.length
@@ -905,6 +920,7 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
         section: classroom.section,
         program: classroom.program,
         stream_number: classroom.stream_number,
+        isClassTeacher: String(classroom.class_teacher) === claims.id,
         subjects: subjects
           .filter(
             (subject) =>
@@ -1254,6 +1270,163 @@ academicsRouter.post("/teacher/results", async (req, res) => {
     }
     console.error("Teacher results save failed:", error.message);
     return res.status(500).json({ message: "Unable to save student results." });
+  }
+});
+
+academicsRouter.get("/teacher/result-remarks", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const { className, academicYear, evaluationPeriod } = req.query;
+  if (
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    !isAcademicYear(academicYear) ||
+    !["First Term", "Second Term", "Third Term"].includes(evaluationPeriod)
+  ) {
+    return res.status(400).json({
+      message: "Provide a class, academic year, and evaluation period.",
+    });
+  }
+
+  try {
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+      status: "Active",
+      class_teacher: claims.id,
+    })
+      .select("name")
+      .lean();
+    if (!classroom) {
+      return res
+        .status(403)
+        .json({ message: "Only the class teacher can manage student remarks." });
+    }
+
+    const students = await StudentUser.find({
+      class: classroom.name,
+      status: { $ne: "Transferred" },
+    })
+      .select("_id")
+      .lean();
+    const remarks = students.length
+      ? await StudentResultRemark.find({
+          student: { $in: students.map((student) => student._id) },
+          className: classroom.name,
+          academicYear,
+          evaluationPeriod,
+        })
+          .select("student remark")
+          .lean()
+      : [];
+
+    return res.status(200).json(
+      remarks.map((entry) => ({
+        studentId: String(entry.student),
+        remark: entry.remark,
+      })),
+    );
+  } catch (error) {
+    console.error("Teacher result remarks retrieval failed:", error.message);
+    return res.status(500).json({ message: "Unable to retrieve student remarks." });
+  }
+});
+
+academicsRouter.post("/teacher/result-remarks", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const { className, academicYear, evaluationPeriod } = req.body ?? {};
+  const entries = req.body?.entries;
+  if (
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    !isAcademicYear(academicYear) ||
+    !["First Term", "Second Term", "Third Term"].includes(evaluationPeriod) ||
+    !Array.isArray(entries) ||
+    !entries.length
+  ) {
+    return res.status(400).json({
+      message: "Provide a class, academic year, evaluation period, and student remarks.",
+    });
+  }
+
+  const studentIds = entries.map((entry) => entry?.studentId);
+  if (
+    studentIds.some(
+      (studentId) =>
+        typeof studentId !== "string" || !mongoose.isValidObjectId(studentId),
+    ) ||
+    new Set(studentIds).size !== studentIds.length ||
+    entries.some(
+      (entry) =>
+        typeof entry.remark !== "string" ||
+        entry.remark.trim().length > 250,
+    )
+  ) {
+    return res.status(400).json({
+      message: "Each student must have a unique valid ID and a remark of no more than 250 characters.",
+    });
+  }
+
+  try {
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+      status: "Active",
+      class_teacher: claims.id,
+    })
+      .select("name")
+      .lean();
+    if (!classroom) {
+      return res
+        .status(403)
+        .json({ message: "Only the class teacher can manage student remarks." });
+    }
+
+    const students = await StudentUser.find({
+      _id: { $in: studentIds },
+      class: classroom.name,
+      status: { $ne: "Transferred" },
+    })
+      .select("_id")
+      .lean();
+    if (students.length !== studentIds.length) {
+      return res.status(400).json({
+        message: "One or more students are not active members of this class.",
+      });
+    }
+
+    const operations = entries.map((entry) => ({
+      updateOne: {
+        filter: {
+          student: entry.studentId,
+          className: classroom.name,
+          academicYear,
+          evaluationPeriod,
+        },
+        update: {
+          $set: {
+            remark: entry.remark.trim(),
+            enteredBy: claims.id,
+          },
+        },
+        upsert: true,
+      },
+    }));
+    await StudentResultRemark.bulkWrite(operations);
+
+    return res.status(200).json({
+      message: `Saved remarks for ${entries.length} student${entries.length === 1 ? "" : "s"}.`,
+      savedCount: entries.length,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Teacher result remarks save failed:", error.message);
+    return res.status(500).json({ message: "Unable to save student remarks." });
   }
 });
 

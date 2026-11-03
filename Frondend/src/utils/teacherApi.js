@@ -110,6 +110,37 @@ export const saveTeacherResults = async (results) => {
   }
 };
 
+export const getTeacherResultRemarks = async (filters) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/result-remarks`,
+      { ...getTeacherConfig(), params: filters },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve student remarks."),
+      { cause: error },
+    );
+  }
+};
+
+export const saveTeacherResultRemarks = async (remarks) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/teacher/result-remarks`,
+      remarks,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to save student remarks."),
+      { cause: error },
+    );
+  }
+};
+
 export const getTeacherExams = async () => {
   try {
     const response = await axios.get(

@@ -163,7 +163,7 @@ const ViewResult = ({ result, setViewResult }) => {
             <Summary label="Remark" value={result.averageRemark} />
             <Summary
               label="Teacher's Remark"
-              value={getTeacherRemark(result.averageMarks)}
+              value={result.teacherRemark || getTeacherRemark(result.averageMarks)}
             />
             {result.section !== "Junior" && (
               <Summary

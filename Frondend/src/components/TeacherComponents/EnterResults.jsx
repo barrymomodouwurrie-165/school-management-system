@@ -299,7 +299,7 @@ const EnterResults = () => {
           </h2>
           <span className="text-xs md:text-sm bg-blue-600/10 px-2 py-1 rounded-xl">
             Grading Scale: A1: 80+, B2: 75+, B3: 70+, C4: 65+, C5: 60+, C6: 55+,
-            D7: 50+, E8: 40+ F9: below 39
+            D7: 50+, E8: 40+ F9: 39 below.
           </span>
         </div>
       </div>
