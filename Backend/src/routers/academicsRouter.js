@@ -954,6 +954,90 @@ academicsRouter.get("/teacher/classes", async (req, res) => {
   }
 });
 
+academicsRouter.get("/teacher/class-subjects", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const classrooms = await ClassRoom.find({
+      class_teacher: claims.id,
+      status: "Active",
+    })
+      .select("name section program stream_number")
+      .sort({ grade: 1, program: 1, stream_number: 1, name: 1 })
+      .lean();
+    if (!classrooms.length) return res.status(200).json([]);
+
+    const [subjects, teachers] = await Promise.all([
+      Subject.find({ isActive: true }).sort({ name: 1 }).lean(),
+      StaffUser.find({ assigned_classes: { $in: classrooms.map(({ name }) => name) } })
+        .select(
+          "first_name last_name gender marital_status phone_number assigned_classes assigned_subjects subject_taught class_subject_assignments",
+        )
+        .lean(),
+    ]);
+
+    const results = classrooms.map((classroom) => {
+      const availableSubjects = subjects.filter(
+        (subject) =>
+          subject.section === classroom.section &&
+          isSubjectAvailableForClass(subject, classroom),
+      );
+      const classSubjects = availableSubjects
+        .map((subject) => {
+          const assignedTeachers = teachers
+            .filter((teacher) => teacher.assigned_classes?.includes(classroom.name))
+            .filter((teacher) => {
+              const classAssignment = teacher.class_subject_assignments?.find(
+                (assignment) => assignment.className === classroom.name,
+              );
+              const assignedSubjects =
+                classAssignment?.subjects ??
+                (teacher.assigned_subjects?.length
+                  ? teacher.assigned_subjects
+                  : teacher.subject_taught
+                    ? [teacher.subject_taught]
+                    : []);
+              return assignedSubjects.includes(subject.name);
+            })
+            .map((teacher) => ({
+              id: String(teacher._id),
+              name: `${
+                teacher.gender === "Male"
+                  ? "Mr. "
+                  : teacher.gender === "Female"
+                    ? teacher.marital_status === "Married"
+                      ? "Mrs. "
+                      : teacher.marital_status === "Single"
+                        ? "Miss "
+                        : ""
+                    : ""
+              }${teacher.first_name} ${teacher.last_name}`,
+              phoneNumber: teacher.phone_number,
+            }));
+
+          return {
+            name: subject.name,
+            teachers: assignedTeachers,
+          };
+        })
+        .filter((subject) => subject.teachers.length > 0);
+
+      return {
+        name: classroom.name,
+        subjects: classSubjects,
+      };
+    });
+
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Teacher class subjects retrieval failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to retrieve subjects and teachers for your classes.",
+    });
+  }
+});
+
 academicsRouter.get("/teacher/students", async (req, res) => {
   const claims = getTeacherClaims(req, res);
   if (!claims) return;

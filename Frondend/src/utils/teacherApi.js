@@ -49,6 +49,21 @@ export const getTeacherClasses = async () => {
   }
 };
 
+export const getTeacherClassSubjects = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/class-subjects`,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve subjects and teachers for your classes."),
+      { cause: error },
+    );
+  }
+};
+
 export const getTeacherStudents = async (className) => {
   try {
     const response = await axios.get(
