@@ -36,6 +36,11 @@ const announcementSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    systemEventKey: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
   },
   { timestamps: true },
 );

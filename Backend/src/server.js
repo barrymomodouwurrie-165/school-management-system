@@ -8,6 +8,7 @@ import userRouter from "./routers/userRouter.js";
 import communicationRouter from "./routers/communicationRouter.js";
 import attendanceRouter from "./routers/attendanceRouter.js";
 import academicsRouter from "./routers/academicsRouter.js";
+import { publishDueResultEntryAnnouncements } from "./services/resultEntryNotifications.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,8 +26,15 @@ app.use("/api/attendance", attendanceRouter);
 app.use("/api/academics", academicsRouter);
 
 connectDB().then(() => {
+  const checkResultEntryDeadlines = () => {
+    publishDueResultEntryAnnouncements().catch((error) => {
+      console.error("Result entry deadline check failed:", error.message);
+    });
+  };
+  checkResultEntryDeadlines();
+  setInterval(checkResultEntryDeadlines, 15_000);
+
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 });
-

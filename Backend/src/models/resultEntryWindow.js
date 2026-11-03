@@ -19,6 +19,10 @@ const resultEntryWindowSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    deadlineAnnouncementSentAt: {
+      type: Date,
+      default: null,
+    },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "AdminUser",

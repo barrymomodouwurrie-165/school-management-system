@@ -6,6 +6,7 @@ import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
 import StudentResult from "../models/studentResult.js";
 import ResultEntryWindow from "../models/resultEntryWindow.js";
+import { publishResultEntryAnnouncement } from "../services/resultEntryNotifications.js";
 import Subject from "../models/subject.js";
 import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import { isAuthentic } from "../models/tokens.js";
@@ -626,6 +627,7 @@ academicsRouter.put("/results/entry-window", async (req, res) => {
     if (parsedDeadline || deadlineAt === null || deadlineAt === "") {
       update.deadlineAt = parsedDeadline;
     }
+    if (isOpen) update.deadlineAnnouncementSentAt = null;
     const window = await ResultEntryWindow.findOneAndUpdate(
       { academicYear, evaluationPeriod },
       { $set: update },
@@ -633,6 +635,24 @@ academicsRouter.put("/results/entry-window", async (req, res) => {
     )
       .select("isOpen deadlineAt")
       .lean();
+    try {
+      await publishResultEntryAnnouncement({
+        academicYear,
+        evaluationPeriod,
+        action: isOpen ? "opened" : "closed",
+        deadlineAt: window.deadlineAt,
+      });
+    } catch (announcementError) {
+      console.error(
+        "Result entry status announcement failed:",
+        announcementError.message,
+      );
+      return res.status(500).json({
+        message:
+          "Marks-entry access was updated, but the staff announcement could not be sent.",
+      });
+    }
+
     return res.status(200).json({
       message: isOpen
         ? "Marks entry opened for the selected term."
