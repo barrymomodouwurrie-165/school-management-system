@@ -49,11 +49,11 @@ export const getTeacherClasses = async () => {
   }
 };
 
-export const getTeacherStudents = async () => {
+export const getTeacherStudents = async (className) => {
   try {
     const response = await axios.get(
       `${API_URL}/academics/teacher/students`,
-      getTeacherConfig(),
+      { ...getTeacherConfig(), params: { className } },
     );
     return response.data;
   } catch (error) {

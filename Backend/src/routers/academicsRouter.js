@@ -958,31 +958,33 @@ academicsRouter.get("/teacher/students", async (req, res) => {
   const claims = getTeacherClaims(req, res);
   if (!claims) return;
 
+  const { className } = req.query;
+  if (typeof className !== "string" || !className.trim() || className.length > 100) {
+    return res.status(400).json({
+      message: "Provide a valid class to retrieve its students.",
+    });
+  }
+
   try {
-    const staff = await StaffUser.findById(claims.id)
-      .select("assigned_classes")
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+      class_teacher: claims.id,
+      status: "Active",
+    })
+      .select("name section")
       .lean();
-    if (!staff) {
-      return res.status(404).json({ message: "Teacher account was not found." });
+    if (!classroom) {
+      return res.status(403).json({
+        message: "You are not the class teacher for this class.",
+      });
     }
 
-    const classrooms = staff.assigned_classes?.length
-      ? await ClassRoom.find({
-          name: { $in: staff.assigned_classes },
-          status: "Active",
-        })
-          .select("name section")
-          .lean()
-      : [];
-    const classNames = classrooms.map((classroom) => classroom.name);
-    const students = classNames.length
-      ? await StudentUser.find({
-          class: { $in: classNames },
-          status: { $ne: "Transferred" },
-        })
-          .select("student_id first_name last_name gender class section")
-          .lean()
-      : [];
+    const students = await StudentUser.find({
+      class: classroom.name,
+      status: { $ne: "Transferred" },
+    })
+      .select("student_id first_name last_name gender class section")
+      .lean();
     const studentIds = students.map((student) => student._id);
     const results = studentIds.length
       ? await StudentResult.find({
@@ -1009,9 +1011,7 @@ academicsRouter.get("/teacher/students", async (req, res) => {
     }
 
     const studentsWithRankMetric = students.map((student) => {
-      const section = classrooms.find(
-        (classroom) => classroom.name === student.class,
-      )?.section;
+      const section = classroom.section;
       const studentKey = String(student._id);
       const points = studentPoints.get(studentKey);
       const cgpa =

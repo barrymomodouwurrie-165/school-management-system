@@ -77,8 +77,8 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
       ],
     },
     {
-      id: "grades",
-      label: "Grades",
+      id: "academics",
+      label: "Academics",
       logo: FaPenAlt,
       children: [
         { id: "enter-results", label: "Enter Results" },
