@@ -43,24 +43,32 @@ const AdminStatus = ({
             <span>FACULTY STATUS - HEAD OF BLOCKS</span>
             <BsThreeDots aria-hidden="true" />
           </div>
-          <div className="grid grid-cols-2 items-center px-4 py-4 bg-base-content/5 border-t border-base-content/20">
+          <div className="grid grid-cols-5 items-center px-4 py-4 bg-base-content/5 border-t border-base-content/20">
             <span className="text-xs font-bold md:text-base">BLOCK</span>
             <span className="text-xs font-bold md:text-base">HEAD OF BLOCK</span>
+            <span className="text-xs font-bold md:text-base flex justify-center">TOTAL STUDENTS</span>
+            <span className="text-xs font-bold md:text-base flex justify-center">MALE</span>
+            <span className="text-xs font-bold md:text-base flex justify-center">FEMALE</span>
           </div>
           {isLoading ? (
             <p role="status" className="px-4 py-6 text-sm text-base-content/60">
               Loading block assignments...
             </p>
           ) : (
-            headOfBlocks.map(({ block, heads }) => (
+            headOfBlocks.map(
+              ({ block, heads, totalStudents, maleStudents, femaleStudents }) => (
               <div
                 key={block}
-                className="grid grid-cols-2 items-center border-t border-base-content/20 px-4 py-2"
+                className="grid grid-cols-5 items-center border-t border-base-content/20 px-4 py-2"
               >
                 <span className="text-xs md:text-base">{block}</span>
                 <span className="text-xs md:text-base">{heads}</span>
+                <span className="text-xs md:text-base flex justify-center">{totalStudents ?? 0}</span>
+                <span className="text-xs md:text-base flex justify-center">{maleStudents ?? 0}</span>
+                <span className="text-xs md:text-base flex justify-center">{femaleStudents ?? 0}</span>
               </div>
-            ))
+              ),
+            )
           )}
         </div>
       </div>

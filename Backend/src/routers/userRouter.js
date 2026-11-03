@@ -263,7 +263,11 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
   try {
     const [
       totalStudents,
+      maleStudents,
+      femaleStudents,
       staffMembers,
+      maleStaff,
+      femaleStaff,
       activeClassrooms,
       enrolledStudents,
       dailyAttendanceSessions,
@@ -273,12 +277,22 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
       resultEntries,
     ] = await Promise.all([
       StudentUser.countDocuments({ status: { $in: ["Active", "Suspended"] } }),
+      StudentUser.countDocuments({
+        status: { $in: ["Active", "Suspended"] },
+        gender: { $regex: /^male$/i },
+      }),
+      StudentUser.countDocuments({
+        status: { $in: ["Active", "Suspended"] },
+        gender: { $regex: /^female$/i },
+      }),
       StaffUser.find()
         .select("department first_name last_name staff_position assigned_block")
         .lean(),
-      ClassRoom.find({ status: "Active" }).select("_id name").lean(),
-      StudentUser.find({ status: { $ne: "Transferred" } })
-        .select("_id class")
+      StaffUser.countDocuments({ gender: { $regex: /^male$/i } }),
+      StaffUser.countDocuments({ gender: { $regex: /^female$/i } }),
+      ClassRoom.find({ status: "Active" }).select("_id name grade").lean(),
+      StudentUser.find({ status: { $in: ["Active", "Suspended"] } })
+        .select("_id class gender")
         .lean(),
       AttendanceSession.find({ date: todayFilter })
         .select("classroom firstCallSavedAt secondCallSavedAt entries")
@@ -386,16 +400,40 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
           department.headOfDepartment.join(", ") || "Not assigned",
       }))
       .sort((first, second) => first.name.localeCompare(second.name));
-    const headOfBlocks = SCHOOL_BLOCKS.map((block) => ({
-      block,
-      heads: staffMembers
-        .filter(
-          (staff) =>
-            staff.staff_position === "H.O.B" && staff.assigned_block === block,
-        )
-        .map((staff) => `${staff.first_name} ${staff.last_name}`)
-        .join(", ") || "Not assigned",
-    }));
+    const headOfBlocks = SCHOOL_BLOCKS.map((block) => {
+      const grade = Number(block.replace("Grade ", ""));
+      const blockClassNames = activeClassrooms
+        .filter((classroom) => classroom.grade === grade)
+        .map((classroom) => classroom.name);
+      const totalStudents = blockClassNames.reduce(
+        (total, className) =>
+          total + (studentsByClass.get(className)?.length ?? 0),
+        0,
+      );
+      const blockStudents = blockClassNames.flatMap(
+        (className) => studentsByClass.get(className) ?? [],
+      );
+
+      return {
+        block,
+        totalStudents,
+        maleStudents: blockStudents.filter(
+          (student) => student.gender?.toLowerCase() === "male",
+        ).length,
+        femaleStudents: blockStudents.filter(
+          (student) => student.gender?.toLowerCase() === "female",
+        ).length,
+        heads:
+          staffMembers
+            .filter(
+              (staff) =>
+                staff.staff_position === "H.O.B" &&
+                staff.assigned_block === block,
+            )
+            .map((staff) => `${staff.first_name} ${staff.last_name}`)
+            .join(", ") || "Not assigned",
+      };
+    });
 
     const activities = [
       ...reports.map((report) => ({
@@ -466,7 +504,11 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
     return res.status(200).json({
       stats: {
         totalStudents,
+        maleStudents,
+        femaleStudents,
         totalStaff: staffMembers.length,
+        maleStaff,
+        femaleStaff,
         attendancePercentage,
         completedClasses,
         totalClasses: activeClassrooms.length,

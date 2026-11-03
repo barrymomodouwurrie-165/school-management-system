@@ -88,6 +88,10 @@ const AdminContent = ({ isOpen }) => {
       label: "TOTAL STUDENTS",
       value: stats?.totalStudents,
       note: "Active and suspended",
+      maleLabel: "Male students",
+      maleCount: stats?.maleStudents,
+      femaleLabel: "Female students",
+      femaleCount: stats?.femaleStudents,
       icon: FaUsers,
       bg: "bg-primary/10",
     },
@@ -95,6 +99,10 @@ const AdminContent = ({ isOpen }) => {
       label: "TOTAL STAFF",
       value: stats?.totalStaff,
       note: "Currently enrolled staff",
+      maleLabel: "Male staff",
+      maleCount: stats?.maleStaff,
+      femaleLabel: "Female staff",
+      femaleCount: stats?.femaleStaff,
       icon: FaUserTie,
       bg: "bg-blue-100",
     },
@@ -158,11 +166,33 @@ const AdminContent = ({ isOpen }) => {
                 <p className="mt-5 text-sm font-medium uppercase tracking-[0.12em] text-slate-500">
                   {item.label}
                 </p>
-                <div className="mt-3">
-                  <span className="text-3xl font-black text-slate-800">
-                    {isLoading ? "—" : (item.value ?? "—")}
-                  </span>
-                  <p className="mt-1 text-xs text-slate-500">{item.note}</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-3xl font-black text-slate-800">
+                      {isLoading ? "—" : (item.value ?? "—")}
+                    </span>
+                    <p className="mt-1 text-xs text-slate-500">{item.note}</p>
+                  </div>
+                  {item.maleLabel && (
+                    <div className="grid w-[55%] shrink-0 grid-cols-2 gap-2 border-l border-slate-200 pl-3 text-center">
+                      <div className="min-w-0">
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          Male
+                        </p>
+                        <p className="text-3xl font-black text-slate-800">
+                          {isLoading ? "—" : (item.maleCount ?? "—")}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          Female
+                        </p>
+                        <p className="text-3xl font-black text-slate-800">
+                          {isLoading ? "—" : (item.femaleCount ?? "—")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </article>
             );
