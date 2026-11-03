@@ -4,49 +4,12 @@ import { BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router";
 import StaffView from "./StaffView";
 
-const AdminStatus = () => {
-  const Staff = [
-    {
-      id: "1",
-      subject: "English Language",
-      name: "Mr. Colley",
-      count: "12 Memebers",
-      
-    },
-    {
-      id: "2",
-      subject: "Science",
-      name: "Mr. Samba",
-      count: "10 Memebers",
-      
-    },
-    {
-      id: "3",
-      subject: "Mathematics",
-      name: "Mr. Barry",
-      count: "5 Memebers",
-      
-    },
-    {
-      id: "4",
-      subject: "Civic Education",
-      name: "Mr. Mendy",
-      count: "4 Memebers",
-      
-    },
-    {
-      id: "5",
-      subject: "Physics",
-      name: "Mr. Manga",
-      count: "3 Memebers",
-      
-    },
-  ];
+const AdminStatus = ({ facultyStatus = [], isLoading }) => {
   return (
     <div className="flex flex-col md:flex-row items-top gap-4 justify-between py-6">
       <div className="flex flex-col border border-base-content/20 rounded-lg">
         <div className="flex items-center justify-between px-4 py-4 bg-base-content/5 rounded-t-lg">
-          <span>FACULTY STATUS - ACTIVE DEPARTMENTS</span>
+          <span>FACULTY STATUS - DEPARTMENTS</span>
           <Link>
             <BsThreeDots />
           </Link>
@@ -58,7 +21,17 @@ const AdminStatus = () => {
           </span>
           <span className="text-[10px] md:text-base font-bold">NUMBER OF STAFF</span>
         </div>
-        <StaffView Staff={Staff} />
+        {isLoading ? (
+          <p role="status" className="px-4 py-6 text-sm text-base-content/60">
+            Loading department status...
+          </p>
+        ) : facultyStatus.length ? (
+          <StaffView Staff={facultyStatus} />
+        ) : (
+          <p className="px-4 py-6 text-sm text-base-content/60">
+            No department staff records found.
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-4">
         <div className="p-6 border border-base-content/20 rounded-lg bg-blue-950">

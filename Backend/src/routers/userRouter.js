@@ -255,7 +255,7 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
   try {
     const [
       totalStudents,
-      totalStaff,
+      staffMembers,
       activeClassrooms,
       enrolledStudents,
       dailyAttendanceSessions,
@@ -265,7 +265,9 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
       resultEntries,
     ] = await Promise.all([
       StudentUser.countDocuments({ status: { $in: ["Active", "Suspended"] } }),
-      StaffUser.countDocuments(),
+      StaffUser.find()
+        .select("department first_name last_name staff_position")
+        .lean(),
       ClassRoom.find({ status: "Active" }).select("_id name").lean(),
       StudentUser.find({ status: { $ne: "Transferred" } })
         .select("_id class")
@@ -275,14 +277,12 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         .lean(),
       StudentReport.find({ createdAt: todayFilter })
         .sort({ createdAt: -1 })
-        .limit(20)
         .select(
           "reportedStudent category submittedByRole submittedByName createdAt",
         )
         .lean(),
       FeedbackSubmission.find({ createdAt: todayFilter })
         .sort({ createdAt: -1 })
-        .limit(20)
         .select(
           "type category subject anonymous submittedByRole submittedByName createdAt",
         )
@@ -294,7 +294,6 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         ],
       })
         .sort({ updatedAt: -1 })
-        .limit(20)
         .populate("markingTeacher", "first_name last_name")
         .select(
           "className markingTeacher firstCallSavedAt secondCallSavedAt updatedAt",
@@ -302,7 +301,6 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         .lean(),
       StudentResult.find({ updatedAt: todayFilter })
         .sort({ updatedAt: -1 })
-        .limit(100)
         .populate("enteredBy", "first_name last_name")
         .select(
           "className subject academicYear evaluationPeriod enteredBy updatedAt",
@@ -356,6 +354,30 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
           session.secondCallSavedAt,
       ),
     ).length;
+    const departments = new Map();
+    for (const staff of staffMembers) {
+      const departmentName = staff.department?.trim();
+      if (!departmentName) continue;
+
+      const departmentKey = departmentName.toLocaleLowerCase();
+      const department =
+        departments.get(departmentKey) ??
+        { name: departmentName, headOfDepartment: [], staffCount: 0 };
+      department.staffCount += 1;
+      if (staff.staff_position === "H.O.D") {
+        department.headOfDepartment.push(
+          `${staff.first_name} ${staff.last_name}`,
+        );
+      }
+      departments.set(departmentKey, department);
+    }
+    const facultyStatus = [...departments.values()]
+      .map((department) => ({
+        ...department,
+        headOfDepartment:
+          department.headOfDepartment.join(", ") || "Not assigned",
+      }))
+      .sort((first, second) => first.name.localeCompare(second.name));
 
     const activities = [
       ...reports.map((report) => ({
@@ -421,17 +443,17 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         (first, second) =>
           new Date(second.createdAt) - new Date(first.createdAt),
       )
-      .slice(0, 10)
       .map(({ groupKey, ...activity }) => activity);
 
     return res.status(200).json({
       stats: {
         totalStudents,
-        totalStaff,
+        totalStaff: staffMembers.length,
         attendancePercentage,
         completedClasses,
         totalClasses: activeClassrooms.length,
       },
+      facultyStatus,
       recentActivities,
     });
   } catch (error) {

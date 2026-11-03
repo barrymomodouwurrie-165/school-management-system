@@ -169,7 +169,10 @@ const AdminContent = ({ isOpen }) => {
           })}
         </div>
 
-        <AdminStatus />
+        <AdminStatus
+          facultyStatus={overview?.facultyStatus ?? []}
+          isLoading={isLoading}
+        />
         <AdminRecentActivity
           activities={overview?.recentActivities ?? []}
           isLoading={isLoading}
