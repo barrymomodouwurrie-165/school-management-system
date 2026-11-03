@@ -118,7 +118,10 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
         NAV_PAGES={NAV_PAGES}
       />
       <div className="max-w-4xl mx-auto p-4">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="developer-credit text-sm text-base-content/70">
+            Designed and Developed by BarryDev-HUB
+          </p>
           <button
             type="button"
             onClick={toggleTheme}

@@ -23,6 +23,16 @@
   animation: fadeUp 0.8s ease-out both;
 }
 
+.developer-credit {
+  animation: fadeUp 0.8s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .developer-credit {
+    animation: none;
+  }
+}
+
 .card-animate {
   animation: fadeUp 0.8s ease-out both;
 }
