@@ -1,84 +1,81 @@
 import {
-  FaUserPlus,
   FaClipboardCheck,
   FaExclamationTriangle,
-  FaChartBar,
-} from "react-icons/fa"; 
+  FaLightbulb,
+  FaRegCommentDots,
+  FaUserShield,
+} from "react-icons/fa";
 
-const AdminRecentActivity = () => {
-  return (
-    <div className="max-w-xl px-4 py-4 border border-base-content/20 rounded-lg">
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <p className="text-xl font-bold">Recent Activity</p>
-          <button className="btn btn-outline btn-sm rounded-lg">
-            View All
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-slate-500/40 rounded-lg self-start">
-            <FaUserPlus />
-          </div>
-          <div>
-            <p className="text-blue-900 font-bold">New student registered:</p>
-            <p>Mustapha Barrow(Grade 10S)</p>
-            <p className="text-base-content/60">
-              15 minutes ago <b>&middot;</b> Adm. Mr. Jarju
-            </p>
-          </div>
-        </div>
-        <div className="flex items-top gap-2">
-          <div className="p-2 bg-slate-500/40 rounded-lg self-start">
-            <FaClipboardCheck />
-          </div>
-          <div>
-            <p className="text-blue-900 font-bold">Attendance marked:</p>
-            <p>10A1 Morning Session</p>
-            <p className="text-base-content/60">
-              45 minutes ago <b>&middot;</b> Mr. Jallow
-            </p>
-          </div>
-        </div>
-        <div className="flex items-top gap-2">
-          <div className="p-2 bg-red-600/40 text-red-600 rounded-lg self-start">
-            <FaExclamationTriangle />
-          </div>
-          <div>
-            <p className="text-red-600 font-bold">Unexpected Absence:</p>
-            <p>Mr. Sowe</p>
-            <p className="text-base-content/60">
-              1 hour ago <b>&middot;</b> Automated System
-            </p>
-          </div>
-        </div>
-        <div className="flex items-top gap-2">
-          <div className="p-2 bg-slate-500/40 rounded-lg self-start">
-            <FaChartBar />
-          </div>
-          <div>
-            <p className="text-blue-900 font-bold">Grades published:</p>
-            <p>Mid-term Mathematics</p>
-            <p className="text-base-content/60">
-              3 hours ago <b>&middot;</b> Mr. Barry
-            </p>
-          </div>
-        </div>
-        <div className="flex items-top gap-2">
-          <div className="p-2 bg-red-600/40 text-red-600 rounded-lg self-start">
-            <FaExclamationTriangle />
-          </div>
-          <div>
-            <p className="text-red-600 font-bold">Unexpected Absence:</p>
-            <p>Mr. Samba</p>
-            <p className="text-base-content/60">
-              {" "}
-              1 day ago <b>&middot;</b> Automated System
-            </p>
-          </div>
-        </div>
+const ACTIVITY_PRESENTATION = {
+  attendance: { icon: FaClipboardCheck, color: "text-blue-700 bg-blue-100" },
+  results: { icon: FaUserShield, color: "text-indigo-700 bg-indigo-100" },
+  report: { icon: FaExclamationTriangle, color: "text-red-700 bg-red-100" },
+  suggestion: { icon: FaLightbulb, color: "text-amber-700 bg-amber-100" },
+  complaint: { icon: FaRegCommentDots, color: "text-orange-700 bg-orange-100" },
+};
+
+const formatActivityTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Time unavailable";
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+};
+
+const AdminRecentActivity = ({ activities = [], isLoading, error }) => (
+  <section className="max-w-3xl rounded-lg border border-base-content/20 px-4 py-4">
+    <div className="mb-5 flex items-center justify-between">
+      <div>
+        <h2 className="text-xl font-bold">Recent Alerts</h2>
+        <p className="text-sm text-base-content/60">Today&apos;s staff and student activity</p>
       </div>
+      <span className="badge badge-primary">{activities.length}</span>
     </div>
-  );
-}
 
-export default AdminRecentActivity
+    {error ? (
+      <p role="alert" className="text-sm text-error">
+        {error}
+      </p>
+    ) : isLoading ? (
+      <p role="status" className="py-4 text-sm text-base-content/60">
+        Loading today&apos;s activity...
+      </p>
+    ) : activities.length === 0 ? (
+      <p className="py-4 text-sm text-base-content/60">
+        No staff or student activities have been recorded today.
+      </p>
+    ) : (
+      <div className="space-y-4">
+        {activities.map((activity) => {
+          const presentation =
+            ACTIVITY_PRESENTATION[activity.type] ??
+            ACTIVITY_PRESENTATION.attendance;
+          const Icon = presentation.icon;
+
+          return (
+            <article key={activity.id} className="flex items-start gap-3">
+              <span
+                className={`mt-0.5 rounded-lg p-2 ${presentation.color}`}
+                aria-hidden="true"
+              >
+                <Icon />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold">{activity.title}</p>
+                <p className="break-words text-sm">{activity.detail}</p>
+                <p className="text-xs text-base-content/60">
+                  {formatActivityTime(activity.createdAt)}
+                  {" · "}
+                  {activity.actor}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </section>
+);
+
+export default AdminRecentActivity;

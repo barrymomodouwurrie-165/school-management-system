@@ -150,6 +150,21 @@ export const getAdminProfile = async () => {
   }
 };
 
+export const getAdminDashboardOverview = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/users/admin/dashboard-overview`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve dashboard overview."),
+      { cause: error },
+    );
+  }
+};
+
 export const updateAdminProfile = async (profile) => {
   try {
     const response = await axios.put(

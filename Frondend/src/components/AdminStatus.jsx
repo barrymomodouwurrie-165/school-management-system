@@ -11,40 +11,35 @@ const AdminStatus = () => {
       subject: "English Language",
       name: "Mr. Colley",
       count: "12 Memebers",
-      schedule: "ON SCHEDULE",
-      color: "green",
+      
     },
     {
       id: "2",
       subject: "Science",
       name: "Mr. Samba",
       count: "10 Memebers",
-      schedule: "PENDING REPORTS",
-      color: "red",
+      
     },
     {
       id: "3",
       subject: "Mathematics",
       name: "Mr. Barry",
       count: "5 Memebers",
-      schedule: "ON SCHEDULE",
-      color: "green",
+      
     },
     {
       id: "4",
       subject: "Civic Education",
       name: "Mr. Mendy",
       count: "4 Memebers",
-      schedule: "ON SCHEDULE",
-      color: "green",
+      
     },
     {
       id: "5",
       subject: "Physics",
       name: "Mr. Manga",
       count: "3 Memebers",
-      schedule: "ON SCHEDULE",
-      color: "green",
+      
     },
   ];
   return (
@@ -56,14 +51,12 @@ const AdminStatus = () => {
             <BsThreeDots />
           </Link>
         </div>
-        <div className="grid grid-cols-5 gap-10 md:gap-1 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
+        <div className="grid grid-cols-3 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
           <span className="text-[10px] md:text-base font-bold">DEPARTMENT</span>
           <span className="text-[10px] md:text-base font-bold ml-2 md:ml-0">
-            HEAD OF DEPT
+            HEAD OF DEPARTMENT
           </span>
-          <span className="text-[10px] md:text-base font-bold">COUNT</span>
-          <span className="text-[10px] md:text-base font-bold">STATUS</span>
-          <span className="text-[10px] md:text-base font-bold">ACTION</span>
+          <span className="text-[10px] md:text-base font-bold">NUMBER OF STAFF</span>
         </div>
         <StaffView Staff={Staff} />
       </div>

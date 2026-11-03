@@ -130,8 +130,8 @@ const ViewResult = ({ result, setViewResult }) => {
         <section className="mt-6 flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
           <div className="w-full pt-8 text-center sm:w-64">
             <div className="mb-2 h-10 border-b border-slate-700" />
-            <p className="font-semibold">{result.publishingAdminName}</p>
-            <p className="text-sm text-slate-600">Administrator</p>
+            <p className="font-semibold">Mr.{result.publishingAdminName}</p>
+            <p className="text-sm text-slate-600">Principal</p>
             <p className="mt-1 text-xs text-slate-500">Authorized Signature</p>
             <p className="mt-4 text-xs italic text-slate-600">
               This result is unofficial without the Administrator&apos;s

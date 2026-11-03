@@ -9,6 +9,10 @@ import bcrypt from "bcrypt";
 import AdminUser from "../models/adminUser.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
+import AttendanceSession from "../models/attendanceSession.js";
+import StudentReport from "../models/studentReport.js";
+import FeedbackSubmission from "../models/feedbackSubmission.js";
+import StudentResult from "../models/studentResult.js";
 import ClassRoom from "../models/classRoom.js";
 import Subject from "../models/subject.js";
 import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
@@ -235,6 +239,206 @@ userRouter.get("/teacher/profile", async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to retrieve teacher profile." });
+  }
+});
+
+userRouter.get("/admin/dashboard-overview", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+
+  const now = new Date();
+  const dayStart = new Date(now);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+  const todayFilter = { $gte: dayStart, $lt: dayEnd };
+
+  try {
+    const [
+      totalStudents,
+      totalStaff,
+      activeClassrooms,
+      enrolledStudents,
+      dailyAttendanceSessions,
+      reports,
+      feedback,
+      attendanceSessions,
+      resultEntries,
+    ] = await Promise.all([
+      StudentUser.countDocuments({ status: { $in: ["Active", "Suspended"] } }),
+      StaffUser.countDocuments(),
+      ClassRoom.find({ status: "Active" }).select("_id name").lean(),
+      StudentUser.find({ status: { $ne: "Transferred" } })
+        .select("_id class")
+        .lean(),
+      AttendanceSession.find({ date: todayFilter })
+        .select("classroom firstCallSavedAt secondCallSavedAt entries")
+        .lean(),
+      StudentReport.find({ createdAt: todayFilter })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .select(
+          "reportedStudent category submittedByRole submittedByName createdAt",
+        )
+        .lean(),
+      FeedbackSubmission.find({ createdAt: todayFilter })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .select(
+          "type category subject anonymous submittedByRole submittedByName createdAt",
+        )
+        .lean(),
+      AttendanceSession.find({
+        $or: [
+          { firstCallSavedAt: todayFilter },
+          { secondCallSavedAt: todayFilter },
+        ],
+      })
+        .sort({ updatedAt: -1 })
+        .limit(20)
+        .populate("markingTeacher", "first_name last_name")
+        .select(
+          "className markingTeacher firstCallSavedAt secondCallSavedAt updatedAt",
+        )
+        .lean(),
+      StudentResult.find({ updatedAt: todayFilter })
+        .sort({ updatedAt: -1 })
+        .limit(100)
+        .populate("enteredBy", "first_name last_name")
+        .select(
+          "className subject academicYear evaluationPeriod enteredBy updatedAt",
+        )
+        .lean(),
+    ]);
+
+    const studentsByClass = new Map();
+    for (const student of enrolledStudents) {
+      const classStudents = studentsByClass.get(student.class) ?? [];
+      classStudents.push(student);
+      studentsByClass.set(student.class, classStudents);
+    }
+
+    const attendanceByClassroom = new Map(
+      dailyAttendanceSessions.map((session) => [
+        String(session.classroom),
+        session,
+      ]),
+    );
+    const classAttendancePercentages = activeClassrooms.map((classroom) => {
+      const students = studentsByClass.get(classroom.name) ?? [];
+      const session = attendanceByClassroom.get(String(classroom._id));
+      if (students.length === 0) return session?.firstCallSavedAt ? 100 : 0;
+
+      const attendedStudentIds = new Set(
+        (session?.entries ?? [])
+          .filter((entry) => entry.firstCall || entry.secondCall)
+          .map((entry) => String(entry.student)),
+      );
+      const attended = students.filter((student) =>
+        attendedStudentIds.has(String(student._id)),
+      ).length;
+      return (attended / students.length) * 100;
+    });
+    const attendancePercentage =
+      classAttendancePercentages.length === 0
+        ? null
+        : Math.round(
+            (classAttendancePercentages.reduce(
+              (total, percentage) => total + percentage,
+              0,
+            ) /
+              classAttendancePercentages.length) *
+              10,
+          ) / 10;
+    const completedClasses = activeClassrooms.filter((classroom) =>
+      dailyAttendanceSessions.some(
+        (session) =>
+          String(session.classroom) === String(classroom._id) &&
+          session.secondCallSavedAt,
+      ),
+    ).length;
+
+    const activities = [
+      ...reports.map((report) => ({
+        id: `report-${report._id}`,
+        type: "report",
+        title: `${report.submittedByRole === "student" ? "Student" : "Staff"} reported a student`,
+        detail: `${report.reportedStudent} · ${report.category}`,
+        actor: report.submittedByName,
+        createdAt: report.createdAt,
+      })),
+      ...feedback.map((submission) => ({
+        id: `feedback-${submission._id}`,
+        type: submission.type,
+        title: `${submission.submittedByRole === "student" ? "Student" : "Staff"} sent a ${submission.type}`,
+        detail: submission.subject || submission.category,
+        actor: submission.anonymous
+          ? "Anonymous"
+          : submission.submittedByName,
+        createdAt: submission.createdAt,
+      })),
+      ...attendanceSessions.map((session) => ({
+        id: `attendance-${session._id}`,
+        type: "attendance",
+        title: "Class register marked",
+        detail: session.className,
+        actor: session.markingTeacher
+          ? `${session.markingTeacher.first_name} ${session.markingTeacher.last_name}`
+          : "Staff member",
+        createdAt:
+          session.secondCallSavedAt ??
+          session.firstCallSavedAt ??
+          session.updatedAt,
+      })),
+      ...resultEntries.map((entry) => ({
+        id: `result-${entry._id}`,
+        groupKey: [
+          entry.className,
+          entry.subject,
+          entry.academicYear,
+          entry.evaluationPeriod,
+          String(entry.enteredBy?._id ?? ""),
+          new Date(entry.updatedAt).toISOString().slice(0, 16),
+        ].join("|"),
+        type: "results",
+        title: "Student results entered",
+        detail: `${entry.subject} · ${entry.className} · ${entry.evaluationPeriod}`,
+        actor: entry.enteredBy
+          ? `${entry.enteredBy.first_name} ${entry.enteredBy.last_name}`
+          : "Staff member",
+        createdAt: entry.updatedAt,
+      })),
+    ];
+
+    const recentActivities = [
+      ...new Map(
+        activities.map((activity) => [
+          activity.groupKey ?? activity.id,
+          activity,
+        ]),
+      ).values(),
+    ]
+      .sort(
+        (first, second) =>
+          new Date(second.createdAt) - new Date(first.createdAt),
+      )
+      .slice(0, 10)
+      .map(({ groupKey, ...activity }) => activity);
+
+    return res.status(200).json({
+      stats: {
+        totalStudents,
+        totalStaff,
+        attendancePercentage,
+        completedClasses,
+        totalClasses: activeClassrooms.length,
+      },
+      recentActivities,
+    });
+  } catch (error) {
+    console.error("Admin dashboard overview retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve dashboard overview." });
   }
 });
 
