@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FaSdCard } from "react-icons/fa";
 import {
   getTeacherClasses,
+  getTeacherResultEntryWindow,
   getTeacherResults,
   saveTeacherResults,
 } from "../../utils/teacherApi";
@@ -11,7 +12,7 @@ const EMPTY_LIST = [];
 
 const getCurrentAcademicYear = () => {
   const today = new Date();
-  const startYear = today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
+  const startYear = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
   return `${startYear}/${startYear + 1}`;
 };
 
@@ -28,6 +29,11 @@ const EnterResults = () => {
   const [error, setError] = useState("");
   const [status, setStatus] = useState({ type: "", message: "" });
   const [lastEntered, setLastEntered] = useState("");
+  const [entryWindowResult, setEntryWindowResult] = useState({
+    key: "",
+    window: null,
+    error: "",
+  });
 
   useEffect(() => {
     let active = true;
@@ -50,6 +56,31 @@ const EnterResults = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const key = JSON.stringify([academicYear, evaluationPeriod]);
+    getTeacherResultEntryWindow({ academicYear, evaluationPeriod })
+      .then((result) => {
+        if (active) setEntryWindowResult({ key, window: result, error: "" });
+      })
+      .catch((loadError) => {
+        if (active) {
+          setEntryWindowResult({ key, window: null, error: loadError.message });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [academicYear, evaluationPeriod]);
+
+  const entryWindowKey = JSON.stringify([academicYear, evaluationPeriod]);
+  const isLoadingEntryWindow = entryWindowResult.key !== entryWindowKey;
+  const entryWindow =
+    entryWindowResult.key === entryWindowKey ? entryWindowResult.window : null;
+  const entryWindowError =
+    entryWindowResult.key === entryWindowKey ? entryWindowResult.error : "";
+
   const selectedClass = useMemo(
     () => classes.find((classroom) => classroom.name === className),
     [classes, className],
@@ -61,6 +92,7 @@ const EnterResults = () => {
       ? JSON.stringify([className, subject, academicYear, evaluationPeriod])
       : "";
   const isLoadingResults = Boolean(resultsKey && loadedResultsKey !== resultsKey);
+  const isEntryOpen = Boolean(entryWindow?.isOpen && !entryWindowError);
 
   useEffect(() => {
     if (!resultsKey) return;
@@ -260,15 +292,14 @@ const EnterResults = () => {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex flex-col gap-2 rounded-md shadow-md px-2 pb-3 mb-4">
-        <p className="text-sm md:text-base">
-          ACADEMIC SESSION: {academicYear}
-        </p>
+        <p className="text-sm md:text-base">ACADEMIC SESSION: {academicYear}</p>
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <h2 className="text-sm md:text-lg font-bold text-blue-600">
             Enter Results
           </h2>
           <span className="text-xs md:text-sm bg-blue-600/10 px-2 py-1 rounded-xl">
-            Grading Scale: A: 80+, B: 70+, C: 60+, D: 50+, E: 40+, F: below 40
+            Grading Scale: A1: 80+, B2: 75+, B3: 70+, C4: 65+, C5: 60+, C6: 55+,
+            D7: 50+, E8: 40+ F9: below 39
           </span>
         </div>
       </div>
@@ -276,6 +307,36 @@ const EnterResults = () => {
       {error && (
         <p role="alert" className="mb-3 text-sm text-error">
           {error}
+        </p>
+      )}
+      {entryWindowError ? (
+        <p role="alert" className="mb-3 text-sm text-error">
+          {entryWindowError}
+        </p>
+      ) : isLoadingEntryWindow ? (
+        <p role="status" className="mb-3 text-sm text-base-content/70">
+          Checking marks-entry access...
+        </p>
+      ) : !isEntryOpen ? (
+        <p
+          role="status"
+          className="mb-3 rounded-md bg-warning/10 p-3 text-sm text-warning"
+        >
+          Marks entry is closed for {evaluationPeriod}, {academicYear}.
+          {entryWindow?.deadlineAt &&
+            ` The deadline was ${new Intl.DateTimeFormat(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(new Date(entryWindow.deadlineAt))}.`}
+        </p>
+      ) : (
+        <p className="mb-3 text-sm text-success">
+          Marks entry is open
+          {entryWindow.deadlineAt &&
+            ` until ${new Intl.DateTimeFormat(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(new Date(entryWindow.deadlineAt))}.`}
         </p>
       )}
       {status.message && (
@@ -328,7 +389,9 @@ const EnterResults = () => {
           </select>
         </label>
         <label className="flex flex-col gap-2">
-          <span className="text-xs md:text-sm text-base-content/70">SUBJECT</span>
+          <span className="text-xs md:text-sm text-base-content/70">
+            SUBJECT
+          </span>
           <select
             className="select select-ghost select-sm rounded-md bg-blue-600/5"
             value={subject}
@@ -402,6 +465,7 @@ const EnterResults = () => {
                 data={student}
                 marks={marks[student.id] ?? { testScore: "", examScore: "" }}
                 onMarkChange={handleMarkChange}
+                disabled={!isEntryOpen || isLoadingEntryWindow}
               />
             ))}
           </div>
@@ -410,7 +474,12 @@ const EnterResults = () => {
               type="button"
               className="btn btn-primary btn-sm rounded-md"
               onClick={handleSave}
-              disabled={isSaving || Boolean(error)}
+              disabled={
+                isSaving ||
+                Boolean(error) ||
+                !isEntryOpen ||
+                isLoadingEntryWindow
+              }
             >
               <FaSdCard className="text-white" />
               {isSaving ? "Saving..." : "Save Marks"}

@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
 import {
   getAdminResultOptions,
+  getAdminResultEntryWindow,
   getAdminResultsForPublishing,
   publishAllAdminResults,
   publishAdminResults,
+  updateAdminResultEntryWindow,
 } from "../utils/adminApi";
+
+const toLocalDateTimeInput = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 16);
+};
 
 const AdminResults = () => {
   const [options, setOptions] = useState({
@@ -24,6 +34,14 @@ const AdminResults = () => {
   const [isPublishingAll, setIsPublishingAll] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [entryWindowResult, setEntryWindowResult] = useState({
+    key: "",
+    window: null,
+    error: "",
+  });
+  const [deadlineInput, setDeadlineInput] = useState("");
+  const [isUpdatingEntryWindow, setIsUpdatingEntryWindow] = useState(false);
+  const [entryMessage, setEntryMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -48,6 +66,46 @@ const AdminResults = () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!selection.academicYear || !selection.evaluationPeriod) return undefined;
+
+    let active = true;
+    const key = JSON.stringify([
+      selection.academicYear,
+      selection.evaluationPeriod,
+    ]);
+    getAdminResultEntryWindow({
+      academicYear: selection.academicYear,
+      evaluationPeriod: selection.evaluationPeriod,
+    })
+      .then((result) => {
+        if (!active) return;
+        setEntryWindowResult({ key, window: result, error: "" });
+        setDeadlineInput(toLocalDateTimeInput(result.deadlineAt));
+      })
+      .catch((loadError) => {
+        if (active) {
+          setEntryWindowResult({ key, window: null, error: loadError.message });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selection.academicYear, selection.evaluationPeriod]);
+
+  const entryWindowKey = JSON.stringify([
+    selection.academicYear,
+    selection.evaluationPeriod,
+  ]);
+  const isLoadingEntryWindow =
+    Boolean(selection.academicYear && selection.evaluationPeriod) &&
+    entryWindowResult.key !== entryWindowKey;
+  const entryWindow =
+    entryWindowResult.key === entryWindowKey ? entryWindowResult.window : null;
+  const entryError =
+    entryWindowResult.key === entryWindowKey ? entryWindowResult.error : "";
 
   useEffect(() => {
     if (
@@ -132,6 +190,49 @@ const AdminResults = () => {
     }
   };
 
+  const handleToggleEntry = async () => {
+    const isOpen = !entryWindow?.isOpen;
+    if (isOpen && !deadlineInput) {
+      setEntryWindowResult((current) => ({
+        ...current,
+        key: entryWindowKey,
+        error: "Choose a deadline before opening marks entry.",
+      }));
+      return;
+    }
+
+    setIsUpdatingEntryWindow(true);
+    setEntryWindowResult((current) => ({
+      ...current,
+      key: entryWindowKey,
+      error: "",
+    }));
+    setEntryMessage("");
+    try {
+      const result = await updateAdminResultEntryWindow({
+        academicYear: selection.academicYear,
+        evaluationPeriod: selection.evaluationPeriod,
+        isOpen,
+        deadlineAt: isOpen ? new Date(deadlineInput).toISOString() : null,
+      });
+      setEntryWindowResult({
+        key: entryWindowKey,
+        window: result.window,
+        error: "",
+      });
+      setDeadlineInput(toLocalDateTimeInput(result.window.deadlineAt));
+      setEntryMessage(result.message);
+    } catch (updateError) {
+      setEntryWindowResult((current) => ({
+        ...current,
+        key: entryWindowKey,
+        error: updateError.message,
+      }));
+    } finally {
+      setIsUpdatingEntryWindow(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <header>
@@ -152,6 +253,75 @@ const AdminResults = () => {
           {message}
         </p>
       )}
+      <section className="space-y-3 rounded-lg border border-base-content/15 bg-white p-4 shadow-sm">
+        <div>
+          <h3 className="font-bold">Staff marks-entry access</h3>
+          <p className="text-sm text-base-content/70">
+            Open entry for the selected academic year and term until the deadline.
+            You can close it early or reopen it with a new deadline.
+          </p>
+        </div>
+        {entryError && (
+          <p role="alert" className="text-sm text-error">
+            {entryError}
+          </p>
+        )}
+        {entryMessage && (
+          <p role="status" className="text-sm text-success">
+            {entryMessage}
+          </p>
+        )}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <label className="form-control max-w-sm">
+            <span className="label-text mb-1">Marks deadline</span>
+            <input
+              type="datetime-local"
+              className="input input-bordered input-sm"
+              value={deadlineInput}
+              min={toLocalDateTimeInput(new Date())}
+              onChange={(event) => setDeadlineInput(event.target.value)}
+              disabled={
+                isLoadingOptions ||
+                isLoadingEntryWindow ||
+                isUpdatingEntryWindow ||
+                !selection.academicYear ||
+                !selection.evaluationPeriod
+              }
+            />
+          </label>
+          <button
+            type="button"
+            className={`btn btn-sm ${entryWindow?.isOpen ? "btn-error" : "btn-primary"}`}
+            onClick={handleToggleEntry}
+            disabled={
+              isLoadingOptions ||
+              isLoadingEntryWindow ||
+              isUpdatingEntryWindow ||
+              !selection.academicYear ||
+              !selection.evaluationPeriod
+            }
+          >
+            {isLoadingEntryWindow
+              ? "Loading access..."
+              : isUpdatingEntryWindow
+                ? "Updating access..."
+                : entryWindow?.isOpen
+                  ? "Close marks entry"
+                  : "Open marks entry"}
+          </button>
+        </div>
+        <p className="text-sm font-medium">
+          Status:{" "}
+          {isLoadingEntryWindow
+            ? "Loading"
+            : entryWindow?.isOpen
+              ? "Open"
+              : entryWindow?.deadlineAt &&
+                  new Date(entryWindow.deadlineAt) <= new Date()
+                ? "Deadline passed"
+                : "Closed"}
+        </p>
+      </section>
 
       {isLoadingOptions ? (
         <p role="status">Loading result selections...</p>

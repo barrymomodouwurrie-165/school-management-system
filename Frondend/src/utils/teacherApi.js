@@ -79,6 +79,21 @@ export const getTeacherResults = async (filters) => {
   }
 };
 
+export const getTeacherResultEntryWindow = async (filters) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/results/entry-window`,
+      { ...getTeacherConfig(), params: filters },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve marks-entry access."),
+      { cause: error },
+    );
+  }
+};
+
 export const saveTeacherResults = async (results) => {
   try {
     const response = await axios.post(

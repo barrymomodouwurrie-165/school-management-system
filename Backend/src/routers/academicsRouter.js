@@ -5,6 +5,7 @@ import Exam from "../models/exam.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
 import StudentResult from "../models/studentResult.js";
+import ResultEntryWindow from "../models/resultEntryWindow.js";
 import Subject from "../models/subject.js";
 import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import { isAuthentic } from "../models/tokens.js";
@@ -133,6 +134,23 @@ const isAcademicYear = (value) => {
 
 const isEvaluationPeriod = (value) =>
   ["First Term", "Second Term", "Third Term"].includes(value);
+
+const getCurrentAcademicYear = (date = new Date()) => {
+  const startYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
+  return `${startYear}/${startYear + 1}`;
+};
+
+const isValidResultWindowSelection = (academicYear, evaluationPeriod) =>
+  isAcademicYear(academicYear) && isEvaluationPeriod(evaluationPeriod);
+
+const serializeResultEntryWindow = (window) => {
+  const isPastDeadline =
+    window?.deadlineAt && new Date(window.deadlineAt).getTime() <= Date.now();
+  return {
+    isOpen: Boolean(window?.isOpen && !isPastDeadline),
+    deadlineAt: window?.deadlineAt ?? null,
+  };
+};
 
 const JUNIOR_CORE_SUBJECTS = [
   "English Language",
@@ -519,27 +537,116 @@ academicsRouter.get("/results/admin/options", async (req, res) => {
   if (!getAdminClaims(req, res)) return;
 
   try {
-    const [academicYears, storedClasses, classrooms, terms] = await Promise.all([
+    const [academicYears, storedClasses, classrooms] = await Promise.all([
       StudentResult.distinct("academicYear"),
       StudentResult.distinct("className"),
       ClassRoom.find().select("name").sort({ name: 1 }).lean(),
-      StudentResult.distinct("evaluationPeriod"),
     ]);
 
     return res.status(200).json({
-      academicYears: academicYears.sort((first, second) =>
-        second.localeCompare(first),
-      ),
+      academicYears: [
+        ...new Set([...academicYears, getCurrentAcademicYear()]),
+      ].sort((first, second) => second.localeCompare(first)),
       classes: [...new Set([...storedClasses, ...classrooms.map((item) => item.name)])].sort(),
-      terms: ["First Term", "Second Term", "Third Term"].filter((term) =>
-        terms.includes(term),
-      ),
+      terms: ["First Term", "Second Term", "Third Term"],
     });
   } catch (error) {
     console.error("Admin result options retrieval failed:", error.message);
     return res
       .status(500)
       .json({ message: "Unable to retrieve result selections." });
+  }
+});
+
+academicsRouter.get("/results/entry-window", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res.status(401).json({ message: "A valid access token is required." });
+  }
+  if (!["admin", "teacher"].includes(claims.role)) {
+    return res.status(403).json({
+      message: "Only administrators and teachers can view marks-entry access.",
+    });
+  }
+
+  const { academicYear, evaluationPeriod } = req.query;
+  if (!isValidResultWindowSelection(academicYear, evaluationPeriod)) {
+    return res.status(400).json({
+      message: "Provide a valid academic year and evaluation period.",
+    });
+  }
+
+  try {
+    const window = await ResultEntryWindow.findOne({
+      academicYear,
+      evaluationPeriod,
+    })
+      .select("isOpen deadlineAt")
+      .lean();
+    return res.status(200).json(serializeResultEntryWindow(window));
+  } catch (error) {
+    console.error("Result entry window retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve marks-entry access." });
+  }
+});
+
+academicsRouter.put("/results/entry-window", async (req, res) => {
+  const claims = getAdminClaims(req, res);
+  if (!claims) return;
+
+  const { academicYear, evaluationPeriod, isOpen, deadlineAt } = req.body ?? {};
+  if (
+    !isValidResultWindowSelection(academicYear, evaluationPeriod) ||
+    typeof isOpen !== "boolean"
+  ) {
+    return res.status(400).json({
+      message: "Provide a valid academic year, term, and access status.",
+    });
+  }
+
+  let parsedDeadline = null;
+  if (deadlineAt !== undefined && deadlineAt !== null && deadlineAt !== "") {
+    parsedDeadline = new Date(deadlineAt);
+    if (Number.isNaN(parsedDeadline.getTime())) {
+      return res.status(400).json({ message: "Provide a valid deadline." });
+    }
+  }
+  if (isOpen && (!parsedDeadline || parsedDeadline.getTime() <= Date.now())) {
+    return res.status(400).json({
+      message: "Set a future deadline before opening marks entry.",
+    });
+  }
+
+  try {
+    const update = { isOpen, updatedBy: claims.id };
+    if (parsedDeadline || deadlineAt === null || deadlineAt === "") {
+      update.deadlineAt = parsedDeadline;
+    }
+    const window = await ResultEntryWindow.findOneAndUpdate(
+      { academicYear, evaluationPeriod },
+      { $set: update },
+      { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true },
+    )
+      .select("isOpen deadlineAt")
+      .lean();
+    return res.status(200).json({
+      message: isOpen
+        ? "Marks entry opened for the selected term."
+        : "Marks entry closed for the selected term.",
+      window: serializeResultEntryWindow(window),
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Result entry window update failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to update marks-entry access." });
   }
 });
 
@@ -1047,6 +1154,21 @@ academicsRouter.post("/teacher/results", async (req, res) => {
   }
 
   try {
+    const entryWindow = await ResultEntryWindow.findOne({
+      academicYear,
+      evaluationPeriod,
+    })
+      .select("isOpen deadlineAt")
+      .lean();
+    const entryAccess = serializeResultEntryWindow(entryWindow);
+    if (!entryAccess.isOpen) {
+      return res.status(403).json({
+        message: entryAccess.deadlineAt
+          ? "Marks entry is closed or its deadline has passed for this term."
+          : "The administrator has not opened marks entry for this term.",
+      });
+    }
+
     const context = await getTeacherClassContext(claims.id, className);
     if (!context || !context.allowedSubjects.includes(subject)) {
       return res

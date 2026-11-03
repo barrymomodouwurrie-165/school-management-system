@@ -1,4 +1,4 @@
-const ClassesResults = ({ data, marks, onMarkChange }) => {
+const ClassesResults = ({ data, marks, onMarkChange, disabled = false }) => {
   const test = marks.testScore;
   const exam = marks.examScore;
   const total =
@@ -36,6 +36,7 @@ const ClassesResults = ({ data, marks, onMarkChange }) => {
         value={test}
         type="number"
         className="input input-bordered input-xs max-w-16"
+        disabled={disabled}
       />
       <input
         aria-label={`Exam score for ${data.name}`}
@@ -49,6 +50,7 @@ const ClassesResults = ({ data, marks, onMarkChange }) => {
         value={exam}
         type="number"
         className="input input-bordered input-xs max-w-16"
+        disabled={disabled}
       />
       <span className="py-1">{total}</span>
       <span className="py-1">{grade}</span>

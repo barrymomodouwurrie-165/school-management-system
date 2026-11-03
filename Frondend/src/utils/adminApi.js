@@ -319,6 +319,37 @@ export const getAdminResultsForPublishing = async (filters) => {
   }
 };
 
+export const getAdminResultEntryWindow = async (filters) => {
+  try {
+    const response = await axios.get(`${API_URL}/academics/results/entry-window`, {
+      ...getAdminConfig(),
+      params: filters,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve marks-entry access."),
+      { cause: error },
+    );
+  }
+};
+
+export const updateAdminResultEntryWindow = async (settings) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/academics/results/entry-window`,
+      settings,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update marks-entry access."),
+      { cause: error },
+    );
+  }
+};
+
 export const publishAdminResults = async (resultSelection) => {
   try {
     const response = await axios.post(
