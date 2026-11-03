@@ -92,6 +92,11 @@ const staffSchema = new mongoose.Schema(
       enum: ["Teacher", "H.O.D", "H.O.B", "Admin"],
       required: true,
     },
+    assigned_block: {
+      type: String,
+      enum: ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"],
+      default: undefined,
+    },
     profile_image: {
       type: String,
       trim: true,

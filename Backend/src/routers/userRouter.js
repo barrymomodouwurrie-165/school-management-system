@@ -30,6 +30,14 @@ const LEGACY_SUBJECT_NAMES = {
   "C.Accounting": "Cost Accounting",
 };
 const STAFF_POSITIONS = ["Teacher", "H.O.D", "H.O.B", "Admin"];
+const SCHOOL_BLOCKS = [
+  "Grade 7",
+  "Grade 8",
+  "Grade 9",
+  "Grade 10",
+  "Grade 11",
+  "Grade 12",
+];
 const EDITABLE_STAFF_FIELDS = [
   "first_name",
   "last_name",
@@ -266,7 +274,7 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
     ] = await Promise.all([
       StudentUser.countDocuments({ status: { $in: ["Active", "Suspended"] } }),
       StaffUser.find()
-        .select("department first_name last_name staff_position")
+        .select("department first_name last_name staff_position assigned_block")
         .lean(),
       ClassRoom.find({ status: "Active" }).select("_id name").lean(),
       StudentUser.find({ status: { $ne: "Transferred" } })
@@ -378,6 +386,16 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
           department.headOfDepartment.join(", ") || "Not assigned",
       }))
       .sort((first, second) => first.name.localeCompare(second.name));
+    const headOfBlocks = SCHOOL_BLOCKS.map((block) => ({
+      block,
+      heads: staffMembers
+        .filter(
+          (staff) =>
+            staff.staff_position === "H.O.B" && staff.assigned_block === block,
+        )
+        .map((staff) => `${staff.first_name} ${staff.last_name}`)
+        .join(", ") || "Not assigned",
+    }));
 
     const activities = [
       ...reports.map((report) => ({
@@ -454,6 +472,7 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         totalClasses: activeClassrooms.length,
       },
       facultyStatus,
+      headOfBlocks,
       recentActivities,
     });
   } catch (error) {
@@ -865,7 +884,7 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
   try {
     const staff = await StaffUser.findOne({ staff_id: req.params.staffId })
       .select(
-        "first_name last_name staff_id department staff_position subject_taught assigned_subjects assigned_classes class_subject_assignments",
+      "first_name last_name staff_id department staff_position assigned_block subject_taught assigned_subjects assigned_classes class_subject_assignments",
       )
       .lean();
     if (!staff) {
@@ -933,6 +952,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
     classSubjectAssignments,
     classTeacherClasses,
     staffPosition,
+    assignedBlock,
   } = req.body ?? {};
   const isStringArray = (value) =>
     Array.isArray(value) &&
@@ -950,7 +970,12 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
         !isStringArray(assignment.subjects),
     ) ||
     !isStringArray(classTeacherClasses) ||
-    !STAFF_POSITIONS.includes(staffPosition)
+    !STAFF_POSITIONS.includes(staffPosition) ||
+    (staffPosition === "H.O.B" && !SCHOOL_BLOCKS.includes(assignedBlock)) ||
+    (staffPosition !== "H.O.B" &&
+      assignedBlock !== undefined &&
+      assignedBlock !== null &&
+      assignedBlock !== "")
   ) {
     return res.status(400).json({
       message: "Provide valid classes, subjects, class-teacher classes, and position.",
@@ -1108,6 +1133,11 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
     staff.assigned_subjects = normalizedSubjects;
     staff.class_subject_assignments = normalizedClassSubjectAssignments;
     staff.staff_position = staffPosition;
+    if (staffPosition === "H.O.B") {
+      staff.assigned_block = assignedBlock;
+    } else {
+      staff.assigned_block = undefined;
+    }
     await staff.save();
 
     return res.status(200).json({
@@ -1118,6 +1148,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
         assigned_subjects: staff.assigned_subjects,
         class_subject_assignments: staff.class_subject_assignments,
         staff_position: staff.staff_position,
+        assigned_block: staff.assigned_block,
       },
     });
   } catch (error) {

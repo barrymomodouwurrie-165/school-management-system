@@ -4,34 +4,65 @@ import { BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router";
 import StaffView from "./StaffView";
 
-const AdminStatus = ({ facultyStatus = [], isLoading }) => {
+const AdminStatus = ({
+  facultyStatus = [],
+  headOfBlocks = [],
+  isLoading,
+}) => {
   return (
     <div className="flex flex-col md:flex-row items-top gap-4 justify-between py-6">
-      <div className="flex flex-col border border-base-content/20 rounded-lg">
-        <div className="flex items-center justify-between px-4 py-4 bg-base-content/5 rounded-t-lg">
-          <span>FACULTY STATUS - DEPARTMENTS</span>
-          <Link>
-            <BsThreeDots />
-          </Link>
+      <div className="flex flex-1 flex-col gap-4">
+        <div className="flex flex-col border border-base-content/20 rounded-lg">
+          <div className="flex items-center justify-between px-4 py-4 bg-base-content/5 rounded-t-lg">
+            <span>FACULTY STATUS - DEPARTMENTS</span>
+            <Link>
+              <BsThreeDots />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
+            <span className="text-[10px] md:text-base font-bold">DEPARTMENT</span>
+            <span className="text-[10px] md:text-base font-bold ml-2 md:ml-0">
+              HEAD OF DEPARTMENT
+            </span>
+            <span className="text-[10px] md:text-base font-bold">NUMBER OF STAFF</span>
+          </div>
+          {isLoading ? (
+            <p role="status" className="px-4 py-6 text-sm text-base-content/60">
+              Loading department status...
+            </p>
+          ) : facultyStatus.length ? (
+            <StaffView Staff={facultyStatus} />
+          ) : (
+            <p className="px-4 py-6 text-sm text-base-content/60">
+              No department staff records found.
+            </p>
+          )}
         </div>
-        <div className="grid grid-cols-3 items-center justify-between px-4 py-4 bg-base-content/5 border-t border-base-content/20">
-          <span className="text-[10px] md:text-base font-bold">DEPARTMENT</span>
-          <span className="text-[10px] md:text-base font-bold ml-2 md:ml-0">
-            HEAD OF DEPARTMENT
-          </span>
-          <span className="text-[10px] md:text-base font-bold">NUMBER OF STAFF</span>
+        <div className="flex flex-col border border-base-content/20 rounded-lg">
+          <div className="flex items-center justify-between px-4 py-4 bg-base-content/5 rounded-t-lg">
+            <span>FACULTY STATUS - HEAD OF BLOCKS</span>
+            <BsThreeDots aria-hidden="true" />
+          </div>
+          <div className="grid grid-cols-2 items-center px-4 py-4 bg-base-content/5 border-t border-base-content/20">
+            <span className="text-xs font-bold md:text-base">BLOCK</span>
+            <span className="text-xs font-bold md:text-base">HEAD OF BLOCK</span>
+          </div>
+          {isLoading ? (
+            <p role="status" className="px-4 py-6 text-sm text-base-content/60">
+              Loading block assignments...
+            </p>
+          ) : (
+            headOfBlocks.map(({ block, heads }) => (
+              <div
+                key={block}
+                className="grid grid-cols-2 items-center border-t border-base-content/20 px-4 py-2"
+              >
+                <span className="text-xs md:text-base">{block}</span>
+                <span className="text-xs md:text-base">{heads}</span>
+              </div>
+            ))
+          )}
         </div>
-        {isLoading ? (
-          <p role="status" className="px-4 py-6 text-sm text-base-content/60">
-            Loading department status...
-          </p>
-        ) : facultyStatus.length ? (
-          <StaffView Staff={facultyStatus} />
-        ) : (
-          <p className="px-4 py-6 text-sm text-base-content/60">
-            No department staff records found.
-          </p>
-        )}
       </div>
       <div className="flex flex-col gap-4">
         <div className="p-6 border border-base-content/20 rounded-lg bg-blue-950">

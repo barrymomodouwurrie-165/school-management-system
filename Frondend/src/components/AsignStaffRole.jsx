@@ -30,6 +30,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   const [classTeacherClasses, setClassTeacherClasses] = useState([]);
   const [staffPosition, setStaffPosition] = useState("Teacher");
   const [department, setDepartment] = useState("");
+  const [assignedBlock, setAssignedBlock] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
@@ -78,6 +79,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
         setClassTeacherClasses(result.classTeacherClasses);
         setStaffPosition(result.staff.staff_position);
         setDepartment(result.staff.department);
+        setAssignedBlock(result.staff.assigned_block ?? "");
       })
       .catch((error) => {
         if (active) {
@@ -180,6 +182,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
         })),
         classTeacherClasses,
         staffPosition,
+        assignedBlock: staffPosition === "H.O.B" ? assignedBlock : "",
       });
       setStatus({
         type: "success",
@@ -260,6 +263,24 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
               <p className="mt-2 text-sm text-base-content/70">
                 Department: {department}
               </p>
+            )}
+            {staffPosition === "H.O.B" && (
+              <label className="mt-3 flex max-w-sm flex-col gap-1 text-sm">
+                <span>Block</span>
+                <select
+                  className="select select-bordered select-sm"
+                  value={assignedBlock}
+                  onChange={(event) => setAssignedBlock(event.target.value)}
+                  required
+                >
+                  <option value="">Select a block</option>
+                  {[7, 8, 9, 10, 11, 12].map((grade) => (
+                    <option key={grade} value={`Grade ${grade}`}>
+                      Grade {grade}
+                    </option>
+                  ))}
+                </select>
+              </label>
             )}
           </section>
 

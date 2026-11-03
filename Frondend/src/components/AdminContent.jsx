@@ -171,6 +171,7 @@ const AdminContent = ({ isOpen }) => {
 
         <AdminStatus
           facultyStatus={overview?.facultyStatus ?? []}
+          headOfBlocks={overview?.headOfBlocks ?? []}
           isLoading={isLoading}
         />
         <AdminRecentActivity
