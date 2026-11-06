@@ -4,6 +4,7 @@ import AttendanceSession from "../models/attendanceSession.js";
 import ClassRoom from "../models/classRoom.js";
 import StudentUser from "../models/studentUser.js";
 import { isAuthentic } from "../models/tokens.js";
+import { getAcademicPeriod, TERMS } from "../utils/academicPeriod.js";
 
 const attendanceRouter = express.Router();
 
@@ -56,11 +57,6 @@ const getStudentClaims = (req, res) => {
   }
 
   return claims;
-};
-
-const getCurrentAcademicYear = (date = new Date()) => {
-  const startYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
-  return `${startYear}/${String(startYear + 1).slice(-2)}`;
 };
 
 const getClassDate = (value) => {
@@ -174,28 +170,44 @@ attendanceRouter.get("/student/me", async (req, res) => {
       return res.status(404).json({ message: "Student account was not found." });
     }
 
+    const currentPeriod = getAcademicPeriod();
     const academicYear =
       typeof req.query.academicYear === "string"
         ? req.query.academicYear
-        : getCurrentAcademicYear();
+        : currentPeriod.academicYear;
     if (!/^\d{4}\/\d{2,4}$/.test(academicYear)) {
       return res.status(400).json({
         message: "Academic year must use the YYYY/YY or YYYY/YYYY format.",
       });
     }
+    const term =
+      typeof req.query.term === "string"
+        ? req.query.term
+        : currentPeriod.term || TERMS[TERMS.length - 1];
+    if (!TERMS.includes(term)) {
+      return res.status(400).json({ message: "A valid term is required." });
+    }
+
+    const startYear = Number(academicYear.slice(0, 4));
+    const yearStart = new Date(Date.UTC(startYear, 8, 16));
+    const yearEnd = new Date(Date.UTC(startYear + 1, 8, 16));
 
     const sessions = await AttendanceSession.find({
-      academicYear,
+      date: { $gte: yearStart, $lt: yearEnd },
       "entries.student": student._id,
     })
       .sort({ date: -1 })
-      .select("date entries secondCallSavedAt")
+      .select("date entries secondCallSavedAt term")
       .lean();
+    const termSessions = sessions.filter(
+      (session) =>
+        (session.term || getAcademicPeriod(session.date).term) === term,
+    );
 
     let completedDays = 0;
     let attendedDays = 0;
     let absences = 0;
-    const recentDays = sessions.slice(0, 5).map((session) => {
+    const recentDays = termSessions.slice(0, 5).map((session) => {
       const entry = session.entries.find(
         (item) => String(item.student) === String(student._id),
       );
@@ -226,7 +238,7 @@ attendanceRouter.get("/student/me", async (req, res) => {
       };
     });
 
-    for (const session of sessions.slice(5)) {
+    for (const session of termSessions.slice(5)) {
       const entry = session.entries.find(
         (item) => String(item.student) === String(student._id),
       );
@@ -242,6 +254,7 @@ attendanceRouter.get("/student/me", async (req, res) => {
 
     return res.status(200).json({
       academicYear,
+      term,
       overallAttendance:
         completedDays === 0
           ? 0
@@ -430,8 +443,9 @@ attendanceRouter.post("/classes/:classId/sessions", async (req, res) => {
   }
 
   if (
-    typeof body.academicYear !== "string" ||
-    !/^\d{4}\/\d{2,4}$/.test(body.academicYear.trim())
+    body.academicYear !== undefined &&
+    (typeof body.academicYear !== "string" ||
+      !/^\d{4}\/\d{2,4}$/.test(body.academicYear.trim()))
   ) {
     return res
       .status(400)
@@ -439,6 +453,19 @@ attendanceRouter.post("/classes/:classId/sessions", async (req, res) => {
   }
 
   try {
+    const attendancePeriod = getAcademicPeriod(date);
+    const currentPeriod = getAcademicPeriod();
+    if (
+      !attendancePeriod.isTermOpen ||
+      !currentPeriod.isTermOpen ||
+      attendancePeriod.academicYear !== currentPeriod.academicYear ||
+      attendancePeriod.term !== currentPeriod.term
+    ) {
+      return res.status(409).json({
+        message: "Attendance is closed for this term.",
+      });
+    }
+
     const classroom = await getTeacherClass(req.params.classId, claims.id);
     if (!classroom) {
       return res
@@ -472,7 +499,8 @@ attendanceRouter.post("/classes/:classId/sessions", async (req, res) => {
         classroom: classroom._id,
         className: classroom.name,
         date,
-        academicYear: body.academicYear.trim(),
+        academicYear: attendancePeriod.academicYear,
+        term: attendancePeriod.term,
         markingTeacher: claims.id,
         entries: callEntries,
         firstCallSavedAt: new Date(),

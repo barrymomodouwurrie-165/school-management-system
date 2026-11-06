@@ -51,6 +51,11 @@ const attendanceSessionSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    term: {
+      type: String,
+      enum: ["First Term", "Second Term", "Third Term"],
+      default: null,
+    },
     markingTeacher: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "StaffUser",

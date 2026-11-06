@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { getStudentAttendance } from "../../utils/studentApi";
+import { getAcademicPeriod, TERMS } from "../../utils/academicPeriod";
+
+const initialTerm = getAcademicPeriod().term || TERMS[TERMS.length - 1];
 
 const formatDate = (value) => {
   const date = new Date(value);
@@ -22,12 +25,13 @@ const statusClassNames = {
 
 const Attendance = () => {
   const [attendance, setAttendance] = useState(null);
+  const [selectedTerm, setSelectedTerm] = useState(initialTerm);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    getStudentAttendance()
+    getStudentAttendance(selectedTerm)
       .then((result) => {
         if (active) setAttendance(result);
       })
@@ -41,7 +45,7 @@ const Attendance = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [selectedTerm]);
 
   if (isLoading) {
     return (
@@ -53,9 +57,29 @@ const Attendance = () => {
 
   if (error) {
     return (
-      <p role="alert" className="mx-auto max-w-4xl p-4 text-error">
-        {error}
-      </p>
+      <main className="mx-auto max-w-4xl p-4">
+        <p role="alert" className="mb-4 text-error">
+          {error}
+        </p>
+        <label className="flex max-w-xs flex-col gap-1">
+          <span className="text-sm font-medium">Term</span>
+          <select
+            className="select select-bordered select-sm"
+            value={selectedTerm}
+            onChange={(event) => {
+              setIsLoading(true);
+              setError("");
+              setSelectedTerm(event.target.value);
+            }}
+          >
+            {TERMS.map((term) => (
+              <option key={term} value={term}>
+                {term}
+              </option>
+            ))}
+          </select>
+        </label>
+      </main>
     );
   }
 
@@ -69,27 +93,43 @@ const Attendance = () => {
           <p className="text-sm text-base-content/70">
             Academic session: {attendance?.academicYear || "Not available"}
           </p>
+          <label className="mt-3 flex max-w-xs flex-col gap-1">
+            <span className="text-sm font-medium">Term</span>
+            <select
+              className="select select-bordered select-sm"
+              value={selectedTerm}
+              onChange={(event) => {
+                setIsLoading(true);
+                setError("");
+                setSelectedTerm(event.target.value);
+              }}
+            >
+              {TERMS.map((term) => (
+                <option key={term} value={term}>
+                  {term}
+                </option>
+              ))}
+            </select>
+          </label>
         </header>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <div className="flex flex-col rounded-md border-t-4 border-primary p-4 shadow-sm">
-            <span className="text-base-content/70">Overall attendance</span>
+            <span className="text-base-content/70">Term attendance</span>
             <span className="text-2xl font-bold">
               {attendance?.overallAttendance ?? 0}%
             </span>
           </div>
           <div className="flex flex-col rounded-md border-t-4 border-primary p-4 shadow-sm">
             <span className="text-base-content/70">
-              School days tracked this academic year
+              School days tracked this term
             </span>
             <span className="text-2xl font-bold">
               {attendance?.classesRecorded ?? 0}
             </span>
           </div>
           <div className="flex flex-col rounded-md border-t-4 border-primary p-4 shadow-sm">
-            <span className="text-base-content/70">
-              Absences this academic year
-            </span>
+            <span className="text-base-content/70">Absences this term</span>
             <span className="text-2xl font-bold">
               {attendance?.absences ?? 0}
             </span>
@@ -116,14 +156,13 @@ const Attendance = () => {
             ))
           ) : (
             <p className="rounded-md border border-base-content/20 p-4 text-center text-base-content/70">
-              No attendance has been recorded for you this academic year.
+              No attendance has been recorded for you in {selectedTerm}.
             </p>
           )}
         </section>
         <p className="text-xs text-base-content/60">
-          Attendance totals include only days where the teacher completed the
-          second call. The attendance records do not currently track individual
-          school terms.
+          Attendance totals include only days in {selectedTerm} where the
+          teacher completed the second call.
         </p>
       </div>
     </main>

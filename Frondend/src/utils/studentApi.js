@@ -44,20 +44,16 @@ export const getStudentClassmates = async () => {
   }
 };
 
-export const getStudentAttendance = async () => {
+export const getStudentAttendance = async (term) => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {
     throw new Error("Please sign in again to view your attendance.");
   }
 
   try {
-    const today = new Date();
-    const startYear =
-      today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
-    const academicYear = `${startYear}/${String(startYear + 1).slice(-2)}`;
     const response = await axios.get(`${API_URL}/attendance/student/me`, {
       headers: { Authorization: ["Bearer", accessToken].join(" ") },
-      params: { academicYear },
+      params: term ? { term } : undefined,
     });
     return response.data;
   } catch (error) {

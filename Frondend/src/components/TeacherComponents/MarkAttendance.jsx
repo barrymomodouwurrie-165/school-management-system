@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { FaDotCircle, FaSdCard } from "react-icons/fa";
 import AttendanceRoster from "./AttendanceRoster";
+import { getAcademicPeriod } from "../../utils/academicPeriod";
 import {
   getTeacherAttendanceClasses,
   getClassAttendanceSessions,
@@ -12,12 +13,6 @@ const getStatus = ({ firstCall, secondCall }) => {
   if (firstCall) return "Present";
   if (secondCall) return "Late";
   return "Absent";
-};
-
-const getAcademicYear = (date) => {
-  const parsed = dayjs(date);
-  const startYear = parsed.month() >= 8 ? parsed.year() : parsed.year() - 1;
-  return `${startYear}/${String(startYear + 1).slice(-2)}`;
 };
 
 const EMPTY_STUDENTS = [];
@@ -47,6 +42,7 @@ const MarkAttendance = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const date = dayjs().format("YYYY-MM-DD");
+  const academicPeriod = getAcademicPeriod(date);
 
   const classroom = classrooms.find((item) => item._id === classId);
   const students = classroom?.students ?? EMPTY_STUDENTS;
@@ -149,7 +145,6 @@ const MarkAttendance = () => {
       const call = stage === 0 ? "first" : "second";
       const savedSession = await saveClassAttendanceCall(classId, {
         date,
-        academicYear: session?.academicYear || getAcademicYear(date),
         call,
         entries: students.map((student) => ({
           studentId: String(student._id),
@@ -187,7 +182,8 @@ const MarkAttendance = () => {
     <div className="mx-auto max-w-4xl p-4">
       <div className="rounded-md px-2 pb-4 shadow-md">
         <p className="mb-2 text-sm md:text-base">
-          ACADEMIC SESSION: {session?.academicYear || getAcademicYear(date)}
+          ACADEMIC SESSION: {academicPeriod.academicYear} &middot;{" "}
+          {academicPeriod.periodLabel}
         </p>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-blue-600 md:text-lg">
@@ -243,6 +239,11 @@ const MarkAttendance = () => {
       {!isSchoolDay && (
         <p className="my-2 text-sm text-red-600">
           Weekends are not school days, so attendance can't be saved today.
+        </p>
+      )}
+      {!academicPeriod.isTermOpen && (
+        <p className="my-2 text-sm text-base-content/70">
+          Attendance is closed during {academicPeriod.periodLabel}.
         </p>
       )}
 
@@ -306,6 +307,7 @@ const MarkAttendance = () => {
               onClick={handleSave}
               disabled={
                 !isSchoolDay ||
+                !academicPeriod.isTermOpen ||
                 stage === 2 ||
                 isSaving ||
                 students.length === 0

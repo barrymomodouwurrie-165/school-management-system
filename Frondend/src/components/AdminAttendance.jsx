@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAdminAttendanceSessions } from "../utils/attendanceApi";
+import { getAcademicPeriod } from "../utils/academicPeriod";
 
 const getAttendanceStatus = (entry) => {
   if (entry.firstCall) return "Present";
@@ -234,7 +235,10 @@ const AdminAttendance = ({ isOpen }) => {
                     <h2 className="text-lg font-bold">{session.className}</h2>
                     <p className="text-sm text-base-content/70">
                       {new Date(session.date).toLocaleDateString()} &middot;{" "}
-                      {session.academicYear}
+                      {session.term ||
+                        getAcademicPeriod(session.date).term ||
+                        "Term unavailable"}{" "}
+                      &middot; {session.academicYear}
                     </p>
                     <p className="text-sm text-base-content/70">
                       Marked by{" "}

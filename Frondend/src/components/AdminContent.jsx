@@ -8,55 +8,7 @@ import {
 import AdminStatus from "./AdminStatus";
 import AdminRecentActivity from "./AdminRecentActivity";
 import { getAdminDashboardOverview } from "../utils/adminApi";
-
-const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
-const TERM_WEEKS = 13;
-const BREAK_WEEKS = 2;
-const TERM_CYCLE_WEEKS = TERM_WEEKS + BREAK_WEEKS;
-
-const getAcademicPeriod = (date = new Date()) => {
-  const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const currentYearStart = new Date(date.getFullYear(), 8, 16);
-  const startYear =
-    today >= currentYearStart ? date.getFullYear() : date.getFullYear() - 1;
-  const academicStart = new Date(startYear, 8, 16);
-  const yearEnd = startYear + 1;
-  const yearLabel = `${startYear}/${String(yearEnd).slice(-2)}`;
-  const firstAcademicWeek = new Date(academicStart);
-  firstAcademicWeek.setDate(
-    firstAcademicWeek.getDate() - firstAcademicWeek.getDay(),
-  );
-  const currentWeekStart = new Date(today);
-  currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
-  const elapsedDays = Math.floor(
-    (Date.UTC(
-      currentWeekStart.getFullYear(),
-      currentWeekStart.getMonth(),
-      currentWeekStart.getDate(),
-    ) -
-      Date.UTC(
-        firstAcademicWeek.getFullYear(),
-        firstAcademicWeek.getMonth(),
-        firstAcademicWeek.getDate(),
-      )) /
-      DAY_IN_MILLISECONDS,
-  );
-  const elapsedWeeks = Math.floor(elapsedDays / 7);
-  const termIndex = Math.floor(elapsedWeeks / TERM_CYCLE_WEEKS);
-
-  if (termIndex >= 3) {
-    return { yearLabel, periodLabel: "School break" };
-  }
-
-  const weekWithinCycle = elapsedWeeks % TERM_CYCLE_WEEKS;
-  const termName = `Term ${termIndex + 1}`;
-  const periodLabel =
-    weekWithinCycle < TERM_WEEKS
-      ? `${termName}, Week ${weekWithinCycle + 1}`
-      : `${termName} break (${weekWithinCycle - TERM_WEEKS + 1} of ${BREAK_WEEKS} weeks)`;
-
-  return { yearLabel, periodLabel };
-};
+import { getAcademicPeriod } from "../utils/academicPeriod";
 
 const AdminContent = ({ isOpen }) => {
   const [overview, setOverview] = useState(null);
@@ -134,7 +86,7 @@ const AdminContent = ({ isOpen }) => {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold font-sans">DASHBOARD OVERVIEW</h1>
           <p className="text-sm text-base-content/70">
-            Academic year {academicPeriod.yearLabel} &middot;{" "}
+            Academic year             {academicPeriod.academicYear} &middot;{" "}
             {academicPeriod.periodLabel}
           </p>
         </div>
