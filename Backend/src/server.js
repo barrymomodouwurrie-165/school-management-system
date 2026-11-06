@@ -8,6 +8,7 @@ import userRouter from "./routers/userRouter.js";
 import communicationRouter from "./routers/communicationRouter.js";
 import attendanceRouter from "./routers/attendanceRouter.js";
 import academicsRouter from "./routers/academicsRouter.js";
+import guardianRouter from "./routers/guardianRouter.js";
 import { publishDueResultEntryAnnouncements } from "./services/resultEntryNotifications.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,7 @@ app.use("/api/users", userRouter);
 app.use("/api/communications", communicationRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/academics", academicsRouter);
+app.use("/api/guardians", guardianRouter);
 
 connectDB().then(() => {
   const checkResultEntryDeadlines = () => {

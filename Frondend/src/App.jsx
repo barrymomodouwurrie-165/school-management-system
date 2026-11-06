@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
+import GuardianDashboard from "./pages/GuardianDashboard";
 import "./App.css";
 import { useEffect, useState } from "react";
 
@@ -57,6 +58,15 @@ function App() {
           path="/teacher-dashboard"
           element={
             <TeacherDashboard
+              theme={theme}
+              toggleTheme={toggleTheme}
+            />
+          }
+        />
+        <Route
+          path="/guardian-portal"
+          element={
+            <GuardianDashboard
               theme={theme}
               toggleTheme={toggleTheme}
             />

@@ -1,7 +1,7 @@
-import { FaEye, FaEyeSlash, FaPen } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaKey, FaPen } from "react-icons/fa";
 import { useState } from "react";
 
-const StudentData = ({ data, onEdit }) => {
+const StudentData = ({ data, onEdit, onProvisionGuardian, isProvisioning }) => {
   const [isView, setIsView] = useState(false);
   const statusColor =
     data.color === "green"
@@ -39,6 +39,16 @@ const StudentData = ({ data, onEdit }) => {
           title="Edit student"
         >
           <FaPen size={12} />
+        </button>
+        <button
+          type="button"
+          onClick={onProvisionGuardian}
+          disabled={isProvisioning || data.status === "Transferred"}
+          className="btn btn-ghost btn-xs"
+          aria-label={`Provision guardian portal access for ${data.student_name}`}
+          title="Provision guardian portal access"
+        >
+          <FaKey size={12} />
         </button>
       </div>
       {isView && (

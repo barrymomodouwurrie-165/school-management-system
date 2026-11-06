@@ -9,6 +9,7 @@ import bcrypt from "bcrypt";
 import AdminUser from "../models/adminUser.js";
 import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
+import GuardianUser from "../models/guardianUser.js";
 import AttendanceSession from "../models/attendanceSession.js";
 import StudentReport from "../models/studentReport.js";
 import FeedbackSubmission from "../models/feedbackSubmission.js";
@@ -18,6 +19,7 @@ import Subject from "../models/subject.js";
 import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import staffRegister from "../controllers/staffRegister.js";
 import studentRegister from "../controllers/studentRegister.js";
+import { provisionGuardianAccess } from "../services/guardianAccounts.js";
 
 const userRouter = express.Router();
 const LEGACY_SUBJECT_NAMES = {
@@ -1208,6 +1210,38 @@ userRouter.post("/staff/register", staffRegister);
 
 userRouter.post("/students/register", studentRegister);
 
+userRouter.post("/students/:studentId/guardian-access", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+  if (!mongoose.isValidObjectId(req.params.studentId)) {
+    return res.status(400).json({ message: "A valid student is required." });
+  }
+
+  try {
+    const guardianAccess = await provisionGuardianAccess(req.params.studentId);
+    return res.status(200).json({ guardianAccess });
+  } catch (error) {
+    if (error.statusCode === 404) {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.statusCode === 409) {
+      return res.status(409).json({ message: error.message });
+    }
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message:
+          "A guardian account with these details already exists. Review the guardian email and existing account.",
+      });
+    }
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Guardian access provisioning failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to provision guardian portal access.",
+    });
+  }
+});
+
 userRouter.post("/login", async (req, res) => {
   const { role, password } = req.body;
   const identifier = req.body.username ?? req.body.email;
@@ -1233,12 +1267,14 @@ userRouter.post("/login", async (req, res) => {
         ? StaffUser
         : normalizedRole === "student"
           ? StudentUser
+          : normalizedRole === "guardian"
+            ? GuardianUser
           : null;
 
   if (!userModel) {
     return res
       .status(400)
-      .json({ message: "Role must be admin, teacher, or student." });
+      .json({ message: "Role must be admin, teacher, student, or guardian." });
   }
 
   try {
@@ -1250,7 +1286,14 @@ userRouter.post("/login", async (req, res) => {
               { email: normalizedIdentifier },
             ],
           }
-        : { username: normalizedIdentifier };
+        : normalizedRole === "guardian"
+          ? {
+              $or: [
+                { username: normalizedIdentifier },
+                { email: normalizedIdentifier },
+              ],
+            }
+          : { username: normalizedIdentifier };
     const user = await userModel.findOne(userQuery).select("+password");
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -1270,6 +1313,7 @@ userRouter.post("/login", async (req, res) => {
         id: user._id,
         username: user.username,
         role: user.role,
+        mustChangePassword: Boolean(user.mustChangePassword),
       },
     });
   } catch (error) {
@@ -1295,7 +1339,9 @@ userRouter.post("/logout", async (req, res) => {
         ? StaffUser
         : claims.role === "student"
           ? StudentUser
-          : null;
+            : claims.role === "guardian"
+              ? GuardianUser
+            : null;
 
   if (!userModel) {
     return res.status(401).json({ message: "Invalid user role." });

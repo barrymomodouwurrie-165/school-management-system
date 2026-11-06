@@ -70,7 +70,10 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
     setCredentials(null);
     try {
       const result = await registerStudent(studentData);
-      setCredentials(result.credentials);
+      setCredentials({
+        student: result.credentials,
+        guardian: result.guardianAccess,
+      });
       setStatus({
         type: "success",
         message: result.message || "Student registered successfully.",
@@ -176,16 +179,42 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
         )}
 
         {credentials && (
-          <div className="alert alert-info mb-4">
-            <div>
-              <p className="font-bold">Student login credentials</p>
-              <p>Username: {credentials.username}</p>
-              <p>Password: {credentials.password}</p>
-              <p className="text-sm">
-                Save these credentials and share them securely with the
-                student.
-              </p>
+          <div className="mb-4 space-y-3">
+            <div className="alert alert-info">
+              <div>
+                <p className="font-bold">Student login credentials</p>
+                <p>Username: {credentials.student.username}</p>
+                <p>Password: {credentials.student.password}</p>
+                <p className="text-sm">
+                  Save these credentials and share them securely with the
+                  student.
+                </p>
+              </div>
             </div>
+            {credentials.guardian?.created ? (
+              <div className="alert alert-success">
+                <div>
+                  <p className="font-bold">New guardian portal credentials</p>
+                  <p>Username: {credentials.guardian.username}</p>
+                  <p>Password: {credentials.guardian.temporaryPassword}</p>
+                  <p className="text-sm">
+                    Save and share these securely with the guardian. They must
+                    change this temporary password at first sign-in.
+                  </p>
+                </div>
+              </div>
+            ) : credentials.guardian?.linkedExistingAccount ? (
+              <div className="alert alert-info">
+                <div>
+                  <p className="font-bold">Guardian portal access linked</p>
+                  <p>
+                    {credentials.guardian.studentName} was linked to the
+                    guardian's existing account ({credentials.guardian.username}).
+                    Their current password is unchanged.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
 

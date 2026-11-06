@@ -6,6 +6,7 @@ import {
   FaEyeSlash,
   FaChalkboardTeacher,
   FaQuestionCircle,
+  FaUserFriends,
 } from "react-icons/fa";
 import { RiAdminFill } from "react-icons/ri";
 import { FiLogIn } from "react-icons/fi";
@@ -21,7 +22,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
   const location = useLocation();
   const requestedRole = new URLSearchParams(location.search).get("role");
   const [role, setRole] = useState(
-    ["admin", "teacher", "student"].includes(requestedRole)
+    ["admin", "teacher", "student", "guardian"].includes(requestedRole)
       ? requestedRole
       : "admin",
   );
@@ -49,7 +50,9 @@ const LoginPage = ({ theme, toggleTheme }) => {
           ? "/admin-dashboard"
           : role === "teacher"
             ? "/teacher-dashboard"
-            : "/student-portal",
+            : role === "guardian"
+              ? "/guardian-portal"
+              : "/student-portal",
       );
     } catch (loginError) {
       setError(
@@ -82,7 +85,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
       <div className="max-w-xl mx-auto px-4 py-1">
         <div className=" max-w-[20rem] mx-auto py-1 mb-2 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
           <FaGraduationCap size={24} />
-          <span className="font-bold">EDUCORE ADMIN</span>
+          <span className="font-bold">EDUCORE SCHOOL PORTAL</span>
         </div>
         <div className="card bg-white max-w-md mx-auto border-t-4 border-l-2 border-r-2 border-primary rounded-lg">
           <div className="px-3 py-3">
@@ -121,6 +124,14 @@ const LoginPage = ({ theme, toggleTheme }) => {
                   {" "}
                   <FaGraduationCap size={18} />
                   Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("guardian")}
+                  className={`btn btn-outline ${role === "guardian" ? "btn-active" : ""}`}
+                >
+                  <FaUserFriends size={18} />
+                  Guardian
                 </button>
               </div>
             </div>

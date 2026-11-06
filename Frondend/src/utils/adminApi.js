@@ -135,6 +135,22 @@ export const registerStudent = async (student) => {
   }
 };
 
+export const provisionStudentGuardianAccess = async (studentId) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/users/students/${encodeURIComponent(studentId)}/guardian-access`,
+      {},
+      getAdminConfig(),
+    );
+    return response.data.guardianAccess;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to provision guardian portal access."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAdminProfile = async () => {
   try {
     const response = await axios.get(

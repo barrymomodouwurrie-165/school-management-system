@@ -37,7 +37,7 @@ const feedbackSubmissionSchema = new mongoose.Schema(
     },
     submittedByRole: {
       type: String,
-      enum: ["student", "teacher"],
+      enum: ["student", "teacher", "guardian"],
       required: true,
     },
     submittedByName: {

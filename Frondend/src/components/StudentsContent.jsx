@@ -3,7 +3,10 @@ import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import StudentData from "./StudentData";
 import StudentEditForm from "./StudentEditForm";
-import { getAdminStudents } from "../utils/adminApi";
+import {
+  getAdminStudents,
+  provisionStudentGuardianAccess,
+} from "../utils/adminApi";
 
 const StudentsContent = ({ isOpen, setIsOpen }) => {
   const [students, setStudents] = useState([]);
@@ -12,6 +15,8 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
   const [error, setError] = useState("");
   const [editingStudent, setEditingStudent] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [guardianAccess, setGuardianAccess] = useState(null);
+  const [provisioningStudentId, setProvisioningStudentId] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -75,6 +80,25 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
               : "gray",
     };
   });
+
+  const handleProvisionGuardian = async (student) => {
+    setProvisioningStudentId(student._id);
+    setGuardianAccess(null);
+    setError("");
+    setSuccessMessage("");
+    try {
+      setGuardianAccess(await provisionStudentGuardianAccess(student._id));
+      setSuccessMessage(
+        `Guardian portal access was linked for ${student.first_name} ${student.last_name}.`,
+      );
+    } catch (requestError) {
+      setError(
+        requestError.message || "Unable to provision guardian portal access.",
+      );
+    } finally {
+      setProvisioningStudentId("");
+    }
+  };
 
   if (editingStudent) {
     return (
@@ -143,6 +167,31 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
           {successMessage}
         </p>
       )}
+      {guardianAccess && (
+        <div className="alert alert-info mt-4">
+          <div>
+            {guardianAccess.created ? (
+              <>
+                <p className="font-bold">New guardian login credentials</p>
+                <p>Username: {guardianAccess.username}</p>
+                <p>Password: {guardianAccess.temporaryPassword}</p>
+                <p className="text-sm">
+                  Share securely. The guardian must change this temporary
+                  password at first sign-in.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-bold">Existing guardian account linked</p>
+                <p>
+                  Username: {guardianAccess.username}. The existing password
+                  remains unchanged.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       {isLoading ? (
         <p role="status" className="py-8 text-center">
           Loading student records...
@@ -167,6 +216,12 @@ const StudentsContent = ({ isOpen, setIsOpen }) => {
                   students.find((student) => student._id === data.id),
                 );
               }}
+              onProvisionGuardian={() =>
+                handleProvisionGuardian(
+                  students.find((student) => student._id === data.id),
+                )
+              }
+              isProvisioning={provisioningStudentId === data.id}
             />
           ))}
         </div>

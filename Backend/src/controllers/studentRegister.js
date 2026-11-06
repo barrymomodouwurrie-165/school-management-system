@@ -1,6 +1,7 @@
 import { isAuthentic } from "../models/tokens.js";
 import StudentUser from "../models/studentUser.js";
 import StudentUsernameCounter from "../models/studentUsernameCounter.js";
+import { provisionGuardianAccess } from "../services/guardianAccounts.js";
 
 const STUDENT_ID_LIMITS = {
   Junior: 780,
@@ -157,6 +158,13 @@ const studentRegister = async (req, res) => {
       password,
       status: "Active",
     });
+    let guardianAccess;
+    try {
+      guardianAccess = await provisionGuardianAccess(student._id);
+    } catch (error) {
+      await StudentUser.deleteOne({ _id: student._id });
+      throw error;
+    }
 
     return res.status(201).json({
       message: "Student registered successfully.",
@@ -169,6 +177,7 @@ const studentRegister = async (req, res) => {
         section: student.section,
       },
       credentials: { username, password },
+      guardianAccess,
     });
   } catch (error) {
     if (error.code === 11000) {
