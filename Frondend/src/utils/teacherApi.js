@@ -140,6 +140,53 @@ export const getTeacherResultRemarks = async (filters) => {
   }
 };
 
+export const getTeacherSuccessRadar = async (className) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/teacher/success-radar`,
+      { ...getTeacherConfig(), params: { className } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve the student success radar."),
+      { cause: error },
+    );
+  }
+};
+
+export const createTeacherSuccessFollowUp = async (followUp) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/teacher/success-radar/follow-ups`,
+      followUp,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to save the follow-up action."),
+      { cause: error },
+    );
+  }
+};
+
+export const resolveTeacherSuccessFollowUp = async (followUpId) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}/academics/teacher/success-radar/follow-ups/${followUpId}/resolve`,
+      {},
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update the follow-up action."),
+      { cause: error },
+    );
+  }
+};
+
 export const saveTeacherResultRemarks = async (remarks) => {
   try {
     const response = await axios.post(

@@ -11,6 +11,7 @@ import SendSuggestion from "../components/TeacherComponents/SendSuggestion";
 import CheckStudentAttendance from "../components/TeacherComponents/CheckStudentAttendance";
 import MyStudents from "../components/TeacherComponents/MyStudents";
 import MyClassSubjects from "../components/TeacherComponents/MyClassSubjects";
+import StudentSuccessRadar from "../components/TeacherComponents/StudentSuccessRadar";
 import { MdExitToApp } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -23,6 +24,7 @@ import {
   FaClipboardCheck,
   FaPenAlt,
   FaFlag,
+  FaChartLine,
   FaUserCircle,
   FaBars,
 } from "react-icons/fa";
@@ -60,6 +62,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
     "enter-results": EnterResults,
     "teacher-remarks": TeacherRemarks,
     "my-students": MyStudents,
+    "success-radar": StudentSuccessRadar,
     "my-class-subjects": MyClassSubjects,
     "exam-details": ExamsContent,
     "report-student": ReportStudent,
@@ -86,6 +89,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
         { id: "enter-results", label: "Enter Results" },
         { id: "teacher-remarks", label: "Teacher Remarks" },
         { id: "my-students", label: "My Students" },
+        { id: "success-radar", label: "Student Success Radar", logo: FaChartLine },
         { id: "my-class-subjects", label: "My Class Subjects" },
         { id: "exam-details", label: "Exam Details" },
       ],

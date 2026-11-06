@@ -6,11 +6,14 @@ import StaffUser from "../models/staffUser.js";
 import StudentUser from "../models/studentUser.js";
 import StudentResult from "../models/studentResult.js";
 import StudentResultRemark from "../models/studentResultRemark.js";
+import StudentSuccessFollowUp from "../models/studentSuccessFollowUp.js";
+import AttendanceSession from "../models/attendanceSession.js";
 import ResultEntryWindow from "../models/resultEntryWindow.js";
 import { publishResultEntryAnnouncement } from "../services/resultEntryNotifications.js";
 import Subject from "../models/subject.js";
 import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
 import { isAuthentic } from "../models/tokens.js";
+import { getAcademicPeriod, TERMS } from "../utils/academicPeriod.js";
 
 const academicsRouter = express.Router();
 
@@ -135,7 +138,7 @@ const isAcademicYear = (value) => {
 };
 
 const isEvaluationPeriod = (value) =>
-  ["First Term", "Second Term", "Third Term"].includes(value);
+  TERMS.includes(value);
 
 const getCurrentAcademicYear = (date = new Date()) => {
   const startYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
@@ -160,6 +163,40 @@ const JUNIOR_CORE_SUBJECTS = [
   "General Science",
   "Social and Environmental Studies",
   "French",
+];
+
+const getAcademicYearLabel = (shortLabel) => {
+  const startYear = Number(shortLabel.slice(0, 4));
+  return `${startYear}/${startYear + 1}`;
+};
+
+const getPreviousAcademicPeriod = (academicYear, evaluationPeriod) => {
+  const termIndex = TERMS.indexOf(evaluationPeriod);
+  if (termIndex > 0) {
+    return { academicYear, evaluationPeriod: TERMS[termIndex - 1] };
+  }
+
+  const startYear = Number(academicYear.slice(0, 4)) - 1;
+  return {
+    academicYear: `${startYear}/${startYear + 1}`,
+    evaluationPeriod: TERMS[TERMS.length - 1],
+  };
+};
+
+const getAverage = (records) =>
+  records.length
+    ? Number(
+        (records.reduce((sum, record) => sum + record.total, 0) / records.length)
+          .toFixed(1),
+      )
+    : null;
+
+const followUpActions = [
+  "student-meeting",
+  "guardian-contact",
+  "academic-support",
+  "attendance-check-in",
+  "other",
 ];
 
 const getJuniorGrade = (total) => {
@@ -1356,6 +1393,403 @@ academicsRouter.post("/teacher/results", async (req, res) => {
     return res.status(500).json({ message: "Unable to save student results." });
   }
 });
+
+academicsRouter.get("/teacher/success-radar", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const { className } = req.query;
+  if (
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100
+  ) {
+    return res.status(400).json({ message: "Provide a valid class." });
+  }
+
+  try {
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+      status: "Active",
+      class_teacher: claims.id,
+    })
+      .select("name")
+      .lean();
+    if (!classroom) {
+      return res.status(403).json({
+        message: "Only the class teacher can view this class success radar.",
+      });
+    }
+
+    const period = getAcademicPeriod();
+    const evaluationPeriod = period.term || TERMS[TERMS.length - 1];
+    const academicYear = getAcademicYearLabel(period.academicYear);
+    const previousPeriod = getPreviousAcademicPeriod(
+      academicYear,
+      evaluationPeriod,
+    );
+    const startYear = Number(academicYear.slice(0, 4));
+    const yearStart = new Date(Date.UTC(startYear, 8, 16));
+    const yearEnd = new Date(Date.UTC(startYear + 1, 8, 16));
+
+    const students = await StudentUser.find({
+      class: classroom.name,
+      status: { $ne: "Transferred" },
+    })
+      .select("_id student_id first_name last_name")
+      .sort({ last_name: 1, first_name: 1 })
+      .lean();
+    const studentIds = students.map((student) => student._id);
+
+    const [currentResults, previousResults, remarks, sessions, followUps] =
+      studentIds.length
+        ? await Promise.all([
+            StudentResult.find({
+              student: { $in: studentIds },
+              className: classroom.name,
+              academicYear,
+              evaluationPeriod,
+            })
+              .select("student subject total")
+              .lean(),
+            StudentResult.find({
+              student: { $in: studentIds },
+              className: classroom.name,
+              academicYear: previousPeriod.academicYear,
+              evaluationPeriod: previousPeriod.evaluationPeriod,
+            })
+              .select("student subject total")
+              .lean(),
+            StudentResultRemark.find({
+              student: { $in: studentIds },
+              className: classroom.name,
+              academicYear,
+              evaluationPeriod,
+            })
+              .select("student remark")
+              .lean(),
+            AttendanceSession.find({
+              classroom: classroom._id,
+              date: { $gte: yearStart, $lt: yearEnd },
+            })
+              .select("date entries secondCallSavedAt term")
+              .lean(),
+            StudentSuccessFollowUp.find({
+              student: { $in: studentIds },
+              className: classroom.name,
+              $or: [
+                { status: "Open" },
+                { academicYear, evaluationPeriod },
+              ],
+            })
+              .sort({ createdAt: -1 })
+              .select(
+                "student action details status academicYear evaluationPeriod createdAt resolvedAt",
+              )
+              .lean(),
+          ])
+        : [[], [], [], [], []];
+
+    const resultsByStudent = new Map();
+    for (const result of currentResults) {
+      const key = String(result.student);
+      resultsByStudent.set(key, [...(resultsByStudent.get(key) ?? []), result]);
+    }
+    const previousResultsByStudent = new Map();
+    for (const result of previousResults) {
+      const key = String(result.student);
+      previousResultsByStudent.set(key, [
+        ...(previousResultsByStudent.get(key) ?? []),
+        result,
+      ]);
+    }
+    const remarksByStudent = new Map(
+      remarks.map((remark) => [String(remark.student), remark.remark]),
+    );
+    const completedDaysByStudent = new Map();
+    const attendedDaysByStudent = new Map();
+    for (const session of sessions) {
+      if (
+        !session.secondCallSavedAt ||
+        (session.term || getAcademicPeriod(session.date).term) !==
+          evaluationPeriod
+      ) {
+        continue;
+      }
+
+      for (const entry of session.entries) {
+        const key = String(entry.student);
+        completedDaysByStudent.set(
+          key,
+          (completedDaysByStudent.get(key) ?? 0) + 1,
+        );
+        if (entry.firstCall || entry.secondCall) {
+          attendedDaysByStudent.set(
+            key,
+            (attendedDaysByStudent.get(key) ?? 0) + 1,
+          );
+        }
+      }
+    }
+    const followUpsByStudent = new Map();
+    for (const followUp of followUps) {
+      const key = String(followUp.student);
+      followUpsByStudent.set(key, [
+        ...(followUpsByStudent.get(key) ?? []),
+        {
+          _id: String(followUp._id),
+          action: followUp.action,
+          details: followUp.details,
+          status: followUp.status,
+          academicYear: followUp.academicYear,
+          evaluationPeriod: followUp.evaluationPeriod,
+          createdAt: followUp.createdAt,
+          resolvedAt: followUp.resolvedAt,
+        },
+      ]);
+    }
+
+    const radarStudents = students.map((student) => {
+      const key = String(student._id);
+      const studentResults = resultsByStudent.get(key) ?? [];
+      const previousStudentResults = previousResultsByStudent.get(key) ?? [];
+      const currentAverage = getAverage(studentResults);
+      const previousAverage = getAverage(previousStudentResults);
+      const previousBySubject = new Map(
+        previousStudentResults.map((result) => [result.subject, result]),
+      );
+      const comparableCurrentResults = studentResults.filter((result) =>
+        previousBySubject.has(result.subject),
+      );
+      const comparablePreviousResults = comparableCurrentResults.map(
+        (result) => previousBySubject.get(result.subject),
+      );
+      const comparableCurrentAverage = getAverage(comparableCurrentResults);
+      const comparablePreviousAverage = getAverage(comparablePreviousResults);
+      const completedDays = completedDaysByStudent.get(key) ?? 0;
+      const attendedDays = attendedDaysByStudent.get(key) ?? 0;
+      const attendanceRate = completedDays
+        ? Math.round((attendedDays / completedDays) * 1000) / 10
+        : null;
+      const alerts = [];
+
+      if (completedDays >= 5 && attendanceRate < 85) {
+        alerts.push({
+          type: "attendance",
+          severity: attendanceRate < 70 ? "high" : "medium",
+          message: `Term attendance is ${attendanceRate}% (${attendedDays} of ${completedDays} completed days).`,
+        });
+      }
+      if (studentResults.length >= 2 && currentAverage < 50) {
+        alerts.push({
+          type: "low-results",
+          severity: currentAverage < 40 ? "high" : "medium",
+          message: `Current term average is ${currentAverage}% across ${studentResults.length} subjects.`,
+        });
+      }
+      if (
+        comparableCurrentResults.length >= 2 &&
+        comparablePreviousAverage - comparableCurrentAverage >= 10
+      ) {
+        alerts.push({
+          type: "falling-results",
+          severity:
+            comparablePreviousAverage - comparableCurrentAverage >= 20
+              ? "high"
+              : "medium",
+          message: `Average fell ${Number(
+            (
+              comparablePreviousAverage - comparableCurrentAverage
+            ).toFixed(1),
+          )} points across ${comparableCurrentResults.length} matching subjects.`,
+        });
+      }
+
+      const hasHighAlert = alerts.some((alert) => alert.severity === "high");
+      const hasEnoughEvidence =
+        completedDays >= 5 || studentResults.length >= 2;
+      const status = hasHighAlert || alerts.length > 1
+        ? "High priority"
+        : alerts.length
+          ? "Monitor"
+          : hasEnoughEvidence
+            ? "On track"
+            : "Insufficient data";
+
+      return {
+        studentId: key,
+        studentNumber: student.student_id,
+        name: `${student.first_name} ${student.last_name}`,
+        currentAverage,
+        currentSubjects: studentResults.length,
+        previousAverage,
+        previousSubjects: previousStudentResults.length,
+        attendanceRate,
+        attendedDays,
+        completedDays,
+        teacherRemark: remarksByStudent.get(key) || "",
+        alerts,
+        status,
+        followUps: followUpsByStudent.get(key) ?? [],
+      };
+    });
+
+    return res.status(200).json({
+      className: classroom.name,
+      academicYear,
+      evaluationPeriod,
+      previousPeriod,
+      students: radarStudents,
+      thresholds: {
+        minimumCompletedAttendanceDays: 5,
+        attendancePercent: 85,
+        minimumResultSubjects: 2,
+        lowAveragePercent: 50,
+        resultDropPoints: 10,
+      },
+    });
+  } catch (error) {
+    console.error("Student success radar retrieval failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to retrieve the student success radar.",
+    });
+  }
+});
+
+academicsRouter.post("/teacher/success-radar/follow-ups", async (req, res) => {
+  const claims = getTeacherClaims(req, res);
+  if (!claims) return;
+
+  const {
+    className,
+    studentId,
+    academicYear,
+    evaluationPeriod,
+    action,
+    details,
+  } = req.body ?? {};
+  if (
+    typeof className !== "string" ||
+    !className.trim() ||
+    className.length > 100 ||
+    typeof studentId !== "string" ||
+    !mongoose.isValidObjectId(studentId) ||
+    !isAcademicYear(academicYear) ||
+    !isEvaluationPeriod(evaluationPeriod) ||
+    !followUpActions.includes(action) ||
+    typeof details !== "string" ||
+    !details.trim() ||
+    details.trim().length > 1000
+  ) {
+    return res.status(400).json({
+      message: "Provide valid follow-up details for a student and term.",
+    });
+  }
+
+  try {
+    const classroom = await ClassRoom.findOne({
+      name: className.trim(),
+      status: "Active",
+      class_teacher: claims.id,
+    })
+      .select("name")
+      .lean();
+    if (!classroom) {
+      return res.status(403).json({
+        message: "Only the class teacher can record follow-up actions.",
+      });
+    }
+    const student = await StudentUser.findOne({
+      _id: studentId,
+      class: classroom.name,
+      status: { $ne: "Transferred" },
+    })
+      .select("_id")
+      .lean();
+    if (!student) {
+      return res.status(404).json({
+        message: "The student is not an active member of this class.",
+      });
+    }
+
+    const followUp = await StudentSuccessFollowUp.create({
+      student: student._id,
+      className: classroom.name,
+      academicYear,
+      evaluationPeriod,
+      action,
+      details: details.trim(),
+      createdBy: claims.id,
+    });
+    return res.status(201).json({
+      _id: String(followUp._id),
+      action: followUp.action,
+      details: followUp.details,
+      status: followUp.status,
+      academicYear: followUp.academicYear,
+      evaluationPeriod: followUp.evaluationPeriod,
+      createdAt: followUp.createdAt,
+      resolvedAt: followUp.resolvedAt,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Student success follow-up save failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to save the follow-up action.",
+    });
+  }
+});
+
+academicsRouter.patch(
+  "/teacher/success-radar/follow-ups/:followUpId/resolve",
+  async (req, res) => {
+    const claims = getTeacherClaims(req, res);
+    if (!claims) return;
+
+    if (!mongoose.isValidObjectId(req.params.followUpId)) {
+      return res.status(400).json({ message: "A valid follow-up is required." });
+    }
+
+    try {
+      const followUp = await StudentSuccessFollowUp.findById(
+        req.params.followUpId,
+      );
+      if (!followUp) {
+        return res.status(404).json({ message: "Follow-up was not found." });
+      }
+      const classroom = await ClassRoom.findOne({
+        name: followUp.className,
+        status: "Active",
+        class_teacher: claims.id,
+      })
+        .select("_id")
+        .lean();
+      if (!classroom) {
+        return res.status(403).json({
+          message: "Only the class teacher can resolve this follow-up.",
+        });
+      }
+      if (followUp.status !== "Resolved") {
+        followUp.status = "Resolved";
+        followUp.resolvedAt = new Date();
+        await followUp.save();
+      }
+
+      return res.status(200).json({
+        _id: String(followUp._id),
+        status: followUp.status,
+        resolvedAt: followUp.resolvedAt,
+      });
+    } catch (error) {
+      console.error("Student success follow-up update failed:", error.message);
+      return res.status(500).json({
+        message: "Unable to update the follow-up action.",
+      });
+    }
+  },
+);
 
 academicsRouter.get("/teacher/result-remarks", async (req, res) => {
   const claims = getTeacherClaims(req, res);
