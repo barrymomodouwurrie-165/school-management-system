@@ -10,10 +10,12 @@ const Messages = ({ sender, text, time }) => {
         <img src={userPic} alt="" className="w-[45px] h-[30px] rounded-full" />
       )}
       <div
-        className={`${sender === "user" ? "bg-green-600 rounded-md px-2 py-1 text-sm italic max-w-[500px]" : "bg-blue-600 rounded-md px-2 py-1 text-sm italic max-w-[500px]"}`}
+        className={`max-w-[min(90%,40rem)] rounded-md px-3 py-2 text-sm text-white ${
+          sender === "user" ? "bg-green-700" : "bg-blue-700"
+        }`}
       >
-        <div className="mr-6">{text}</div>
-        <div className="text-end">{time}</div>
+        <div className="whitespace-pre-wrap break-words">{text}</div>
+        <div className="mt-1 text-end text-xs opacity-75">{time}</div>
       </div>
       {sender === "robot" && (
         <img src={robotPic} alt="" className="w-[30px] h-[30px] rounded-full" />

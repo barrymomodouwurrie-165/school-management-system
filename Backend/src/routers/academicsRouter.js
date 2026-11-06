@@ -8,6 +8,7 @@ import StudentResult from "../models/studentResult.js";
 import StudentResultRemark from "../models/studentResultRemark.js";
 import StudentSuccessFollowUp from "../models/studentSuccessFollowUp.js";
 import AttendanceSession from "../models/attendanceSession.js";
+import { createStudyCoachReply, StudyCoachError } from "../services/studyCoach.js";
 import ResultEntryWindow from "../models/resultEntryWindow.js";
 import { publishResultEntryAnnouncement } from "../services/resultEntryNotifications.js";
 import Subject from "../models/subject.js";
@@ -79,7 +80,7 @@ const getStudentClaims = (req, res) => {
   }
 
   if (claims.role !== "student" || typeof claims.id !== "string") {
-    res.status(403).json({ message: "Only students can view scheduled exams." });
+    res.status(403).json({ message: "Only students can access these records." });
     return null;
   }
 
@@ -198,6 +199,60 @@ const followUpActions = [
   "attendance-check-in",
   "other",
 ];
+const studyCoachRequests = new Map();
+const STUDY_COACH_REQUEST_LIMIT = 10;
+const STUDY_COACH_WINDOW_MS = 60_000;
+
+const isStudyCoachRateLimited = (studentId) => {
+  const now = Date.now();
+  if (studyCoachRequests.size > 5000) {
+    for (const [id, timestamps] of studyCoachRequests) {
+      if (timestamps.every((timestamp) => now - timestamp >= STUDY_COACH_WINDOW_MS)) {
+        studyCoachRequests.delete(id);
+      }
+    }
+  }
+  const timestamps = (studyCoachRequests.get(studentId) ?? []).filter(
+    (timestamp) => now - timestamp < STUDY_COACH_WINDOW_MS,
+  );
+  if (timestamps.length >= STUDY_COACH_REQUEST_LIMIT) {
+    studyCoachRequests.set(studentId, timestamps);
+    return true;
+  }
+  timestamps.push(now);
+  studyCoachRequests.set(studentId, timestamps);
+  return false;
+};
+
+const getStudentStudyContext = async (studentId) => {
+  const student = await StudentUser.findById(studentId)
+    .select("class status")
+    .lean();
+  if (!student || student.status === "Transferred") return null;
+
+  const classroom = await ClassRoom.findOne({ name: student.class })
+    .select("name section grade program stream_number")
+    .lean();
+  if (!classroom) return null;
+
+  const subjects = await Subject.find({
+    section: classroom.section,
+    isActive: true,
+  })
+    .sort({ name: 1 })
+    .lean();
+  const currentPeriod = getAcademicPeriod();
+
+  return {
+    className: classroom.name,
+    gradeLevel: `${classroom.section} school, Grade ${classroom.grade}`,
+    term: currentPeriod.term || "School break",
+    academicYear: getAcademicYearLabel(currentPeriod.academicYear),
+    subjects: subjects
+      .filter((subject) => isSubjectAvailableForClass(subject, classroom))
+      .map((subject) => ({ id: String(subject._id), name: subject.name })),
+  };
+};
 
 const getJuniorGrade = (total) => {
   if (total >= 80) return { grade: "A1", aggregate: 1, remark: "Excellent" };
@@ -261,6 +316,90 @@ const calculateJuniorAggregate = (records) => {
     additionalSubjectsNeeded: 0,
   };
 };
+
+academicsRouter.get("/student/study-coach/context", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  try {
+    const context = await getStudentStudyContext(claims.id);
+    if (!context) {
+      return res.status(404).json({
+        message: "Your active class and subjects could not be found.",
+      });
+    }
+
+    return res.status(200).json({
+      ...context,
+      isConfigured: Boolean(process.env.OPENAI_API_KEY),
+    });
+  } catch (error) {
+    console.error("Student study coach context retrieval failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to load your study coach subjects.",
+    });
+  }
+});
+
+academicsRouter.post("/student/study-coach/chat", async (req, res) => {
+  const claims = getStudentClaims(req, res);
+  if (!claims) return;
+
+  const { subject, message, mode = "chat", history = [] } = req.body ?? {};
+  if (
+    typeof subject !== "string" ||
+    !subject.trim() ||
+    subject.length > 100 ||
+    typeof message !== "string" ||
+    !message.trim() ||
+    message.length > 2000 ||
+    !["chat", "quiz"].includes(mode) ||
+    !Array.isArray(history) ||
+    history.length > 40
+  ) {
+    return res.status(400).json({
+      message: "Provide a subject, a message, and a valid coach mode.",
+    });
+  }
+
+  if (isStudyCoachRateLimited(claims.id)) {
+    return res.status(429).json({
+      message: "You have sent several requests. Please wait a minute and try again.",
+    });
+  }
+
+  try {
+    const context = await getStudentStudyContext(claims.id);
+    if (!context) {
+      return res.status(404).json({
+        message: "Your active class and subjects could not be found.",
+      });
+    }
+    if (!context.subjects.some((item) => item.name === subject.trim())) {
+      return res.status(400).json({
+        message: "Choose one of the subjects assigned to your class.",
+      });
+    }
+
+    const reply = await createStudyCoachReply({
+      subject: subject.trim(),
+      gradeLevel: context.gradeLevel,
+      term: `${context.term}, ${context.academicYear}`,
+      mode,
+      message: message.trim(),
+      history,
+    });
+    return res.status(200).json({ reply });
+  } catch (error) {
+    if (error instanceof StudyCoachError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    console.error("Student study coach request failed:", error.message);
+    return res.status(500).json({
+      message: "Unable to get a response from the study coach.",
+    });
+  }
+});
 
 academicsRouter.get("/results/student/options", async (req, res) => {
   const claims = getStudentClaims(req, res);

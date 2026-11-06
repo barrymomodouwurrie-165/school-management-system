@@ -1,50 +1,35 @@
 import Messages from "./Messages";
 
-const ChatMessages = () => {
-  const MessageList = [
-    {
-      id: 1,
-      sender: "user",
-      text: "Hello, Can you define Matter",
-      time: "12:04",
-    },
-    {
-      id: 2,
-      sender: "robot",
-      text: "Yes sure! Matter is anything that has mass and occupy space.",
-      time: "12:04",
-    },
-    {
-      id: 3,
-      sender: "user",
-      text: "waaw! what about photosynthsis.",
-      time: "12:05",
-    },
-    {
-      id: 4,
-      sender: "robot",
-      text: "It's the process by which green plants make their own food",
-      time: "12:05",
-    },
-    {
-      id: 5,
-      sender: "user",
-      text: "Thank you.",
-      time: "12:06",
-    },
-    {
-      id: 6,
-      sender: "robot",
-      text: "You are welcome!",
-      time: "12:06",
-    },
-  ];
+const ChatMessages = ({ messages, subject, isLoading }) => {
   return (
-    <div className="grow overflow-scroll px-8">
-      {MessageList &&
-        MessageList.map((item) => {
-          return <Messages sender={item.sender} text={item.text} time={item.time} />;
-        })}
+    <div
+      className="mb-4 max-h-[28rem] min-h-48 overflow-y-auto rounded-lg bg-base-200/50 p-3 sm:p-5"
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-label="Study coach conversation"
+    >
+      {!messages.length ? (
+        <div className="flex min-h-40 flex-col items-center justify-center text-center">
+          <p className="font-semibold">Ready to study {subject}?</p>
+          <p className="mt-1 text-sm text-base-content/70">
+            Ask for an explanation, an example, or switch to Practice quiz.
+          </p>
+        </div>
+      ) : (
+        messages.map((item) => (
+          <Messages
+            key={item.id}
+            sender={item.sender}
+            text={item.text}
+            time={item.time}
+          />
+        ))
+      )}
+      {isLoading && (
+        <p role="status" className="my-3 text-sm text-base-content/70">
+          The study coach is preparing a response...
+        </p>
+      )}
     </div>
   );
 };

@@ -158,7 +158,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         { id: "exam-details", label: "Exam Details" },
       ],
     },
-    { id: "ai", label: "AiAssistance", icon: FaRobot },
+    { id: "ai", label: "AI Study Coach", icon: FaRobot },
     { id: "profile", label: "My Profile", icon: FaUserCircle },
     {
       id: "reports",

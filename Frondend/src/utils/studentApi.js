@@ -87,6 +87,51 @@ export const getStudentSubjects = async () => {
   }
 };
 
+export const getStudentStudyCoachContext = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to use the study coach.");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/academics/student/study-coach/context`,
+      { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to load your study coach subjects.",
+      { cause: error },
+    );
+  }
+};
+
+export const askStudentStudyCoach = async (request) => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to use the study coach.");
+  }
+
+  try {
+    const response = await axios.post(
+      `${API_URL}/academics/student/study-coach/chat`,
+      request,
+      { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to get a response from the study coach.",
+      { cause: error },
+    );
+  }
+};
+
 export const getStudentExams = async () => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {
