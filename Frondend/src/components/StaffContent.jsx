@@ -144,7 +144,7 @@ const StaffContent = ({
       ) : staffCards.length ? (
         <div className="my-4 grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
           {staffCards.map((data) => (
-            <div key={data.id} className="card self-start p-3 shadow-md">
+            <div key={data.id} className="card self-start p-3 shadow-sm shadow-white/10 border-t-2 border-blue-600">
               <StaffContentCard
                 data={data}
                 setAssign={setAssign}
