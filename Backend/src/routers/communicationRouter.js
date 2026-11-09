@@ -222,6 +222,7 @@ communicationRouter.get("/announcements", async (req, res) => {
   }
 
   const audienceByRole = {
+    guardian: "guardians",
     teacher: "staff",
     student: "students",
   };

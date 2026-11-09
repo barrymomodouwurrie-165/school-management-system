@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { getAnnouncements } from "../utils/communicationApi";
 import AnnouncementButton from "./AnnouncementButton";
 
-const Announcement = () => {
+const Announcement = ({ announcements: liveAnnouncements }) => {
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(liveAnnouncements === undefined);
 
   useEffect(() => {
+    if (liveAnnouncements !== undefined) return undefined;
+
     let active = true;
     getAnnouncements()
       .then((announcements) => {
@@ -23,7 +25,9 @@ const Announcement = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [liveAnnouncements]);
+
+  const displayedMessages = liveAnnouncements ?? messages;
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -32,11 +36,11 @@ const Announcement = () => {
         {error && <p role="alert">{error}</p>}
         {isLoading ? (
           <p>Loading announcements...</p>
-        ) : !messages.length && !error ? (
+        ) : !displayedMessages.length && !error ? (
           <p>No announcements for your account.</p>
         ) : (
           <div className="flex flex-col py-4 gap-6 md:gap-1">
-            {messages.map((message) => (
+            {displayedMessages.map((message) => (
               <AnnouncementButton key={message._id} message={message} />
             ))}
           </div>
