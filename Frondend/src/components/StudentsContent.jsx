@@ -8,9 +8,9 @@ import {
   provisionStudentGuardianAccess,
 } from "../utils/adminApi";
 
-const StudentsContent = ({ isOpen, setIsOpen }) => {
+const StudentsContent = ({ isOpen, setIsOpen, initialSearch = "" }) => {
   const [students, setStudents] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingStudent, setEditingStudent] = useState(null);

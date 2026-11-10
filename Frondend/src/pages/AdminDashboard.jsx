@@ -38,6 +38,8 @@ const AdminDashboard = ({
 }) => {
   const [activePage, setActivePage] = useState("admin");
   const [pageHistory, setPageHistory] = useState([]);
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
+  const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isClick, setIsClick] = useState(false);
   const [assign, setAssign] = useState(false);
@@ -214,6 +216,11 @@ const AdminDashboard = ({
           theme={theme}
           toggleTheme={toggleTheme}
           adminProfile={adminProfile}
+          onSearchSelect={(page, query) => {
+            if (page === "students") setStudentSearchQuery(query);
+            if (page === "staff") setStaffSearchQuery(query);
+            navigateToPage(page);
+          }}
         />
       )}
 
@@ -275,6 +282,13 @@ const AdminDashboard = ({
             setAdminProfile(updatedProfile);
             setProfileError("");
           }}
+          initialSearch={
+            activePage === "students"
+              ? studentSearchQuery
+              : activePage === "staff"
+                ? staffSearchQuery
+                : ""
+          }
         />
       )}
     </div>

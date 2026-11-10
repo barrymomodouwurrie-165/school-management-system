@@ -14,9 +14,10 @@ const StaffContent = ({
   setAssign,
   setStaffName,
   setStaffId,
+  initialSearch = "",
 }) => {
   const [staff, setStaff] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingStaff, setEditingStaff] = useState(null);
