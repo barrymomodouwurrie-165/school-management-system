@@ -73,7 +73,10 @@ const LoginPage = ({ theme, toggleTheme }) => {
           : "bg-slate-50 text-slate-800"
       }`}
     >
-      <div className="flex justify-end p-2">
+      <div className="mb-4 pt-2 px-2 flex items-center justify-between">
+        <p className="developer-credit text-sm text-base-content/70">
+          Designed and Developed by BarryDev-HUB
+        </p>
         <button
           type="button"
           onClick={toggleTheme}

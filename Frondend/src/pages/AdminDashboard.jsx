@@ -107,14 +107,20 @@ const AdminDashboard = ({
   const ActivePage = PAGES[activePage];
   return (
     <div
-      className={`${
-        isOpen ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
-      } min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ${
+      className={`min-h-screen overflow-y-auto scrollbar-hide md:pl-[220px] ${
         theme === "dark"
           ? "bg-slate-950 text-slate-100"
           : "bg-slate-50 text-slate-800"
       }`}
     >
+      {isOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-950/60 md:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-label="Close navigation menu"
+        />
+      )}
       <AdminSidebar
         activePage={activePage}
         onNavigate={setActivePage}

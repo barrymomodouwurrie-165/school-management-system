@@ -108,14 +108,20 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
   const ActivePage = PAGES[activePage];
   return (
     <div
-      className={`${
-        open ? "fixed inset-0 z-40 bg-black/50 md:hidden" : ""
-      } min-h-screen md:pl-[220px] overflow-y-auto scrollbar-hide ${
+      className={`min-h-screen overflow-y-auto scrollbar-hide md:pl-[220px] ${
         theme === "dark"
           ? "bg-slate-950 text-slate-100"
           : "bg-slate-50 text-slate-800"
       }`}
     >
+      {open && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-950/60 md:hidden"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation menu"
+        />
+      )}
       <TeacherSideBar
         activePage={activePage}
         onNavigate={setActivePage}
@@ -146,7 +152,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
 
           {open ? (
             <div
-              className={`md:flex flex-col fixed left-0 top-0 bottom-0 bg-blue-950 w-[220px] px-2`}
+              className="fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-blue-950 px-2 shadow-2xl shadow-slate-950/40 md:flex"
             >
               <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
                 <div className="flex flex-col items-center text-white">
