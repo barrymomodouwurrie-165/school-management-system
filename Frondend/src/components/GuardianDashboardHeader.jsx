@@ -17,7 +17,7 @@ const GuardianDashboardHeader = ({
 
   return (
     <header
-      className={`sticky top-0 z-20 border-b backdrop-blur-xl ${
+      className={`relative z-20 border-b backdrop-blur-xl md:sticky md:top-0 ${
         isDark
           ? "border-slate-800 bg-slate-900/90 text-slate-100"
           : "border-slate-200 bg-white/90 text-slate-800"

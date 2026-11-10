@@ -188,7 +188,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
             {theme === "corporate" ? "Dark mode" : "Light mode"}
           </button>
         </div>
-        <div className="p-4 border-t-2 border-primary rounded-lg shadow-sm">
+        <div className="mt-4 rounded-lg border-t-2 border-primary p-4 shadow-sm md:mt-0">
           {open ? (
             <div
               className="fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-blue-950 px-2 shadow-2xl shadow-slate-950/40 md:flex"

@@ -262,7 +262,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
             {theme === "corporate" ? "Dark mode" : "Light mode"}
           </button>
         </div>
-        <div className="p-2 grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr_auto] border-t-2 border-primary rounded-lg shadow-sm">
+        <div className="mt-4 p-2 grid grid-cols-1 gap-4 rounded-lg border-t-2 border-primary shadow-sm md:mt-0 md:grid-cols-[auto_1fr_auto]">
           <div className="flex items-center justify-between">
             <div className=" w-[50px] h-[50px] flex items-center justify-center bg-blue-950/70 rounded-lg text-white font-bold">
               {profile?.fullName

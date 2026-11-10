@@ -81,7 +81,7 @@ const AdminContent = ({ isOpen }) => {
   ];
 
   return (
-    <div className={`${isOpen ? "" : "pt-[82px]"}`}>
+    <div className={`${isOpen ? "" : "pt-[82px]"} mt-4`}>
       <div className={`${isOpen ? "px-4 py-2" : "px-4 py-8"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold font-sans">DASHBOARD OVERVIEW</h1>
