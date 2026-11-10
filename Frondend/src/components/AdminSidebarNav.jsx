@@ -9,7 +9,12 @@ const AdminSidebarNav = ({
   isOpen,
   setIsClick,
 }) => {
-  const [openMenu, setOpenMenu] = useState(null);
+  const [openMenu, setOpenMenu] = useState(
+    () =>
+      NAV_PAGES.find((item) =>
+        item.children?.some((child) => child.id === activePage),
+      )?.id ?? null,
+  );
 
   const HandleNavigate = (id) => {
     onNavigate(id);

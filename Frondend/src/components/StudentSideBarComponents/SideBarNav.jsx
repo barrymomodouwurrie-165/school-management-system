@@ -9,7 +9,12 @@ const SideBarNav = ({
   setOpen,
   setViewResult,
 }) => {
-  const [openMenu, setOpenMenu] = useState(null);
+  const [openMenu, setOpenMenu] = useState(
+    () =>
+      NAV_ITEMS.find((item) =>
+        item.children?.some((child) => child.id === activePage),
+      )?.id ?? null,
+  );
   const HandleNavigate = (id) => {
     onNavigate(id);
     (setViewResult?.(false), setOpen?.(!open));

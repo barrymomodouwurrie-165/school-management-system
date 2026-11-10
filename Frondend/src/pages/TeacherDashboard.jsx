@@ -14,10 +14,10 @@ import MyClassSubjects from "../components/TeacherComponents/MyClassSubjects";
 import StudentSuccessRadar from "../components/TeacherComponents/StudentSuccessRadar";
 import { MdExitToApp } from "react-icons/md";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
 import { getTeacherProfile } from "../utils/teacherApi";
 import LogoutButton from "../components/LogoutButton";
 import {
+  FaArrowLeft,
   FaBullhorn,
   // FaChalkboardTeacher,
   // FaUserGraduate,
@@ -31,6 +31,7 @@ import {
 
 const TeacherDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("announcements");
+  const [pageHistory, setPageHistory] = useState([]);
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileError, setProfileError] = useState("");
@@ -106,6 +107,26 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
     { id: "profile", label: "My Profile", logo: FaUserCircle },
   ];
   const ActivePage = PAGES[activePage];
+  const navigateToPage = (page) => {
+    if (page !== activePage) {
+      setPageHistory((history) => [...history, activePage]);
+      setActivePage(page);
+    }
+    setOpen(false);
+  };
+  const navigateBack = () => {
+    if (!pageHistory.length) {
+      setOpen(true);
+      return;
+    }
+    setActivePage(pageHistory[pageHistory.length - 1]);
+    setPageHistory((history) => history.slice(0, -1));
+    setOpen(false);
+  };
+  const activePageLabel = NAV_PAGES.flatMap((item) => [
+    item,
+    ...(item.children || []),
+  ]).find((item) => item.id === activePage)?.label;
   return (
     <div
       className={`min-h-screen overflow-y-auto scrollbar-hide md:pl-[220px] ${
@@ -124,9 +145,36 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
       )}
       <TeacherSideBar
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={navigateToPage}
         NAV_PAGES={NAV_PAGES}
       />
+      <nav
+        aria-label="Mobile page navigation"
+        className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-4 pt-3 md:hidden"
+      >
+        <button
+          type="button"
+          onClick={navigateBack}
+          className="btn btn-ghost btn-sm"
+          aria-label={pageHistory.length ? "Go back" : "Open menu"}
+        >
+          <FaArrowLeft />
+          Back
+        </button>
+        <span className="min-w-0 flex-1 truncate text-center text-sm font-semibold">
+          {activePageLabel}
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="btn btn-outline btn-sm"
+          aria-expanded={open}
+          aria-label="Open navigation menu"
+        >
+          <FaBars />
+          Menu
+        </button>
+      </nav>
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-4 flex items-center justify-between">
           <p className="developer-credit text-sm text-base-content/70">
@@ -141,32 +189,31 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
           </button>
         </div>
         <div className="p-4 border-t-2 border-primary rounded-lg shadow-sm">
-          <div className="flex items-center justify-end">
-            <Link
-              className="md:hidden btn btn-ghost"
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <MdExitToApp size={24} /> : <FaBars size={24} />}
-            </Link>
-          </div>
-
           {open ? (
             <div
               className="fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-blue-950 px-2 shadow-2xl shadow-slate-950/40 md:flex"
             >
-              <div className="z-50 w-[210px] py-2  text-center flex-shrink-0">
-                <div className="flex flex-col items-center text-white">
+              <div className="z-50 flex w-[210px] flex-shrink-0 items-start justify-between py-2 text-center">
+                <div className="flex flex-1 flex-col items-center text-white">
                   <p className="font-bold text-xl">
                     Junior and Senior School Management
                   </p>
                   <p className="text-sm text-white/60">Teacher's Portal</p>
                 </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm text-white"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close navigation menu"
+                >
+                  <MdExitToApp size={20} />
+                </button>
               </div>
               <div className=" flex-1 overflow-y-auto [scrollbar-width:none] p-2 text-white/60 mt-2">
                 <div className="flex flex-col pl-2">
                   <TeacherSideBarNav
                     activePage={activePage}
-                    onNavigate={setActivePage}
+                    onNavigate={navigateToPage}
                     NAV_PAGES={NAV_PAGES}
                     open={open}
                     setOpen={setOpen}

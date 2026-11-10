@@ -18,6 +18,8 @@ import profile from "../assets/profile.webp";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
+  FaArrowLeft,
+  FaBars,
   FaUserTie,
   FaBookOpen,
   FaComments,
@@ -35,6 +37,7 @@ const AdminDashboard = ({
   toggleTheme,
 }) => {
   const [activePage, setActivePage] = useState("admin");
+  const [pageHistory, setPageHistory] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isClick, setIsClick] = useState(false);
   const [assign, setAssign] = useState(false);
@@ -105,6 +108,29 @@ const AdminDashboard = ({
     },
   ];
   const ActivePage = PAGES[activePage];
+  const navigateToPage = (page) => {
+    if (page !== activePage) {
+      setPageHistory((history) => [...history, activePage]);
+      setActivePage(page);
+    }
+    setIsClick(page !== "admin");
+    setIsOpen(false);
+  };
+  const navigateBack = () => {
+    if (!pageHistory.length) {
+      setIsOpen(true);
+      return;
+    }
+    const previousPage = pageHistory[pageHistory.length - 1];
+    setActivePage(previousPage);
+    setPageHistory((history) => history.slice(0, -1));
+    setIsClick(previousPage !== "admin");
+    setIsOpen(false);
+  };
+  const activePageLabel = NAV_PAGES.flatMap((item) => [
+    item,
+    ...(item.children || []),
+  ]).find((item) => item.id === activePage)?.label;
   return (
     <div
       className={`min-h-screen overflow-y-auto scrollbar-hide md:pl-[220px] ${
@@ -123,7 +149,7 @@ const AdminDashboard = ({
       )}
       <AdminSidebar
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={navigateToPage}
         NAV_PAGES={NAV_PAGES}
         setIsClick={setIsClick}
         theme={theme}
@@ -151,7 +177,7 @@ const AdminDashboard = ({
             <div className="flex flex-col pl-2">
               <AdminSidebarNav
                 activePage={activePage}
-                onNavigate={setActivePage}
+                onNavigate={navigateToPage}
                 NAV_PAGES={NAV_PAGES}
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
@@ -189,6 +215,36 @@ const AdminDashboard = ({
           toggleTheme={toggleTheme}
           adminProfile={adminProfile}
         />
+      )}
+
+      {isClick && (
+        <nav
+          aria-label="Mobile page navigation"
+          className="flex items-center justify-between gap-2 px-4 pt-3 md:hidden"
+        >
+          <button
+            type="button"
+            onClick={navigateBack}
+            className="btn btn-ghost btn-sm"
+            aria-label={pageHistory.length ? "Go back" : "Open menu"}
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+          <span className="min-w-0 flex-1 truncate text-center text-sm font-semibold">
+            {activePageLabel}
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="btn btn-outline btn-sm"
+            aria-expanded={isOpen}
+            aria-label="Open navigation menu"
+          >
+            <FaBars />
+            Menu
+          </button>
+        </nav>
       )}
 
       {assign ? (
