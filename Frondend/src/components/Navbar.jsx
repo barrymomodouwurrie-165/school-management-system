@@ -17,8 +17,8 @@ const Navbar = ({ theme, toggleTheme }) => {
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary/80">
-                  School
+                <p className="developer-credit text-sm text-base-content/70">
+                  Designed and Developed by BarryDev-HUB
                 </p>
                 <span className="text-base font-bold text-slate-800">
                   Barry's Junior and Secondary School

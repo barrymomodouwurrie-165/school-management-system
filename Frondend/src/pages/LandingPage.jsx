@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
+import SchoolNoticeBoard from "../components/SchoolNoticeBoard";
 import Statictics from "../components/Statictics";
 import Mainboday from "../components/Mainboday";
 import LatestNews from "../components/LatestNews";
@@ -16,6 +17,7 @@ const LandingPage = ({ theme, toggleTheme }) => {
     >
       <Navbar theme={theme} toggleTheme={toggleTheme} />
       <Header />
+      <SchoolNoticeBoard />
       <Statictics />
       <Mainboday />
       <LatestNews />

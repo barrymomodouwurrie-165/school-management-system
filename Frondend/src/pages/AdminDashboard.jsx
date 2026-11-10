@@ -10,6 +10,7 @@ import AcademicsContent from "../components/AcademicsContent";
 import AdminSubmissions from "../components/AdminSubmissions";
 import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
+import AdminSchoolNoticeBoard from "../components/AdminSchoolNoticeBoard";
 import AdminAttendance from "../components/AdminAttendance";
 import AdminProfile from "../components/AdminProfile";
 import AsignStaffRole from "../components/AsignStaffRole";
@@ -32,10 +33,7 @@ import {
 import { getAdminProfile } from "../utils/adminApi";
 import LogoutButton from "../components/LogoutButton";
 
-const AdminDashboard = ({
-  theme,
-  toggleTheme,
-}) => {
+const AdminDashboard = ({ theme, toggleTheme }) => {
   const [activePage, setActivePage] = useState("admin");
   const [pageHistory, setPageHistory] = useState([]);
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
@@ -79,6 +77,7 @@ const AdminDashboard = ({
     submissions: AdminSubmissions,
     "private-message": CommunicationsContent,
     "public-news": NewsComposePage,
+    "school-notices": AdminSchoolNoticeBoard,
     attendance: AdminAttendance,
   };
   const NAV_PAGES = [
@@ -106,6 +105,7 @@ const AdminDashboard = ({
       children: [
         { id: "public-news", label: "Compose News" },
         { id: "private-message", label: "Compose Message" },
+        { id: "school-notices", label: "School Notice Board" },
       ],
     },
   ];
@@ -200,7 +200,9 @@ const AdminDashboard = ({
                 </div>
                 <div>
                   <h2 className="font-bold text-white">
-                    {adminProfile?.fullName || adminProfile?.username || "Admin"}
+                    {adminProfile?.fullName ||
+                      adminProfile?.username ||
+                      "Admin"}
                   </h2>
                   <p className="text-white/60">Administrator</p>
                 </div>

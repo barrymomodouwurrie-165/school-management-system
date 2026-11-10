@@ -4,6 +4,11 @@ import NewsArticle from "../models/newsArticle.js";
 import FeedbackSubmission from "../models/feedbackSubmission.js";
 import StudentReport from "../models/studentReport.js";
 import { isAuthentic } from "../models/tokens.js";
+import StudentUser from "../models/studentUser.js";
+import StaffUser from "../models/staffUser.js";
+import ClassRoom from "../models/classRoom.js";
+import Subject from "../models/subject.js";
+import SchoolNotice from "../models/schoolNotice.js";
 
 const communicationRouter = express.Router();
 
@@ -313,6 +318,79 @@ communicationRouter.get("/news", async (_req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to retrieve news articles right now." });
+  }
+});
+
+communicationRouter.get("/public-overview", async (_req, res) => {
+  try {
+    const [students, teachingStaff, activeClassrooms, subjects] =
+      await Promise.all([
+        StudentUser.countDocuments({ status: "Active" }),
+        StaffUser.countDocuments({ staff_position: { $in: ["Teacher", "H.O.D"] } }),
+        ClassRoom.countDocuments({ status: "Active" }),
+        Subject.countDocuments({ isActive: true }),
+      ]);
+
+    return res.status(200).json({
+      students,
+      teachingStaff,
+      activeClassrooms,
+      subjects,
+    });
+  } catch (error) {
+    console.error("Public school overview retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve school statistics right now." });
+  }
+});
+
+communicationRouter.get("/notices", async (_req, res) => {
+  try {
+    const notices = await SchoolNotice.find()
+      .sort({ createdAt: -1 })
+      .limit(2)
+      .select("title message createdAt")
+      .lean();
+    return res.status(200).json(notices);
+  } catch (error) {
+    console.error("School notice retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve school notices right now." });
+  }
+});
+
+communicationRouter.post("/notices", async (req, res) => {
+  const author = getPublisher(req, res);
+  if (!author) return;
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (!title || !message) {
+    return res.status(400).json({
+      message: "Provide both a notice title and message.",
+    });
+  }
+  if (title.length > 160 || message.length > 3000) {
+    return res.status(400).json({
+      message: "The title must be 160 characters or fewer and the message 3,000 characters or fewer.",
+    });
+  }
+
+  try {
+    const notice = await SchoolNotice.create({ title, message, author });
+    return res.status(201).json(notice);
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("School notice creation failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to publish the school notice right now." });
   }
 });
 

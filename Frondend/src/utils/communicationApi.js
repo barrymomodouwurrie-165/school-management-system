@@ -71,6 +71,39 @@ export const getPublicNews = async () => {
   }
 };
 
+export const getPublicSchoolOverview = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/communications/public-overview`,
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve school statistics."),
+      { cause: error },
+    );
+  }
+};
+
+export const getSchoolNotices = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/communications/notices`);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve school notices."),
+      { cause: error },
+    );
+  }
+};
+
+export const createSchoolNotice = (notice) =>
+  postProtected(
+    "/communications/notices",
+    notice,
+    "Unable to publish the school notice.",
+  );
+
 export const createNewsArticle = (article) =>
   postProtected(
     "/communications/news",
