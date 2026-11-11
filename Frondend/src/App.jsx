@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, useNavigate } from "react-router";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -9,6 +9,7 @@ import "./App.css";
 import { useEffect, useState } from "react";
 
 function App() {
+  const navigate = useNavigate();
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("school-theme");
     return savedTheme || "corporate";
@@ -18,6 +19,13 @@ function App() {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("school-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleSessionExpired = () => navigate("/login", { replace: true });
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () =>
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+  }, [navigate]);
 
   const toggleTheme = () => {
     setTheme((current) => (current === "corporate" ? "dark" : "corporate"));

@@ -13,7 +13,7 @@ import { FiLogIn } from "react-icons/fi";
 import { RiArrowGoBackLine } from "react-icons/ri";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
-import axios from "axios";
+import axios from "../utils/apiClient.js";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -38,13 +38,18 @@ const LoginPage = ({ theme, toggleTheme }) => {
     setError("");
 
     try {
-      const { data } = await axios.post(`${API_URL}/users/login`, {
-        role,
-        username: identifier,
-        password,
-      });
+      const { data } = await axios.post(
+        `${API_URL}/users/login`,
+        {
+          role,
+          username: identifier,
+          password,
+        },
+        { withCredentials: true },
+      );
 
       localStorage.setItem("accessToken", data.accessToken);
+      localStorage.removeItem("refreshToken");
       navigate(
         role === "admin"
           ? "/admin-dashboard"

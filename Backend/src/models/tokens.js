@@ -19,6 +19,8 @@ const getSecret = (key) => {
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
+export const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user._id, username: user.username, role: user.role },
@@ -37,6 +39,20 @@ export const generateRefreshToken = async (user) => {
   await user.save();
 
   return refreshToken;
+};
+
+export const verifyRefreshToken = (token) =>
+  jwt.verify(token, getSecret("REFRESH_TOKEN_SECRET"));
+
+export const matchesRefreshTokenHash = (token, storedHash) => {
+  if (typeof storedHash !== "string") return false;
+
+  const tokenHash = Buffer.from(hashToken(token), "hex");
+  const storedTokenHash = Buffer.from(storedHash, "hex");
+  return (
+    tokenHash.length === storedTokenHash.length &&
+    crypto.timingSafeEqual(tokenHash, storedTokenHash)
+  );
 };
 
 export const isAuthentic = (req) => {

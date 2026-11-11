@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import axios from "../utils/apiClient.js";
 import { useNavigate } from "react-router";
 import { FaSignOutAlt } from "react-icons/fa";
 
@@ -13,15 +13,12 @@ const LogoutButton = ({ className = "btn btn-ghost" }) => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
 
-    const accessToken = localStorage.getItem("accessToken");
     try {
-      if (accessToken) {
-        await axios.post(
-          `${API_URL}/users/logout`,
-          {},
-          { headers: { Authorization: `Bearer ${accessToken}` } },
-        );
-      }
+      await axios.post(
+        `${API_URL}/users/logout`,
+        {},
+        { withCredentials: true },
+      );
     } catch (error) {
       console.error(
         "Server logout failed; clearing this browser session:",

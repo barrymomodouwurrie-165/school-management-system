@@ -4,6 +4,9 @@ import {
   generateAccessToken,
   generateRefreshToken,
   isAuthentic,
+  matchesRefreshTokenHash,
+  REFRESH_TOKEN_TTL_MS,
+  verifyRefreshToken,
 } from "../models/tokens.js";
 import bcrypt from "bcrypt";
 import AdminUser from "../models/adminUser.js";
@@ -22,6 +25,33 @@ import studentRegister from "../controllers/studentRegister.js";
 import { provisionGuardianAccess } from "../services/guardianAccounts.js";
 
 const userRouter = express.Router();
+const REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
+const REFRESH_TOKEN_COOKIE_PATH = "/api/users";
+
+const getRefreshTokenCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: REFRESH_TOKEN_COOKIE_PATH,
+  };
+};
+
+const getUserModelForRole = (role) =>
+  ({
+    admin: AdminUser,
+    teacher: StaffUser,
+    student: StudentUser,
+    guardian: GuardianUser,
+  })[role] || null;
+
+const clearRefreshTokenCookie = (res) =>
+  res.clearCookie(
+    REFRESH_TOKEN_COOKIE_NAME,
+    getRefreshTokenCookieOptions(),
+  );
+
 const LEGACY_SUBJECT_NAMES = {
   "G.Science": "General Science",
   Civic: "Civic Education",
@@ -1304,11 +1334,14 @@ userRouter.post("/login", async (req, res) => {
 
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
+    res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+      ...getRefreshTokenCookieOptions(),
+      maxAge: REFRESH_TOKEN_TTL_MS,
+    });
 
     return res.status(200).json({
       message: "Login successful.",
       accessToken,
-      refreshToken,
       user: {
         id: user._id,
         username: user.username,
@@ -1322,34 +1355,90 @@ userRouter.post("/login", async (req, res) => {
   }
 });
 
-userRouter.post("/logout", async (req, res) => {
+userRouter.post("/refresh", async (req, res) => {
+  const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
+  if (!refreshToken) {
+    clearRefreshTokenCookie(res);
+    return res.status(401).json({ message: "Please sign in again." });
+  }
+
   let claims;
   try {
-    claims = isAuthentic(req);
+    claims = verifyRefreshToken(refreshToken);
   } catch {
-    return res
-      .status(401)
-      .json({ message: "A valid access token is required." });
+    clearRefreshTokenCookie(res);
+    return res.status(401).json({ message: "Please sign in again." });
   }
 
-  const userModel =
-    claims.role === "admin"
-      ? AdminUser
-      : claims.role === "teacher"
-        ? StaffUser
-        : claims.role === "student"
-          ? StudentUser
-            : claims.role === "guardian"
-              ? GuardianUser
-            : null;
-
-  if (!userModel) {
-    return res.status(401).json({ message: "Invalid user role." });
+  const userModel = getUserModelForRole(claims.role);
+  if (!userModel || typeof claims.id !== "string") {
+    clearRefreshTokenCookie(res);
+    return res.status(401).json({ message: "Please sign in again." });
   }
 
   try {
-    const user = await userModel.findById(claims.id);
-    if (user) {
+    const user = await userModel
+      .findById(claims.id)
+      .select("+refreshTokenHash");
+    if (
+      !user ||
+      user.role !== claims.role ||
+      !matchesRefreshTokenHash(refreshToken, user.refreshTokenHash)
+    ) {
+      clearRefreshTokenCookie(res);
+      return res.status(401).json({ message: "Please sign in again." });
+    }
+
+    return res.status(200).json({ accessToken: generateAccessToken(user) });
+  } catch (error) {
+    console.error("Access token refresh failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to refresh your session right now." });
+  }
+});
+
+userRouter.post("/logout", async (req, res) => {
+  const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
+  let claims;
+  let verifiedRefreshToken = false;
+
+  try {
+    if (refreshToken) {
+      claims = verifyRefreshToken(refreshToken);
+      verifiedRefreshToken = true;
+    }
+  } catch {
+    claims = null;
+  }
+
+  if (!claims) {
+    try {
+      claims = isAuthentic(req);
+    } catch {
+      claims = null;
+    }
+  }
+
+  clearRefreshTokenCookie(res);
+  if (!claims || typeof claims.id !== "string") {
+    return res.status(200).json({ message: "Logout successful." });
+  }
+
+  const userModel = getUserModelForRole(claims.role);
+  if (!userModel) {
+    return res.status(200).json({ message: "Logout successful." });
+  }
+
+  try {
+    const user = await userModel
+      .findById(claims.id)
+      .select("+refreshTokenHash");
+    if (
+      user &&
+      (!verifiedRefreshToken ||
+        matchesRefreshTokenHash(refreshToken, user.refreshTokenHash))
+    ) {
       user.refreshTokenHash = null;
       await user.save();
     }
