@@ -90,7 +90,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
           <FaGraduationCap size={24} />
           <span className="font-bold">EDUCORE SCHOOL PORTAL</span>
         </div>
-        <div className="card bg-white max-w-md mx-auto border-t-4 border-l-2 border-r-2 border-primary rounded-lg">
+        <div className="card bg-white max-w-md mx-auto border-t-2 border-primary rounded-lg shadow-lg">
           <div className="px-3 py-3">
             <div className="flex flex-col items-center">
               <h2 className="text-primary/90 font-bold text-2xl">
