@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import { Link } from "react-router";
-import { getAcademicSubjects, registerStaff } from "../utils/adminApi";
+import {
+  getAcademicSubjects,
+  getAdminStaff,
+  registerStaff,
+} from "../utils/adminApi";
 import { STAFF_STATUSES } from "../utils/staffStatuses";
+import AFRICAN_COUNTRIES from "../utils/africanCountries";
+
+const OTHER_DEPARTMENT_OPTION = "__other_department__";
 
 const STAFF_FIELDS = [
   { name: "first_name", label: "First name" },
@@ -13,11 +20,15 @@ const STAFF_FIELDS = [
     type: "select",
     options: ["Male", "Female"],
   },
-  { name: "nationality", label: "Nationality", placeholder: "e.g. Gambian" },
+  {
+    name: "nationality",
+    label: "Nationality",
+    type: "select",
+    options: AFRICAN_COUNTRIES,
+  },
   { name: "phone_number", label: "Phone", type: "tel" },
   { name: "email", label: "Email", type: "email" },
   { name: "address", label: "Address" },
-  { name: "ethnicity", label: "Ethnicity" },
   {
     name: "marital_status",
     label: "Marital status",
@@ -28,7 +39,7 @@ const STAFF_FIELDS = [
     name: "qualification",
     label: "Highest qualification",
     type: "select",
-    options: ["ECD", "PTC", "HTC", "Diploma", "BA/BSc", "Master's", "PhD"],
+    options: ["ECD", "PTC", "HTC", "Advance Diploma", "BA/BSc", "Master's", "PhD"],
   },
   {
     name: "role",
@@ -41,7 +52,7 @@ const STAFF_FIELDS = [
     label: "Subject taught",
     type: "subject",
   },
-  { name: "department", label: "Department" },
+  { name: "department", label: "Department", type: "department" },
   {
     name: "section",
     label: "Section",
@@ -52,7 +63,7 @@ const STAFF_FIELDS = [
     name: "employment_type",
     label: "Employment type",
     type: "select",
-    options: ["Full-time", "Part-time", "Contract"],
+    options: ["Full-time", "Part-time"],
   },
   { name: "start_date", label: "Start date", type: "date" },
   { name: "username", label: "Username", autoComplete: "username" },
@@ -69,6 +80,9 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjectOptions, setSubjectOptions] = useState([]);
   const [subjectsError, setSubjectsError] = useState("");
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [departmentsError, setDepartmentsError] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -89,17 +103,49 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    getAdminStaff()
+      .then((staff) => {
+        if (!active) return;
+        const departments = [
+          ...new Map(
+            staff
+              .map((member) => member.department?.trim())
+              .filter(Boolean)
+              .map((department) => [department.toLocaleLowerCase(), department]),
+          ).values(),
+        ].sort((first, second) => first.localeCompare(second));
+        setDepartmentOptions(departments);
+      })
+      .catch((error) => {
+        if (active) setDepartmentsError(error.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
     const staff = Object.fromEntries(formData.entries());
+    if (staff.department === OTHER_DEPARTMENT_OPTION) {
+      staff.department =
+        typeof staff.custom_department === "string"
+          ? staff.custom_department.trim()
+          : "";
+    }
+    delete staff.custom_department;
     setIsSubmitting(true);
     setStatus({ type: "", message: "" });
 
     try {
       const result = await registerStaff(staff);
       form.reset();
+      setSelectedDepartment("");
       setStatus({
         type: "success",
         message: result.staff?.staff_id
@@ -133,7 +179,11 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-4xl p-2">
+      <form
+        onSubmit={handleSubmit}
+        onReset={() => setSelectedDepartment("")}
+        className="max-w-4xl p-2"
+      >
         <section className="mb-3 rounded-lg border p-4 shadow-md">
           <h3 className="mb-3 font-bold">Staff Details</h3>
           <p className="mb-3 text-sm text-base-content/70">
@@ -145,28 +195,48 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                 <label className="label" htmlFor={`staff-${field.name}`}>
                   <span className="label-text font-bold">{field.label}</span>
                 </label>
-                {field.type === "select" || field.type === "subject" ? (
+                {field.type === "select" ||
+                field.type === "subject" ||
+                field.type === "department" ? (
                   <select
                     id={`staff-${field.name}`}
                     name={field.name}
                     className="select select-bordered select-sm rounded-md"
                     defaultValue=""
                     required
-                    disabled={field.type === "subject" && !subjectOptions.length}
+                    onChange={
+                      field.type === "department"
+                        ? (event) => setSelectedDepartment(event.target.value)
+                        : undefined
+                    }
+                    disabled={
+                      (field.type === "subject" && !subjectOptions.length) ||
+                      (field.type === "department" && Boolean(departmentsError))
+                    }
                   >
                     <option value="" disabled>
                       {field.type === "subject" && !subjectOptions.length
                         ? "Loading subjects..."
-                        : `Select ${field.label.toLowerCase()}`}
+                        : field.type === "department" &&
+                            !departmentOptions.length
+                          ? "No existing departments found"
+                          : `Select ${field.label.toLowerCase()}`}
                     </option>
                     {(field.type === "subject"
                       ? subjectOptions
-                      : field.options
+                      : field.type === "department"
+                        ? departmentOptions
+                        : field.options
                     ).map((option) => (
                       <option key={option} value={option}>
                         {option}
                       </option>
                     ))}
+                    {field.type === "department" && (
+                      <option value={OTHER_DEPARTMENT_OPTION}>
+                        Other (enter department)
+                      </option>
+                    )}
                   </select>
                 ) : (
                   <input
@@ -180,6 +250,18 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
                     required
                   />
                 )}
+                {field.type === "department" &&
+                  selectedDepartment === OTHER_DEPARTMENT_OPTION && (
+                    <input
+                      id="staff-custom-department"
+                      name="custom_department"
+                      type="text"
+                      placeholder="Enter department"
+                      maxLength={64}
+                      className="input input-bordered input-sm rounded-md mt-2"
+                      required
+                    />
+                  )}
               </div>
             ))}
           </div>
@@ -188,6 +270,11 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
         {subjectsError && (
           <p className="mb-3 text-sm text-error" role="alert">
             Could not load the subject list: {subjectsError}
+          </p>
+        )}
+        {departmentsError && (
+          <p className="mb-3 text-sm text-error" role="alert">
+            Could not load departments: {departmentsError}
           </p>
         )}
         {status.message && (
@@ -211,7 +298,12 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || !subjectOptions.length || Boolean(subjectsError)}
+            disabled={
+              isSubmitting ||
+              !subjectOptions.length ||
+              Boolean(subjectsError) ||
+              Boolean(departmentsError)
+            }
             className="btn btn-primary btn-sm rounded-lg"
           >
             {isSubmitting ? "Registering..." : "Register Staff"}

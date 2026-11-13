@@ -36,7 +36,6 @@ const staffSchema = new mongoose.Schema(
     },
     ethnicity: {
       type: String,
-      required: true,
     },
     marital_status: {
       type: String,

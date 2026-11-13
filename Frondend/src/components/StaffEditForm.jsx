@@ -10,7 +10,7 @@ const STAFF_FIELDS = [
   { name: "phone_number", label: "Phone", type: "tel" },
   { name: "email", label: "Email", type: "email" },
   { name: "address", label: "Address" },
-  { name: "ethnicity", label: "Ethnicity" },
+  { name: "ethnicity", label: "Ethnicity", optional: true },
   {
     name: "marital_status",
     label: "Marital status",
@@ -19,7 +19,16 @@ const STAFF_FIELDS = [
   {
     name: "qualification",
     label: "Highest qualification",
-    options: ["ECD", "PTC", "HTC", "Diploma", "BA/BSc", "Master's", "PhD"],
+    options: [
+      "ECD",
+      "PTC",
+      "HTC",
+      "Diploma",
+      "Advance Diploma",
+      "BA/BSc",
+      "Master's",
+      "PhD",
+    ],
   },
   {
     name: "staff_position",
@@ -145,7 +154,7 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
                     value={currentValue}
                     onChange={handleChange}
                     className="select select-bordered select-sm"
-                    required
+                    required={!field.optional}
                   >
                     {options.map((option) => (
                       <option key={option} value={option}>
@@ -161,7 +170,7 @@ const StaffEditForm = ({ staff, onCancel, onSaved }) => {
                     value={currentValue}
                     onChange={handleChange}
                     className="input input-bordered input-sm"
-                    required
+                    required={!field.optional}
                   />
                 )}
               </label>

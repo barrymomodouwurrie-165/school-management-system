@@ -839,6 +839,12 @@ userRouter.put("/staff/:id", async (req, res) => {
 
   const updates = {};
   for (const field of EDITABLE_STAFF_FIELDS) {
+    if (
+      field === "ethnicity" &&
+      (typeof req.body?.[field] !== "string" || !req.body[field].trim())
+    ) {
+      continue;
+    }
     if (typeof req.body?.[field] !== "string" || !req.body[field].trim()) {
       return res.status(400).json({
         message: `${field.replaceAll("_", " ")} is required.`,

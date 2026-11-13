@@ -73,7 +73,6 @@ const registerStaff = async (req, res) => {
     "phone_number",
     "email",
     "address",
-    "ethnicity",
     "marital_status",
     "qualification",
     "subject_taught",
