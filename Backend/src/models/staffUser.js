@@ -89,7 +89,8 @@ const staffSchema = new mongoose.Schema(
     },
     staff_position: {
       type: String,
-      enum: ["Teacher", "H.O.D", "H.O.B", "Admin"],
+      trim: true,
+      maxlength: 64,
       required: true,
     },
     assigned_block: {

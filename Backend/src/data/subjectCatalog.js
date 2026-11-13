@@ -124,6 +124,20 @@ if (appliedElectricity && !appliedElectricity.programs.includes("Science")) {
 
 export const SUBJECT_CATALOG = [...juniorSubjects, ...seniorSubjects];
 
+export const getSubjectAvailabilityData = (subject) => {
+  const catalogSubject = SUBJECT_CATALOG.find(
+    (item) =>
+      item.section === subject.section && item.name === subject.name,
+  );
+  return catalogSubject
+    ? {
+        ...subject,
+        programs: catalogSubject.programs,
+        programStreams: catalogSubject.programStreams ?? [],
+      }
+    : subject;
+};
+
 const setProgramStreams = (subjectName, program, streamNumbers) => {
   const subject = SUBJECT_CATALOG.find(
     (item) => item.section === "Senior" && item.name === subjectName,
@@ -145,14 +159,15 @@ setProgramStreams("Applied Electricity", "Science", [1]);
 setProgramStreams("Electronics", "Science", [1]);
 
 export const isSubjectAvailableForClass = (subject, classroom) => {
+  const availabilityData = getSubjectAvailabilityData(subject);
   if (
-    subject.section !== classroom.section ||
-    !subject.programs.includes(classroom.program)
+    availabilityData.section !== classroom.section ||
+    !availabilityData.programs?.includes(classroom.program)
   ) {
     return false;
   }
 
-  const programStream = subject.programStreams?.find(
+  const programStream = availabilityData.programStreams?.find(
     (item) => item.program === classroom.program,
   );
   return (

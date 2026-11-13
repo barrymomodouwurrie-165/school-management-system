@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import { Link } from "react-router";
 import { getAcademicSubjects, registerStaff } from "../utils/adminApi";
+import { STAFF_STATUSES } from "../utils/staffStatuses";
 
 const STAFF_FIELDS = [
   { name: "first_name", label: "First name" },
@@ -31,9 +32,9 @@ const STAFF_FIELDS = [
   },
   {
     name: "role",
-    label: "Staff position",
+    label: "Staff status",
     type: "select",
-    options: ["Teacher", "H.O.D", "H.O.B", "Admin"],
+    options: STAFF_STATUSES,
   },
   {
     name: "subject_taught",

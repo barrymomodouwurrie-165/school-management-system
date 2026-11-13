@@ -19,7 +19,10 @@ import FeedbackSubmission from "../models/feedbackSubmission.js";
 import StudentResult from "../models/studentResult.js";
 import ClassRoom from "../models/classRoom.js";
 import Subject from "../models/subject.js";
-import { isSubjectAvailableForClass } from "../data/subjectCatalog.js";
+import {
+  getSubjectAvailabilityData,
+  isSubjectAvailableForClass,
+} from "../data/subjectCatalog.js";
 import staffRegister from "../controllers/staffRegister.js";
 import studentRegister from "../controllers/studentRegister.js";
 import { provisionGuardianAccess } from "../services/guardianAccounts.js";
@@ -61,7 +64,6 @@ const LEGACY_SUBJECT_NAMES = {
   "F.Accounting": "Financial Accounting",
   "C.Accounting": "Cost Accounting",
 };
-const STAFF_POSITIONS = ["Teacher", "H.O.D", "H.O.B", "Admin"];
 const SCHOOL_BLOCKS = [
   "Grade 7",
   "Grade 8",
@@ -70,6 +72,8 @@ const SCHOOL_BLOCKS = [
   "Grade 11",
   "Grade 12",
 ];
+const isValidStaffStatus = (value) =>
+  typeof value === "string" && value.trim().length > 0 && value.trim().length <= 64;
 const EDITABLE_STAFF_FIELDS = [
   "first_name",
   "last_name",
@@ -843,9 +847,9 @@ userRouter.put("/staff/:id", async (req, res) => {
     updates[field] = req.body[field].trim();
   }
 
-  if (!STAFF_POSITIONS.includes(updates.staff_position)) {
+  if (!isValidStaffStatus(updates.staff_position)) {
     return res.status(400).json({
-      message: "Position must be Teacher, H.O.D, H.O.B, or Admin.",
+      message: "Status is required and cannot exceed 64 characters.",
     });
   }
 
@@ -1015,7 +1019,9 @@ userRouter.get("/staff/:staffId/assignments", async (req, res) => {
       .populate("class_teacher", "staff_id first_name last_name")
       .sort({ name: 1 })
       .lean();
-    const subjects = await Subject.find().sort({ section: 1, name: 1 }).lean();
+    const subjects = (await Subject.find({ isActive: true })
+      .sort({ section: 1, name: 1 })
+      .lean()).map(getSubjectAvailabilityData);
 
     return res.status(200).json({
       staff: {
@@ -1089,7 +1095,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
         !isStringArray(assignment.subjects),
     ) ||
     !isStringArray(classTeacherClasses) ||
-    !STAFF_POSITIONS.includes(staffPosition) ||
+    !isValidStaffStatus(staffPosition) ||
     (staffPosition === "H.O.B" && !SCHOOL_BLOCKS.includes(assignedBlock)) ||
     (staffPosition !== "H.O.B" &&
       assignedBlock !== undefined &&
@@ -1097,7 +1103,7 @@ userRouter.put("/staff/:staffId/assignments", async (req, res) => {
       assignedBlock !== "")
   ) {
     return res.status(400).json({
-      message: "Provide valid classes, subjects, class-teacher classes, and position.",
+      message: "Provide a valid status, classes, subjects, and class-teacher classes.",
     });
   }
 

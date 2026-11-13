@@ -4,6 +4,16 @@ import {
   getStaffAssignments,
   updateStaffAssignments,
 } from "../utils/adminApi";
+import {
+  OTHER_STAFF_STATUS_OPTION,
+  STAFF_STATUSES,
+} from "../utils/staffStatuses";
+
+const ASSIGNMENT_STEPS = [
+  "Status",
+  "Assign teaching classes",
+  "Assign class teacher",
+];
 
 const subjectIsAvailableForClass = (subject, classroom) => {
   if (
@@ -28,11 +38,14 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
   const [assignedClasses, setAssignedClasses] = useState([]);
   const [classSubjectAssignments, setClassSubjectAssignments] = useState({});
   const [classTeacherClasses, setClassTeacherClasses] = useState([]);
-  const [staffPosition, setStaffPosition] = useState("Teacher");
+  const [selectedStatus, setSelectedStatus] = useState("Teacher");
+  const [customStatus, setCustomStatus] = useState("");
   const [department, setDepartment] = useState("");
   const [assignedBlock, setAssignedBlock] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loadError, setLoadError] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
 
   useEffect(() => {
@@ -64,7 +77,9 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
                 ? savedSubjects
                 : existingSubjects.filter((subjectName) => {
                     const subject = result.subjects.find(
-                      (item) => item.name === subjectName,
+                    (item) =>
+                      item.name === subjectName &&
+                      item.section === classroom?.section,
                     );
                     return (
                       subject &&
@@ -77,12 +92,19 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
           ),
         );
         setClassTeacherClasses(result.classTeacherClasses);
-        setStaffPosition(result.staff.staff_position);
+        const existingStatus = result.staff.staff_position;
+        if (STAFF_STATUSES.includes(existingStatus)) {
+          setSelectedStatus(existingStatus);
+        } else {
+          setSelectedStatus(existingStatus);
+          setCustomStatus(existingStatus);
+        }
         setDepartment(result.staff.department);
         setAssignedBlock(result.staff.assigned_block ?? "");
       })
       .catch((error) => {
         if (active) {
+          setLoadError(true);
           setStatus({
             type: "error",
             message: error.message || "Unable to load staff assignments.",
@@ -98,6 +120,10 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
     };
   }, [staffId]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
   const toggleValue = (value, setSelected) => {
     setSelected((current) =>
       current.includes(value)
@@ -105,20 +131,6 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
         : [...current, value],
     );
   };
-
-  const availableSubjectNames = [
-    ...new Set(
-      subjects
-        .filter((subject) =>
-          classes.some(
-            (classroom) =>
-              assignedClasses.includes(classroom.name) &&
-              subjectIsAvailableForClass(subject, classroom),
-          ),
-        )
-        .map((subject) => subject.name),
-    ),
-  ].sort((first, second) => first.localeCompare(second));
 
   const toggleTeachingClass = (className) => {
     if (assignedClasses.includes(className)) {
@@ -152,12 +164,94 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
     });
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const resolvedStatus =
+    selectedStatus === OTHER_STAFF_STATUS_OPTION
+      ? customStatus.trim()
+      : selectedStatus.trim();
+  const statusOptions = [
+    ...STAFF_STATUSES,
+    ...(customStatus && !STAFF_STATUSES.includes(customStatus)
+      ? [customStatus]
+      : []),
+    OTHER_STAFF_STATUS_OPTION,
+  ];
+
+  const validateCurrentStep = () => {
+    if (
+      currentStep === 0 &&
+      (!resolvedStatus || resolvedStatus.length > 64)
+    ) {
+      setStatus({
+        type: "error",
+        message: "Enter a status of 1 to 64 characters.",
+      });
+      return false;
+    }
+
+    if (
+      currentStep === 0 &&
+      resolvedStatus === "H.O.B" &&
+      !assignedBlock
+    ) {
+      setStatus({
+        type: "error",
+        message: "Select a block before continuing.",
+      });
+      return false;
+    }
+
+    if (currentStep === 1) {
+      const classesWithoutSubjects = assignedClasses.filter(
+        (className) => !classSubjectAssignments[className]?.length,
+      );
+      if (classesWithoutSubjects.length) {
+        setStatus({
+          type: "error",
+          message: `Choose at least one subject for ${classesWithoutSubjects.join(", ")}.`,
+        });
+        return false;
+      }
+    }
+
+    setStatus({ type: "", message: "" });
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (validateCurrentStep()) {
+      setCurrentStep((step) => Math.min(step + 1, ASSIGNMENT_STEPS.length - 1));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (currentStep < ASSIGNMENT_STEPS.length - 1) {
+      handleNextStep();
+      return;
+    }
+
+    if (!resolvedStatus || resolvedStatus.length > 64) {
+      setCurrentStep(0);
+      setStatus({
+        type: "error",
+        message: "Enter a status of 1 to 64 characters.",
+      });
+      return;
+    }
+
+    if (resolvedStatus === "H.O.B" && !assignedBlock) {
+      setCurrentStep(0);
+      setStatus({
+        type: "error",
+        message: "Select a block for this status.",
+      });
+      return;
+    }
+
     const classesWithoutSubjects = assignedClasses.filter(
       (className) => !classSubjectAssignments[className]?.length,
     );
     if (classesWithoutSubjects.length) {
+      setCurrentStep(1);
       setStatus({
         type: "error",
         message: `Choose at least one subject for ${classesWithoutSubjects.join(", ")}.`,
@@ -181,8 +275,8 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
           subjects: classSubjectAssignments[className] ?? [],
         })),
         classTeacherClasses,
-        staffPosition,
-        assignedBlock: staffPosition === "H.O.B" ? assignedBlock : "",
+        staffPosition: resolvedStatus,
+        assignedBlock: resolvedStatus === "H.O.B" ? assignedBlock : "",
       });
       setStatus({
         type: "success",
@@ -206,8 +300,7 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
             Assign {staffName} ({staffId})
           </h1>
           <p className="text-sm text-base-content/70">
-            Manage teaching classes, subjects, department leadership, and
-            class-teacher duties.
+            Complete each assignment section on its own page.
           </p>
         </div>
         <button
@@ -234,146 +327,234 @@ const AsignStaffRole = ({ setAssign, staffName, staffId }) => {
         <p role="status" className="py-8 text-center">
           Loading staff assignments...
         </p>
-      ) : status.type === "error" ? (
+      ) : loadError ? (
         <p className="py-6 text-sm text-base-content/70">
           Assignments could not be loaded. Go back and try again before making
           changes.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <section className="rounded-md p-4 shadow-md">
-            <h2 className="mb-3 font-bold">Staff position</h2>
-            <label className="flex max-w-sm flex-col gap-1 text-sm">
-              <span>Position</span>
-              <select
-                className="select select-bordered select-sm"
-                value={staffPosition}
-                onChange={(event) => setStaffPosition(event.target.value)}
+        <div className="space-y-4">
+          <nav
+            aria-label="Staff assignment sections"
+            className="grid grid-cols-3 gap-2"
+          >
+            {ASSIGNMENT_STEPS.map((step, index) => (
+              <div
+                key={step}
+                aria-current={currentStep === index ? "step" : undefined}
+                className={`rounded-md border p-2 text-center text-xs sm:text-sm ${
+                  currentStep === index
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "text-base-content/70"
+                }`}
               >
-                {["Teacher", "H.O.D", "H.O.B", "Admin"].map((position) => (
-                  <option key={position} value={position}>
-                    {position === "H.O.D"
-                      ? `Head of Department - ${position}`
-                      : position}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {staffPosition === "H.O.D" && (
-              <p className="mt-2 text-sm text-base-content/70">
-                Department: {department}
-              </p>
-            )}
-            {staffPosition === "H.O.B" && (
-              <label className="mt-3 flex max-w-sm flex-col gap-1 text-sm">
-                <span>Block</span>
+                <span className="block text-xs">Step {index + 1}</span>
+                {step}
+              </div>
+            ))}
+          </nav>
+
+          {currentStep === 0 && (
+            <section className="rounded-md p-4 shadow-md">
+              <h2 className="mb-3 font-bold">Status</h2>
+              <label className="flex max-w-sm flex-col gap-1 text-sm">
+                <span>Status</span>
                 <select
                   className="select select-bordered select-sm"
-                  value={assignedBlock}
-                  onChange={(event) => setAssignedBlock(event.target.value)}
-                  required
+                  value={selectedStatus}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setSelectedStatus(value);
+                    setCustomStatus(
+                      value === OTHER_STAFF_STATUS_OPTION ||
+                        STAFF_STATUSES.includes(value)
+                        ? ""
+                        : value,
+                    );
+                  }}
                 >
-                  <option value="">Select a block</option>
-                  {[7, 8, 9, 10, 11, 12].map((grade) => (
-                    <option key={grade} value={`Grade ${grade}`}>
-                      Grade {grade}
+                  {statusOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option === OTHER_STAFF_STATUS_OPTION ? "Other" : option}
                     </option>
                   ))}
                 </select>
               </label>
-            )}
-          </section>
+              {(selectedStatus === OTHER_STAFF_STATUS_OPTION ||
+                !STAFF_STATUSES.includes(selectedStatus)) && (
+                <label className="mt-3 flex max-w-sm flex-col gap-1 text-sm">
+                  <span>Enter status</span>
+                  <input
+                    type="text"
+                    value={customStatus}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setCustomStatus(value);
+                      setSelectedStatus(
+                        value || OTHER_STAFF_STATUS_OPTION,
+                      );
+                    }}
+                    className="input input-bordered input-sm"
+                    maxLength={64}
+                    required
+                  />
+                </label>
+              )}
+              {resolvedStatus === "H.O.D" && (
+                <p className="mt-2 text-sm text-base-content/70">
+                  Department: {department}
+                </p>
+              )}
+              {resolvedStatus === "H.O.B" && (
+                <label className="mt-3 flex max-w-sm flex-col gap-1 text-sm">
+                  <span>Block</span>
+                  <select
+                    className="select select-bordered select-sm"
+                    value={assignedBlock}
+                    onChange={(event) => setAssignedBlock(event.target.value)}
+                    required
+                  >
+                    <option value="">Select a block</option>
+                    {[7, 8, 9, 10, 11, 12].map((grade) => (
+                      <option key={grade} value={`Grade ${grade}`}>
+                        Grade {grade}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </section>
+          )}
 
-          <SelectionSection
-            title="Assign teaching classes"
-            items={classes.map((classroom) => classroom.name)}
-            selected={assignedClasses}
-            onToggle={toggleTeachingClass}
-            emptyMessage="No active classes are available."
-          />
+          {currentStep === 1 && (
+            <>
+              <SelectionSection
+                title="Assign teaching classes"
+                items={classes.map((classroom) => classroom.name)}
+                selected={assignedClasses}
+                onToggle={toggleTeachingClass}
+                emptyMessage="No active classes are available."
+              />
 
-          <section className="space-y-3 rounded-md p-4 shadow-md">
-            <div>
-              <h2 className="font-bold">Choose subjects for each class</h2>
-              <p className="text-sm text-base-content/70">
-                Each class can have a different selection. Newly added classes
-                start with no subjects selected.
-              </p>
-            </div>
-            {assignedClasses.length ? (
-              assignedClasses.map((className) => {
+              <section className="space-y-3 rounded-md p-4 shadow-md">
+                <div>
+                  <h2 className="font-bold">Choose subjects for each class</h2>
+                  <p className="text-sm text-base-content/70">
+                    Each class can have a different selection. Newly added
+                    classes start with no subjects selected.
+                  </p>
+                </div>
+                {assignedClasses.length ? (
+                  assignedClasses.map((className) => {
+                    const classroom = classes.find(
+                      (item) => item.name === className,
+                    );
+                    const classSubjects = classroom
+                      ? subjects
+                          .filter((subject) =>
+                            subjectIsAvailableForClass(subject, classroom),
+                          )
+                          .map((subject) => subject.name)
+                          .sort((first, second) => first.localeCompare(second))
+                      : [];
+                    return (
+                      <SelectionSection
+                        key={className}
+                        title={className}
+                        items={classSubjects}
+                        selected={classSubjectAssignments[className] ?? []}
+                        onToggle={(subjectName) =>
+                          toggleClassSubject(className, subjectName)
+                        }
+                        emptyMessage="No available subjects match this class."
+                        description="Select the subject(s) this teacher will teach in this class."
+                      />
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-base-content/70">
+                    Select one or more teaching classes first.
+                  </p>
+                )}
+              </section>
+            </>
+          )}
+
+          {currentStep === 2 && (
+            <SelectionSection
+              title="Make class teacher"
+              items={classes.map((classroom) => classroom.name)}
+              selected={classTeacherClasses}
+              onToggle={(value) => toggleValue(value, setClassTeacherClasses)}
+              getDescription={(className) => {
                 const classroom = classes.find(
                   (item) => item.name === className,
                 );
-                const classSubjects = availableSubjectNames.filter((name) => {
-                  const subject = subjects.find((item) => item.name === name);
-                  return (
-                    subject &&
-                    classroom &&
-                    subjectIsAvailableForClass(subject, classroom)
-                  );
-                });
-                return (
-                  <SelectionSection
-                    key={className}
-                    title={className}
-                    items={classSubjects}
-                    selected={classSubjectAssignments[className] ?? []}
-                    onToggle={(subjectName) =>
-                      toggleClassSubject(className, subjectName)
-                    }
-                    emptyMessage="No available subjects match this class."
-                    description="Select the subject(s) this teacher will teach in this class."
-                  />
+                if (!classroom?.classTeacher)
+                  return "No class teacher assigned";
+                if (classroom.classTeacher.staffId === staffId) {
+                  return "Currently assigned to this staff member";
+                }
+                return `Assigned to ${classroom.classTeacher.name}`;
+              }}
+              isDisabled={(className) => {
+                const classroom = classes.find(
+                  (item) => item.name === className,
                 );
-              })
-            ) : (
-              <p className="text-sm text-base-content/70">
-                Select one or more teaching classes first.
-              </p>
-            )}
-          </section>
-
-          <SelectionSection
-            title="Make class teacher"
-            items={classes.map((classroom) => classroom.name)}
-            selected={classTeacherClasses}
-            onToggle={(value) => toggleValue(value, setClassTeacherClasses)}
-            getDescription={(className) => {
-              const classroom = classes.find((item) => item.name === className);
-              if (!classroom?.classTeacher) return "No class teacher assigned";
-              if (classroom.classTeacher.staffId === staffId) {
-                return "Currently assigned to this staff member";
-              }
-              return `Assigned to ${classroom.classTeacher.name}`;
-            }}
-            isDisabled={(className) => {
-              const classroom = classes.find((item) => item.name === className);
-              return Boolean(
-                classroom?.classTeacher &&
-                  classroom.classTeacher.staffId !== staffId,
-              );
-            }}
-            emptyMessage="No active classes are available."
-          />
+                return Boolean(
+                  classroom?.classTeacher &&
+                    classroom.classTeacher.staffId !== staffId,
+                );
+              }}
+              emptyMessage="No active classes are available."
+            />
+          )}
 
           <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              className="btn btn-primary btn-sm"
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving assignments..." : "Save assignments"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setAssign(false)}
-            >
-              Back to staff
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {currentStep > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setStatus({ type: "", message: "" });
+                    setCurrentStep((step) => Math.max(step - 1, 0));
+                  }}
+                  disabled={isSaving}
+                >
+                  Previous
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setAssign(false)}
+                disabled={isSaving}
+              >
+                Back to staff
+              </button>
+            </div>
+            {currentStep < ASSIGNMENT_STEPS.length - 1 ? (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleNextStep}
+                disabled={isSaving}
+              >
+                Continue
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleSubmit}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving assignments..." : "Save assignments"}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
       )}
     </main>
   );

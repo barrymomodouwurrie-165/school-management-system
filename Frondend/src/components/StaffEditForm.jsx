@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAcademicSubjects, updateAdminStaff } from "../utils/adminApi";
+import { STAFF_STATUSES } from "../utils/staffStatuses";
 
 const STAFF_FIELDS = [
   { name: "first_name", label: "First name" },
@@ -22,8 +23,8 @@ const STAFF_FIELDS = [
   },
   {
     name: "staff_position",
-    label: "Staff position",
-    options: ["Teacher", "H.O.D", "H.O.B", "Admin"],
+    label: "Staff status",
+    options: STAFF_STATUSES,
   },
   {
     name: "subject_taught",

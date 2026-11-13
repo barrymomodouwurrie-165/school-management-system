@@ -1,6 +1,7 @@
 import { isAuthentic } from "../models/tokens.js";
 import StaffUser from "../models/staffUser.js";
 import StaffIdCounter from "../models/staffIdCounter.js";
+import STAFF_STATUSES from "../data/staffStatuses.js";
 
 const getNextStaffId = async () => {
   const year = String(new Date().getFullYear());
@@ -99,9 +100,9 @@ const registerStaff = async (req, res) => {
     });
   }
 
-  if (!["Teacher", "H.O.D", "H.O.B", "Admin"].includes(staffPosition)) {
+  if (!STAFF_STATUSES.includes(staffPosition)) {
     return res.status(400).json({
-      message: "Role must be Teacher, H.O.D, H.O.B, or Admin.",
+      message: "Select a valid staff status.",
     });
   }
 
