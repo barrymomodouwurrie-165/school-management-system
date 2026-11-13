@@ -1,15 +1,14 @@
 import { FaPhone, FaRegEnvelope } from "react-icons/fa";
 import StaffContenButton from "./StaffContenButton";
-import { useState } from "react";
 
 const StaffContentCard = ({
   data,
   setAssign,
   setStaffName,
   setStaffId,
+  onView,
   onEdit,
 }) => {
-  const [view, setView] = useState(false);
   return (
     <>
       <div className="flex items-center gap-2">
@@ -45,58 +44,10 @@ const StaffContentCard = ({
           Assign
         </button>
         <StaffContenButton
-          view={view}
-          setView={setView}
+          onView={() => onView(data)}
           onEdit={() => onEdit(data)}
         />
       </div>
-      {view && (
-        <div className="flex flex-col border-t pt-2 text-xs md:text-md">
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Id:</p>
-            {data.staff_id}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Name:</p>
-            {data.staff_name}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Gender:</p>
-            {data.gender}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Email:</p>
-            {data.email}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Phone:</p>
-            {data.phone}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Nationality:</p>
-            {data.nationality}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Role:</p> {data.role}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Department:</p>
-            {data.department}{" "}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Subjects:</p>
-            {data.assigned_subjects?.join(", ") || data.subject_taught}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Teaching classes:</p>
-            {data.assigned_classes?.join(", ") || "Not assigned"}
-          </span>
-          <span className="flex items-center gap-2">
-            <p className="font-bold">Start Date:</p>
-            {data.start_date}{" "}
-          </span>
-        </div>
-      )}
     </>
   );
 };

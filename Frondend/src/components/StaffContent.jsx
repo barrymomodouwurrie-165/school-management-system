@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import StaffContentCard from "./StaffContentCard";
 import StaffEditForm from "./StaffEditForm";
+import StaffProfilePage from "./StaffProfilePage";
 import StaffPasswordResetForm from "./StaffPasswordResetForm";
 import { getAdminStaff } from "../utils/adminApi";
 
@@ -22,6 +23,7 @@ const StaffContent = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingStaff, setEditingStaff] = useState(null);
+  const [viewingStaff, setViewingStaff] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -91,6 +93,15 @@ const StaffContent = ({
     );
   }
 
+  if (viewingStaff) {
+    return (
+      <StaffProfilePage
+        staff={viewingStaff}
+        onBack={() => setViewingStaff(null)}
+      />
+    );
+  }
+
   return (
     <div className="p-3">
       <div className="flex items-start justify-between">
@@ -153,6 +164,10 @@ const StaffContent = ({
                 setAssign={setAssign}
                 setStaffName={setStaffName}
                 setStaffId={setStaffId}
+                onView={(member) => {
+                  setSuccessMessage("");
+                  setViewingStaff(member);
+                }}
                 onEdit={(member) => {
                   setSuccessMessage("");
                   setEditingStaff(member);
