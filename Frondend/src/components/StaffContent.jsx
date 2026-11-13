@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 import StaffContentCard from "./StaffContentCard";
 import StaffEditForm from "./StaffEditForm";
+import StaffPasswordResetForm from "./StaffPasswordResetForm";
 import { getAdminStaff } from "../utils/adminApi";
 
 const getInitials = (staff) =>
@@ -138,6 +139,7 @@ const StaffContent = ({
           {successMessage}
         </p>
       )}
+      <StaffPasswordResetForm />
       {isLoading ? (
         <p role="status" className="py-8 text-center">
           Loading staff records...

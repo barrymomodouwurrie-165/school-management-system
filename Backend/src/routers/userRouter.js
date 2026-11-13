@@ -770,7 +770,7 @@ userRouter.get("/staff", async (req, res) => {
   try {
     const staff = await StaffUser.find()
       .select(
-        "first_name last_name gender nationality phone_number email staff_id qualification subject_taught department section employment_type start_date staff_position profile_image assigned_classes assigned_subjects",
+        "first_name last_name gender nationality phone_number email address ethnicity marital_status staff_id qualification subject_taught department section employment_type start_date username staff_position profile_image assigned_classes assigned_subjects",
       )
       .sort({ last_name: 1, first_name: 1 })
       .lean();
@@ -779,6 +779,51 @@ userRouter.get("/staff", async (req, res) => {
   } catch (error) {
     console.error("Staff list retrieval failed:", error.message);
     return res.status(500).json({ message: "Unable to retrieve staff records." });
+  }
+});
+
+userRouter.put("/staff/:staffId/password", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+
+  const staffId =
+    typeof req.params.staffId === "string" ? req.params.staffId.trim() : "";
+  const { newPassword } = req.body ?? {};
+  if (!staffId) {
+    return res.status(400).json({ message: "Staff ID is required." });
+  }
+  if (
+    typeof newPassword !== "string" ||
+    newPassword.length < 6 ||
+    newPassword.length > 128
+  ) {
+    return res.status(400).json({
+      message: "Password must be between 6 and 128 characters.",
+    });
+  }
+
+  try {
+    const staff = await StaffUser.findOne({ staff_id: staffId }).select(
+      "+refreshTokenHash",
+    );
+    if (!staff) {
+      return res.status(404).json({ message: "Staff member was not found." });
+    }
+
+    staff.password = newPassword;
+    staff.refreshTokenHash = null;
+    await staff.save();
+
+    return res.status(200).json({
+      message: `Password renewed for staff ID ${staff.staff_id}.`,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Staff password renewal failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to renew the staff password." });
   }
 });
 
@@ -814,7 +859,7 @@ userRouter.put("/staff/:id", async (req, res) => {
       { new: true, runValidators: true },
     )
       .select(
-        "first_name last_name gender nationality phone_number email staff_id qualification subject_taught department section employment_type start_date username staff_position profile_image assigned_classes assigned_subjects",
+        "first_name last_name gender nationality phone_number email address ethnicity marital_status staff_id qualification subject_taught department section employment_type start_date username staff_position profile_image assigned_classes assigned_subjects",
       )
       .lean();
 
