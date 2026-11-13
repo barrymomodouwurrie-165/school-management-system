@@ -2,7 +2,19 @@ import { useState } from "react";
 import { FaBars } from "react-icons/fa";
 import { Link } from "react-router";
 import { registerStudent } from "../utils/adminApi";
+import AFRICAN_COUNTRIES from "../utils/africanCountries";
 
+const ETHNICITIES = [
+  "Mandinka",
+  "Fula",
+  "Jola",
+  "Manjago",
+  "Bambara",
+  "Sarahuleh",
+  "Wollof",
+  "Aku",
+];
+const OTHER_ETHNICITY_OPTION = "__other_ethnicity__";
 const JUNIOR_CLASSES = [7, 8, 9].flatMap((grade) =>
   [..."ABCDEFGHIJKLM"].map((letter) => `Grade ${grade} ${letter}`),
 );
@@ -21,8 +33,13 @@ const STUDENT_FIELDS = [
   { name: "first_name", label: "First name" },
   { name: "last_name", label: "Last name" },
   { name: "date_of_birth", label: "Date of birth", type: "date" },
-  { name: "nationality", label: "Nationality" },
-  { name: "ethnicity", label: "Ethnicity" },
+  {
+    name: "nationality",
+    label: "Nationality",
+    type: "select",
+    options: AFRICAN_COUNTRIES,
+  },
+  { name: "ethnicity", label: "Ethnicity", type: "ethnicity" },
   {
     name: "religion",
     label: "Religion",
@@ -49,11 +66,35 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [credentials, setCredentials] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedEthnicity, setSelectedEthnicity] = useState("");
+  const [customEthnicity, setCustomEthnicity] = useState("");
+  const [customEthnicityOptions, setCustomEthnicityOptions] = useState([]);
+
+  const addCustomEthnicityOption = (value) => {
+    const ethnicity = value.trim();
+    if (!ethnicity) return;
+
+    setCustomEthnicityOptions((current) =>
+      current.some(
+        (option) => option.toLocaleLowerCase() === ethnicity.toLocaleLowerCase(),
+      )
+        ? current
+        : [...current, ethnicity],
+    );
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const studentData = Object.fromEntries(new FormData(form).entries());
+    if (studentData.ethnicity === OTHER_ETHNICITY_OPTION) {
+      studentData.ethnicity =
+        typeof studentData.custom_ethnicity === "string"
+          ? studentData.custom_ethnicity.trim()
+          : "";
+      addCustomEthnicityOption(studentData.ethnicity);
+    }
+    delete studentData.custom_ethnicity;
     const classInfo = CLASS_OPTIONS.find(
       (item) => item.name === studentData.class,
     );
@@ -80,6 +121,8 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
       });
       form.reset();
       setSelectedClass("");
+      setSelectedEthnicity("");
+      setCustomEthnicity("");
     } catch (error) {
       setStatus({
         type: "error",
@@ -112,7 +155,23 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
           <h3 className="mb-3 text-lg font-bold">Student Details</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {STUDENT_FIELDS.slice(0, 10).map((field) => (
-              <FormField key={field.name} field={field} />
+              <FormField
+                key={field.name}
+                field={field}
+                ethnicityOptions={[...ETHNICITIES, ...customEthnicityOptions]}
+                selectedEthnicity={selectedEthnicity}
+                onEthnicityChange={(value) => {
+                  setSelectedEthnicity(value);
+                  if (value !== OTHER_ETHNICITY_OPTION) {
+                    setCustomEthnicity("");
+                  }
+                }}
+                customEthnicity={customEthnicity}
+                onCustomEthnicityChange={setCustomEthnicity}
+                onCustomEthnicityBlur={() =>
+                  addCustomEthnicityOption(customEthnicity)
+                }
+              />
             ))}
             <div className="form-control">
               <label className="label" htmlFor="student-class">
@@ -223,6 +282,8 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
             type="reset"
             onClick={() => {
               setSelectedClass("");
+              setSelectedEthnicity("");
+              setCustomEthnicity("");
               setStatus({ type: "", message: "" });
               setCredentials(null);
             }}
@@ -243,14 +304,55 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
   );
 };
 
-const FormField = ({ field }) => (
-  <div
-    className={`form-control ${field.fullWidth ? "sm:col-span-2" : ""}`}
-  >
+const FormField = ({
+  field,
+  ethnicityOptions = [],
+  selectedEthnicity = "",
+  onEthnicityChange,
+  customEthnicity = "",
+  onCustomEthnicityChange,
+  onCustomEthnicityBlur,
+}) => (
+  <div className={`form-control ${field.fullWidth ? "sm:col-span-2" : ""}`}>
     <label className="label" htmlFor={`student-${field.name}`}>
       <span className="label-text font-bold">{field.label}</span>
     </label>
-    {field.type === "select" ? (
+    {field.type === "ethnicity" ? (
+      <>
+        <select
+          id={`student-${field.name}`}
+          name={field.name}
+          className="select select-bordered select-sm rounded-md"
+          value={selectedEthnicity}
+          onChange={(event) => onEthnicityChange(event.target.value)}
+          required
+        >
+          <option value="" disabled>
+            Select ethnicity
+          </option>
+          {ethnicityOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+          <option value={OTHER_ETHNICITY_OPTION}>Others</option>
+        </select>
+        {selectedEthnicity === OTHER_ETHNICITY_OPTION && (
+          <input
+            id="student-custom-ethnicity"
+            name="custom_ethnicity"
+            type="text"
+            value={customEthnicity}
+            onChange={(event) => onCustomEthnicityChange(event.target.value)}
+            onBlur={onCustomEthnicityBlur}
+            className="input input-bordered input-sm rounded-md mt-2"
+            placeholder="Enter ethnicity"
+            maxLength={64}
+            required
+          />
+        )}
+      </>
+    ) : field.type === "select" ? (
       <select
         id={`student-${field.name}`}
         name={field.name}
