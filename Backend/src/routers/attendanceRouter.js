@@ -93,6 +93,7 @@ const hideTransferredStudents = (session) => {
       .filter((entry) => entry.student?.status !== "Transferred")
       .map((entry) => ({
         ...entry,
+        studentGender: entry.studentGender || entry.student?.gender,
         student: entry.student?._id ?? entry.student,
       })),
   };
@@ -156,6 +157,25 @@ const getGenderAnalysis = (entries, gender) => {
     late: { count: late, percentage: getPercentage(late, students.length) },
     absent: { count: absent, percentage: getPercentage(absent, students.length) },
   };
+};
+
+const getAttendanceAnalysis = (entries) => ({
+  totalStudents: entries.length,
+  male: getGenderAnalysis(entries, "male"),
+  female: getGenderAnalysis(entries, "female"),
+  unclassified: entries.filter(
+    (entry) => !["male", "female"].includes(getEntryGender(entry)),
+  ).length,
+});
+
+const withAttendanceAnalysis = (session) => {
+  const visibleSession = hideTransferredStudents(session);
+  return visibleSession
+    ? {
+        ...visibleSession,
+        analysis: getAttendanceAnalysis(visibleSession.entries),
+      }
+    : visibleSession;
 };
 
 attendanceRouter.get("/student/me", async (req, res) => {
@@ -331,14 +351,7 @@ attendanceRouter.get("/admin/sessions", async (req, res) => {
       },
       sessions: sessions.map((session) => ({
         ...session,
-        analysis: {
-          totalStudents: session.entries.length,
-          male: getGenderAnalysis(session.entries, "male"),
-          female: getGenderAnalysis(session.entries, "female"),
-          unclassified: session.entries.filter(
-            (entry) => !["male", "female"].includes(getEntryGender(entry)),
-          ).length,
-        },
+        analysis: getAttendanceAnalysis(session.entries),
       })),
     });
   } catch (error) {
@@ -400,16 +413,16 @@ attendanceRouter.get("/classes/:classId/sessions", async (req, res) => {
       }
       query.date = date;
       const session = await AttendanceSession.findOne(query)
-        .populate("entries.student", "status")
+        .populate("entries.student", "status gender")
         .lean();
-      return res.status(200).json(hideTransferredStudents(session));
+      return res.status(200).json(withAttendanceAnalysis(session));
     }
 
     const sessions = await AttendanceSession.find(query)
       .sort({ date: -1 })
-      .populate("entries.student", "status")
+      .populate("entries.student", "status gender")
       .lean();
-    return res.status(200).json(sessions.map(hideTransferredStudents));
+    return res.status(200).json(sessions.map(withAttendanceAnalysis));
   } catch (error) {
     console.error("Attendance retrieval failed:", error.message);
     return res

@@ -7,6 +7,27 @@ import {
   getTeacherAttendanceClasses,
 } from "../../utils/attendanceApi";
 
+const formatPercentage = (percentage) => `${percentage.toFixed(1)}%`;
+
+const GenderAnalysis = ({ label, analysis }) => (
+  <div className="rounded-lg border border-slate-200 p-4">
+    <h4 className="mb-3 font-semibold">
+      {label} students <span className="text-slate-500">({analysis.total})</span>
+    </h4>
+    <div className="grid grid-cols-3 gap-2 text-sm">
+      {["present", "late", "absent"].map((attendanceStatus) => (
+        <div key={attendanceStatus} className="rounded-md bg-slate-50 p-2">
+          <p className="capitalize text-slate-500">{attendanceStatus}</p>
+          <p className="font-semibold">
+            {analysis[attendanceStatus].count} (
+            {formatPercentage(analysis[attendanceStatus].percentage)})
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const CheckStudentAttendance = () => {
   const [classrooms, setClassrooms] = useState([]);
   const [classId, setClassId] = useState("");
@@ -235,6 +256,36 @@ const CheckStudentAttendance = () => {
               {summary.total} students on{" "}
               {dayjs(session.date).format("dddd, DD/MM/YYYY")}
             </p>
+            <section className="mt-4 rounded-lg border border-slate-200 p-4">
+              <h3 className="mb-3 font-bold">Attendance analysis</h3>
+              <p className="mb-4 text-sm">
+                Total students in class:{" "}
+                <strong>{session.analysis.totalStudents}</strong>
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                <GenderAnalysis
+                  label="Male"
+                  analysis={session.analysis.male}
+                />
+                <GenderAnalysis
+                  label="Female"
+                  analysis={session.analysis.female}
+                />
+              </div>
+              {session.analysis.unclassified > 0 && (
+                <p className="mt-3 text-xs text-base-content/70">
+                  Gender not recorded for {session.analysis.unclassified}{" "}
+                  {session.analysis.unclassified === 1
+                    ? "student"
+                    : "students"}; excluded from male and female percentages.
+                </p>
+              )}
+              {!session.secondCallSavedAt && (
+                <p className="mt-3 text-xs text-warning">
+                  These figures are provisional until the second call is saved.
+                </p>
+              )}
+            </section>
           </>
         ) : (
           <div className="rounded-md p-6 text-center text-sm shadow-md md:text-base">
