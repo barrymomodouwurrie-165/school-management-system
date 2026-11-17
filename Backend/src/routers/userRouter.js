@@ -154,6 +154,29 @@ userRouter.get("/admin/profile", async (req, res) => {
   }
 });
 
+userRouter.get("/admin/public-profile", async (_req, res) => {
+  try {
+    const admin = await AdminUser.findOne({
+      fullName: { $exists: true, $ne: "" },
+    })
+      .sort({ updatedAt: -1, _id: 1 })
+      .select("fullName profilePicture");
+    if (!admin) {
+      return res.status(404).json({ message: "Admin profile is unavailable." });
+    }
+
+    return res.status(200).json({
+      fullName: admin.fullName || "",
+      profilePicture: admin.profilePicture || "",
+    });
+  } catch (error) {
+    console.error("Public admin profile retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve admin profile." });
+  }
+});
+
 userRouter.put("/admin/profile", async (req, res) => {
   const claims = getAdminClaims(req, res);
   if (!claims) return;

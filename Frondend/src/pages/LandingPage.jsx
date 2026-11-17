@@ -4,6 +4,7 @@ import SchoolNoticeBoard from "../components/SchoolNoticeBoard";
 import Statictics from "../components/Statictics";
 import Mainboday from "../components/Mainboday";
 import LatestNews from "../components/LatestNews";
+import LandingAdminProfile from "../components/LandingAdminProfile";
 import Footer from "../components/Footer";
 
 const LandingPage = ({ theme, toggleTheme }) => {
@@ -21,6 +22,7 @@ const LandingPage = ({ theme, toggleTheme }) => {
       <Statictics />
       <Mainboday />
       <LatestNews />
+      <LandingAdminProfile />
       <Footer />
     </div>
   );

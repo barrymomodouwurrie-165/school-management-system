@@ -182,6 +182,18 @@ export const getAdminProfile = async () => {
   }
 };
 
+export const getPublicAdminProfile = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/users/admin/public-profile`);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve admin profile."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAdminDashboardOverview = async () => {
   try {
     const response = await axios.get(
