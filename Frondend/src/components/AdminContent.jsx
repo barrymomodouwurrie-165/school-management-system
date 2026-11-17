@@ -10,7 +10,7 @@ import AdminRecentActivity from "./AdminRecentActivity";
 import { getAdminDashboardOverview } from "../utils/adminApi";
 import { getAcademicPeriod } from "../utils/academicPeriod";
 
-const AdminContent = ({ isOpen }) => {
+const AdminContent = ({ isOpen, onNavigate }) => {
   const [overview, setOverview] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -155,6 +155,7 @@ const AdminContent = ({ isOpen }) => {
           facultyStatus={overview?.facultyStatus ?? []}
           headOfBlocks={overview?.headOfBlocks ?? []}
           isLoading={isLoading}
+          onNavigate={onNavigate}
         />
         <AdminRecentActivity
           activities={overview?.recentActivities ?? []}

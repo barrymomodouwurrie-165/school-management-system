@@ -1,5 +1,5 @@
-import { FiMail, FiPrinter, FiCalendar } from "react-icons/fi";
-import { FaMoneyCheckAlt } from "react-icons/fa";
+import { FiCalendar } from "react-icons/fi";
+import { FaBullhorn, FaClipboardCheck, FaUserPlus } from "react-icons/fa";
 import { BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router";
 import StaffView from "./StaffView";
@@ -8,6 +8,7 @@ const AdminStatus = ({
   facultyStatus = [],
   headOfBlocks = [],
   isLoading,
+  onNavigate,
 }) => {
   return (
     <div className="flex flex-col md:flex-row items-top gap-4 justify-between py-6">
@@ -76,22 +77,38 @@ const AdminStatus = ({
         <div className="p-6 border border-base-content/20 rounded-lg bg-blue-950">
           <h2 className="text-xl font-bold text-white my-2">Quick Tools</h2>
           <div className="grid grid-cols-2 gap-2">
-            <Link className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2">
-              <FiMail />
-              Send Email
-            </Link>
-            <Link className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2">
-              <FiPrinter />
-              Print ID
-            </Link>
-            <Link className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => onNavigate("register-student")}
+              className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2"
+            >
+              <FaUserPlus />
+              Register Student
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("attendance")}
+              className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2"
+            >
+              <FaClipboardCheck />
+              Review Attendance
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("calendar")}
+              className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2"
+            >
               <FiCalendar />
               Calendar
-            </Link>
-            <Link className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2">
-              <FaMoneyCheckAlt />
-              Fees
-            </Link>
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("school-notices")}
+              className="text-center bg-base-content/30 px-2 py-4 rounded-md text-white border border-white/30 flex flex-col items-center justify-center gap-2"
+            >
+              <FaBullhorn />
+              Post School Notice
+            </button>
           </div>
         </div>
         <div className="border border-base-content/20 rounded-lg">

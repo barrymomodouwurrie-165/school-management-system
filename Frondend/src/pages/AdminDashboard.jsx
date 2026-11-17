@@ -12,6 +12,7 @@ import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
 import AdminSchoolNoticeBoard from "../components/AdminSchoolNoticeBoard";
 import AdminAttendance from "../components/AdminAttendance";
+import AdminCalendar from "../components/AdminCalendar";
 import AdminProfile from "../components/AdminProfile";
 import AsignStaffRole from "../components/AsignStaffRole";
 import { MdExitToApp } from "react-icons/md";
@@ -28,6 +29,7 @@ import {
   FaUsers,
   FaTachometerAlt,
   FaFlag,
+  FaCalendarAlt,
   FaCalendarCheck,
 } from "react-icons/fa";
 import { getAdminProfile } from "../utils/adminApi";
@@ -79,6 +81,7 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
     "public-news": NewsComposePage,
     "school-notices": AdminSchoolNoticeBoard,
     attendance: AdminAttendance,
+    calendar: AdminCalendar,
   };
   const NAV_PAGES = [
     { id: "admin", label: "Dashboard", logo: FaTachometerAlt },
@@ -97,6 +100,7 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
     { id: "academics", label: "Academics", logo: FaBookOpen },
     { id: "submissions", label: "Submissions", logo: FaFlag },
     { id: "attendance", label: "Attendance", logo: FaCalendarCheck },
+    { id: "calendar", label: "Calendar", logo: FaCalendarAlt },
 
     {
       id: "message",
@@ -274,6 +278,7 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
           setStaffId={setStaffId}
           profile={adminProfile}
           isLoading={profileLoading}
+          onNavigate={navigateToPage}
           loadError={profileError}
           onRetry={() => {
             setProfileLoading(true);
