@@ -11,7 +11,9 @@ import {
 import bcrypt from "bcrypt";
 import AdminUser from "../models/adminUser.js";
 import StaffUser from "../models/staffUser.js";
-import StudentUser from "../models/studentUser.js";
+import StudentUser, {
+  STUDENT_LEADERSHIP_POSITIONS,
+} from "../models/studentUser.js";
 import GuardianUser from "../models/guardianUser.js";
 import AttendanceSession from "../models/attendanceSession.js";
 import StudentReport from "../models/studentReport.js";
@@ -306,6 +308,7 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
       femaleStaff,
       activeClassrooms,
       enrolledStudents,
+      studentLeaders,
       dailyAttendanceSessions,
       reports,
       feedback,
@@ -329,6 +332,13 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
       ClassRoom.find({ status: "Active" }).select("_id name grade").lean(),
       StudentUser.find({ status: { $in: ["Active", "Suspended"] } })
         .select("_id class gender")
+        .lean(),
+      StudentUser.find({
+        status: "Active",
+        leadership_position: { $in: ["Head Boy", "Head Girl"] },
+      })
+        .select("_id first_name last_name class leadership_position")
+        .sort({ leadership_position: 1, last_name: 1, first_name: 1 })
         .lean(),
       AttendanceSession.find({ date: todayFilter })
         .select("classroom firstCallSavedAt secondCallSavedAt entries")
@@ -551,6 +561,12 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
       },
       facultyStatus,
       headOfBlocks,
+      studentLeaders: studentLeaders.map((student) => ({
+        id: String(student._id),
+        name: `${student.first_name} ${student.last_name}`,
+        className: student.class,
+        position: student.leadership_position,
+      })),
       recentActivities,
     });
   } catch (error) {
@@ -901,7 +917,7 @@ userRouter.get("/students", async (req, res) => {
   try {
     const students = await StudentUser.find()
       .select(
-        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
+        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class leadership_position enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
       )
       .sort({ last_name: 1, first_name: 1 })
       .lean();
@@ -948,6 +964,20 @@ userRouter.put("/students/:id", async (req, res) => {
     updates[field] = req.body[field].trim();
   }
 
+  if (req.body?.leadership_position !== undefined) {
+    const leadershipPosition = req.body.leadership_position;
+    if (
+      typeof leadershipPosition !== "string" ||
+      (leadershipPosition !== "" &&
+        !STUDENT_LEADERSHIP_POSITIONS.includes(leadershipPosition))
+    ) {
+      return res.status(400).json({
+        message: "Student leadership position is invalid.",
+      });
+    }
+    updates.leadership_position = leadershipPosition;
+  }
+
   if (!["Junior", "Senior"].includes(updates.section)) {
     return res.status(400).json({
       message: "Section must be Junior or Senior.",
@@ -981,7 +1011,7 @@ userRouter.put("/students/:id", async (req, res) => {
       { new: true, runValidators: true },
     )
       .select(
-        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
+        "student_id username first_name last_name gender nationality ethnicity date_of_birth phone_number religion previous_school section class leadership_position enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
       )
       .lean();
 

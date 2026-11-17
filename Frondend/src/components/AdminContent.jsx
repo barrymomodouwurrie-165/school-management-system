@@ -154,7 +154,9 @@ const AdminContent = ({ isOpen, onNavigate }) => {
         <AdminStatus
           facultyStatus={overview?.facultyStatus ?? []}
           headOfBlocks={overview?.headOfBlocks ?? []}
+          studentLeaders={overview?.studentLeaders ?? []}
           isLoading={isLoading}
+          overviewError={error}
           onNavigate={onNavigate}
         />
         <AdminRecentActivity

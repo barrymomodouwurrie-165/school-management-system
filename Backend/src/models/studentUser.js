@@ -1,6 +1,15 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 
+export const STUDENT_LEADERSHIP_POSITIONS = [
+  "Head Boy",
+  "Head Girl",
+  "Deputy Head Boy",
+  "Deputy Head Girl",
+  "Prefect",
+  "Class Representative",
+];
+
 const studentSchema = new mongoose.Schema(
   {
     student_id: { type: String, required: true, unique: true },
@@ -18,6 +27,11 @@ const studentSchema = new mongoose.Schema(
     gender: { type: String, required: true },
     section: { type: String, required: true },
     class: { type: String, required: true },
+    leadership_position: {
+      type: String,
+      enum: ["", ...STUDENT_LEADERSHIP_POSITIONS],
+      default: "",
+    },
     enrollment_date: { type: String, required: true },
     guardian_name: { type: String, required: true },
     guardian_phone: { type: String, required: true },

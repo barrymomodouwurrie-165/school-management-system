@@ -7,7 +7,9 @@ import StaffView from "./StaffView";
 const AdminStatus = ({
   facultyStatus = [],
   headOfBlocks = [],
+  studentLeaders = [],
   isLoading,
+  overviewError = "",
   onNavigate,
 }) => {
   return (
@@ -120,16 +122,36 @@ const AdminStatus = ({
             <span>Class</span>
             <span>Position</span>
           </div>
-          <div className="grid grid-cols-3 border-t border-base-content/10 py-2 gap-2 px-2">
-            <span className="col-">Modou Bah</span>
-            <span>12A1</span>
-            <span>Head-Boy</span>
-          </div>
-          <div className="grid grid-cols-3 border-t border-base-content/10 py-2 px-2">
-            <span>Aminata Baldeh</span>
-            <span>12C2</span>
-            <span>Head-Girl</span>
-          </div>
+          {isLoading ? (
+            <p
+              role="status"
+              className="border-t border-base-content/10 px-2 py-4 text-sm text-base-content/60"
+            >
+              Loading student leaders...
+            </p>
+          ) : overviewError ? (
+            <p
+              role="alert"
+              className="border-t border-base-content/10 px-2 py-4 text-sm text-error"
+            >
+              Unable to load student leaders.
+            </p>
+          ) : studentLeaders.length ? (
+            studentLeaders.map(({ id, name, className, position }) => (
+              <div
+                key={id}
+                className="grid grid-cols-3 gap-2 border-t border-base-content/10 px-2 py-2"
+              >
+                <span>{name}</span>
+                <span>{className}</span>
+                <span>{position}</span>
+              </div>
+            ))
+          ) : (
+            <p className="border-t border-base-content/10 px-2 py-4 text-sm text-base-content/60">
+              No student leaders assigned.
+            </p>
+          )}
         </div>
       </div>
     </div>
