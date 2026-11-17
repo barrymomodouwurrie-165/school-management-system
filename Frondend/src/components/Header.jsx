@@ -3,7 +3,10 @@ import { FiArrowUpRight } from "react-icons/fi";
 
 const Header = () => {
   return (
-    <header className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:pt-32">
+    <header
+      id="home"
+      className="scroll-mt-36 mx-auto max-w-6xl px-4 pb-8 pt-28 md:pt-32"
+    >
       <div className="hero-animate overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-white via-primary/5 to-white p-6 shadow-[0_20px_60px_rgba(37,99,235,0.10)] md:p-10">
         <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
           <div className="flex flex-col items-center text-center md:items-start md:text-left">

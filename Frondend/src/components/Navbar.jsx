@@ -1,6 +1,14 @@
-import { Link } from "react-router";
 import logo from "../assets/logo.jpg";
 import { FaMoon, FaSun } from "react-icons/fa";
+
+const NAV_ITEMS = [
+  { label: "Home", href: "#home" },
+  { label: "About", href: "#about" },
+  { label: "Academics", href: "#academics" },
+  { label: "Admissions", href: "#contact" },
+  { label: "News", href: "#news" },
+  { label: "Contact", href: "#contact" },
+];
 
 const Navbar = ({ theme, toggleTheme }) => {
   return (
@@ -27,21 +35,18 @@ const Navbar = ({ theme, toggleTheme }) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <nav className="flex flex-wrap items-center justify-center gap-1 text-primary">
-                {[
-                  "Home",
-                  "About",
-                  "Academics",
-                  "Admissions",
-                  "News",
-                  "Contact",
-                ].map((item) => (
-                  <Link
-                    key={item}
+              <nav
+                aria-label="Main navigation"
+                className="flex flex-wrap items-center justify-center gap-1 text-primary"
+              >
+                {NAV_ITEMS.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
                     className="btn btn-ghost btn-sm rounded-full px-3 text-sm font-medium transition-all duration-300 hover:bg-primary/5 hover:shadow-sm"
                   >
-                    {item}
-                  </Link>
+                    {item.label}
+                  </a>
                 ))}
               </nav>
 

@@ -25,7 +25,7 @@ const LatestNews = () => {
   }, []);
 
   return (
-    <div className="w-full px-8 py-4">
+    <div id="news" className="w-full scroll-mt-36 px-8 py-4">
       <div className="py-4">
         <h1 className="text-2xl font-bold mb-2">Latest news</h1>
         {error && <p role="alert">{error}</p>}

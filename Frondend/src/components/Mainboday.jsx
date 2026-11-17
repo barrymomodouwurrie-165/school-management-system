@@ -5,7 +5,10 @@ const Mainboday = () => {
   return (
     <div className="w-full px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <div id="about" className="mb-6 flex items-end justify-between gap-4">
+        <div
+          id="about"
+          className="mb-6 flex scroll-mt-36 items-end justify-between gap-4"
+        >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">
               Why choose us
@@ -18,7 +21,7 @@ const Mainboday = () => {
 
         <div
           id="academics"
-          className="grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+          className="grid scroll-mt-36 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
         >
           {[
             {
