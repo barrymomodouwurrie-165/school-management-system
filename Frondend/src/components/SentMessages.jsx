@@ -1,3 +1,5 @@
+import { FaEdit, FaTrash } from "react-icons/fa";
+
 const formatRecipients = (recipients = []) =>
   recipients
     .map((recipient) =>
@@ -7,7 +9,7 @@ const formatRecipients = (recipients = []) =>
     )
     .join(", ");
 
-const SentMessages = ({ message }) => {
+const SentMessages = ({ message, onEdit, onDelete, isDeleting }) => {
   const sentAt = message.sentAt
     ? new Date(message.sentAt).toLocaleString()
     : "Date unavailable";
@@ -25,6 +27,25 @@ const SentMessages = ({ message }) => {
       <span className="border-2 rounded-3xl min-w-24 max-w-48 px-3 flex justify-center items-center text-sm self-start">
         {formatRecipients(message.recipients)}
       </span>
+      <div className="flex gap-2 self-end">
+        <button
+          type="button"
+          className="btn btn-ghost btn-xs"
+          onClick={() => onEdit(message)}
+        >
+          <FaEdit aria-hidden="true" />
+          Edit
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-xs text-error"
+          onClick={() => onDelete(message)}
+          disabled={isDeleting}
+        >
+          <FaTrash aria-hidden="true" />
+          {isDeleting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
     </>
   );
 };

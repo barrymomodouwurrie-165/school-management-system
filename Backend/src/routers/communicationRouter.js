@@ -11,6 +11,7 @@ import Subject from "../models/subject.js";
 import SchoolNotice from "../models/schoolNotice.js";
 
 const communicationRouter = express.Router();
+const MAX_INLINE_NEWS_IMAGE_LENGTH = 1_500_000;
 
 const getPublisher = (req, res) => {
   let claims;
@@ -216,6 +217,55 @@ communicationRouter.post("/announcements", async (req, res) => {
   }
 });
 
+communicationRouter.put("/announcements/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement was not found." });
+    }
+
+    announcement.subject = body.subject;
+    announcement.content = body.content;
+    announcement.recipients = body.recipients;
+    await announcement.save();
+    return res.status(200).json(announcement);
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Announcement update failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to update the announcement right now." });
+  }
+});
+
+communicationRouter.delete("/announcements/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  try {
+    const announcement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement was not found." });
+    }
+
+    return res.status(200).json({ message: "Announcement deleted." });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Announcement deletion failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to delete the announcement right now." });
+  }
+});
+
 communicationRouter.get("/announcements", async (req, res) => {
   let claims;
   try {
@@ -243,10 +293,9 @@ communicationRouter.get("/announcements", async (req, res) => {
       claims.role === "admin"
         ? {}
         : { recipients: { $in: [audience, "all"] } };
-    const announcements = await Announcement.find(query)
-      .sort({ sentAt: -1 })
-      .limit(8)
-      .lean();
+    const announcementsQuery = Announcement.find(query).sort({ sentAt: -1 });
+    if (claims.role !== "admin") announcementsQuery.limit(8);
+    const announcements = await announcementsQuery.lean();
     return res.status(200).json(announcements);
   } catch (error) {
     console.error("Announcement retrieval failed:", error.message);
@@ -282,7 +331,18 @@ communicationRouter.post("/news", async (req, res) => {
       message: "Provide a headline, story, and valid publication date.",
     });
   }
-  if (imageUrl && imageUrl.length > 2048) {
+  if (imageUrl.startsWith("data:")) {
+    if (
+      imageUrl.length > MAX_INLINE_NEWS_IMAGE_LENGTH ||
+      !/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+        imageUrl,
+      )
+    ) {
+      return res.status(400).json({
+        message: "News photos must be a JPEG, PNG, or WebP image up to 1 MB.",
+      });
+    }
+  } else if (imageUrl.length > 2048) {
     return res.status(400).json({ message: "Image URL is too long." });
   }
 
@@ -304,6 +364,112 @@ communicationRouter.post("/news", async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to create news article right now." });
+  }
+});
+
+communicationRouter.get("/news/admin", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  try {
+    const articles = await NewsArticle.find()
+      .sort({ publicationDate: -1, createdAt: -1 })
+      .lean();
+    return res.status(200).json(articles);
+  } catch (error) {
+    console.error("Admin news retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve news articles right now." });
+  }
+});
+
+communicationRouter.put("/news/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const headline =
+    typeof body.headline === "string" ? body.headline.trim() : "";
+  const story = typeof body.story === "string" ? body.story.trim() : "";
+  const publicationDate =
+    typeof body.publicationDate === "string"
+      ? new Date(`${body.publicationDate}T00:00:00.000Z`)
+      : null;
+  const hasImageUrl = Object.hasOwn(body, "imageUrl");
+  if (hasImageUrl && typeof body.imageUrl !== "string") {
+    return res.status(400).json({ message: "The news photo is invalid." });
+  }
+  const imageUrl =
+    typeof body.imageUrl === "string" ? body.imageUrl.trim() : "";
+
+  if (
+    !headline ||
+    !story ||
+    !publicationDate ||
+    Number.isNaN(publicationDate.getTime()) ||
+    publicationDate.toISOString().slice(0, 10) !== body.publicationDate
+  ) {
+    return res.status(400).json({
+      message: "Provide a headline, story, and valid publication date.",
+    });
+  }
+  if (imageUrl.startsWith("data:")) {
+    if (
+      imageUrl.length > MAX_INLINE_NEWS_IMAGE_LENGTH ||
+      !/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+        imageUrl,
+      )
+    ) {
+      return res.status(400).json({
+        message: "News photos must be a JPEG, PNG, or WebP image up to 1 MB.",
+      });
+    }
+  } else if (imageUrl.length > 2048) {
+    return res.status(400).json({ message: "Image URL is too long." });
+  }
+
+  try {
+    const article = await NewsArticle.findById(req.params.id);
+    if (!article) {
+      return res.status(404).json({ message: "News article was not found." });
+    }
+
+    article.headline = headline;
+    article.story = story;
+    article.publicationDate = publicationDate;
+    if (hasImageUrl) article.imageUrl = imageUrl;
+    await article.save();
+    return res.status(200).json(article);
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("News article update failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to update the news article right now." });
+  }
+});
+
+communicationRouter.delete("/news/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  try {
+    const article = await NewsArticle.findByIdAndDelete(req.params.id);
+    if (!article) {
+      return res.status(404).json({ message: "News article was not found." });
+    }
+
+    return res.status(200).json({ message: "News article deleted." });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("News article deletion failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to delete the news article right now." });
   }
 });
 
@@ -361,6 +527,22 @@ communicationRouter.get("/notices", async (_req, res) => {
   }
 });
 
+communicationRouter.get("/notices/admin", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  try {
+    const notices = await SchoolNotice.find()
+      .sort({ createdAt: -1 })
+      .lean();
+    return res.status(200).json(notices);
+  } catch (error) {
+    console.error("Admin school notice retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve school notices right now." });
+  }
+});
+
 communicationRouter.post("/notices", async (req, res) => {
   const author = getPublisher(req, res);
   if (!author) return;
@@ -391,6 +573,67 @@ communicationRouter.post("/notices", async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to publish the school notice right now." });
+  }
+});
+
+communicationRouter.put("/notices/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (!title || !message) {
+    return res.status(400).json({
+      message: "Provide both a notice title and message.",
+    });
+  }
+  if (title.length > 160 || message.length > 3000) {
+    return res.status(400).json({
+      message: "The title must be 160 characters or fewer and the message 3,000 characters or fewer.",
+    });
+  }
+
+  try {
+    const notice = await SchoolNotice.findById(req.params.id);
+    if (!notice) {
+      return res.status(404).json({ message: "School notice was not found." });
+    }
+
+    notice.title = title;
+    notice.message = message;
+    await notice.save();
+    return res.status(200).json(notice);
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("School notice update failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to update the school notice right now." });
+  }
+});
+
+communicationRouter.delete("/notices/:id", async (req, res) => {
+  if (!getPublisher(req, res)) return;
+
+  try {
+    const notice = await SchoolNotice.findByIdAndDelete(req.params.id);
+    if (!notice) {
+      return res.status(404).json({ message: "School notice was not found." });
+    }
+
+    return res.status(200).json({ message: "School notice deleted." });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("School notice deletion failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to delete the school notice right now." });
   }
 });
 

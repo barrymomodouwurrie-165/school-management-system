@@ -3,7 +3,9 @@ import { FaBars, FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router";
 import {
   createAnnouncement,
+  deleteAnnouncement,
   getAnnouncements,
+  updateAnnouncement,
 } from "../utils/communicationApi";
 import SentMessages from "./SentMessages";
 
@@ -17,6 +19,8 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [editingId, setEditingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -43,20 +47,74 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
     setIsSending(true);
 
     try {
-      const announcement = await createAnnouncement({
+      const payload = {
         subject: subject.trim(),
         content: content.trim(),
         recipients: [recipient],
-      });
-      setMessages((current) => [announcement, ...current].slice(0, 8));
+      };
+      const announcement = editingId
+        ? await updateAnnouncement(editingId, payload)
+        : await createAnnouncement(payload);
+      setMessages((current) =>
+        editingId
+          ? current.map((item) =>
+              item._id === announcement._id ? announcement : item,
+            )
+          : [announcement, ...current],
+      );
       setSubject("");
       setContent("");
       setRecipient("");
-      setSuccess("Announcement sent successfully.");
+      setEditingId("");
+      setSuccess(
+        editingId
+          ? "Announcement updated successfully."
+          : "Announcement sent successfully.",
+      );
     } catch (sendFailure) {
       setError(sendFailure.message);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleEdit = (announcement) => {
+    setSubject(announcement.subject);
+    setContent(announcement.content);
+    setRecipient(announcement.recipients[0] || "");
+    setEditingId(announcement._id);
+    setError("");
+    setSuccess("");
+  };
+
+  const handleCancelEdit = () => {
+    setSubject("");
+    setContent("");
+    setRecipient("");
+    setEditingId("");
+    setError("");
+    setSuccess("");
+  };
+
+  const handleDelete = async (announcement) => {
+    if (!window.confirm(`Delete "${announcement.subject}" permanently?`)) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setDeletingId(announcement._id);
+    try {
+      await deleteAnnouncement(announcement._id);
+      setMessages((current) =>
+        current.filter((item) => item._id !== announcement._id),
+      );
+      if (editingId === announcement._id) handleCancelEdit();
+      setSuccess("Announcement deleted successfully.");
+    } catch (deleteFailure) {
+      setError(deleteFailure.message);
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -78,7 +136,9 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <div className="rounded-md shadow-md p-2 self-start">
-          <h2 className="font-bold">New announcement</h2>
+          <h2 className="font-bold">
+            {editingId ? "Edit announcement" : "New announcement"}
+          </h2>
           <form onSubmit={handleSend}>
             <div className="form-control">
               <label className="label" htmlFor="announcement-recipient">
@@ -137,8 +197,24 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
                 className="btn btn-primary btn-sm rounded-md"
               >
                 <FaPaperPlane />
-                {isSending ? "Sending..." : "Send announcement"}
+                {isSending
+                  ? editingId
+                    ? "Saving..."
+                    : "Sending..."
+                  : editingId
+                    ? "Save changes"
+                    : "Send announcement"}
               </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="btn btn-ghost btn-sm"
+                  disabled={isSending}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -155,7 +231,12 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
                 key={message._id}
                 className="my-4 p-2 rounded-md shadow-md flex flex-col gap-4"
               >
-                <SentMessages message={message} />
+                <SentMessages
+                  message={message}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  isDeleting={deletingId === message._id}
+                />
               </div>
             ))
           )}

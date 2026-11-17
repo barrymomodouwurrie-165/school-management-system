@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { FaBullhorn, FaPaperPlane } from "react-icons/fa";
+import { FaBullhorn, FaEdit, FaPaperPlane, FaTrash } from "react-icons/fa";
 import {
   createSchoolNotice,
-  getSchoolNotices,
+  deleteSchoolNotice,
+  getAdminSchoolNotices,
+  updateSchoolNotice,
 } from "../utils/communicationApi";
 
 const AdminSchoolNoticeBoard = () => {
@@ -14,10 +16,12 @@ const AdminSchoolNoticeBoard = () => {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     let active = true;
-    getSchoolNotices()
+    getAdminSchoolNotices()
       .then((items) => {
         if (active) setNotices(items);
       })
@@ -40,23 +44,66 @@ const AdminSchoolNoticeBoard = () => {
     setIsSubmitting(true);
 
     try {
-      const notice = await createSchoolNotice({
+      const payload = {
         title: title.trim(),
         message: message.trim(),
-      });
+      };
+      const notice = editingId
+        ? await updateSchoolNotice(editingId, payload)
+        : await createSchoolNotice(payload);
       setNotices((current) =>
-        [notice, ...current.filter((item) => item._id !== notice._id)].slice(
-          0,
-          2,
-        ),
+        editingId
+          ? current.map((item) => (item._id === notice._id ? notice : item))
+          : [notice, ...current],
       );
       setTitle("");
       setMessage("");
-      setSuccess("Notice published to the school landing page.");
+      setEditingId("");
+      setSuccess(
+        editingId
+          ? "Notice updated successfully."
+          : "Notice published to the school landing page.",
+      );
     } catch (submitError) {
       setError(submitError.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (notice) => {
+    setTitle(notice.title);
+    setMessage(notice.message);
+    setEditingId(notice._id);
+    setError("");
+    setSuccess("");
+  };
+
+  const handleCancelEdit = () => {
+    setTitle("");
+    setMessage("");
+    setEditingId("");
+    setError("");
+    setSuccess("");
+  };
+
+  const handleDelete = async (notice) => {
+    if (!window.confirm(`Delete "${notice.title}" permanently?`)) return;
+
+    setError("");
+    setSuccess("");
+    setDeletingId(notice._id);
+    try {
+      await deleteSchoolNotice(notice._id);
+      setNotices((current) =>
+        current.filter((item) => item._id !== notice._id),
+      );
+      if (editingId === notice._id) handleCancelEdit();
+      setSuccess("Notice deleted successfully.");
+    } catch (deleteFailure) {
+      setError(deleteFailure.message);
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -75,7 +122,9 @@ const AdminSchoolNoticeBoard = () => {
 
       <section className="overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm">
         <div className="border-b border-base-300 bg-base-200/60 px-5 py-4 md:px-7">
-          <h2 className="text-lg font-bold">Post a notice</h2>
+          <h2 className="text-lg font-bold">
+            {editingId ? "Edit notice" : "Post a notice"}
+          </h2>
           <p className="mt-1 text-sm text-base-content/70">
             The two latest notices appear on the public landing page.
           </p>
@@ -133,14 +182,30 @@ const AdminSchoolNoticeBoard = () => {
               disabled={isSubmitting}
             >
               <FaPaperPlane aria-hidden="true" />
-              {isSubmitting ? "Publishing..." : "Publish notice"}
+              {isSubmitting
+                ? editingId
+                  ? "Saving..."
+                  : "Publishing..."
+                : editingId
+                  ? "Save changes"
+                  : "Publish notice"}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="btn btn-ghost"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-bold">Recently published</h2>
+        <h2 className="text-lg font-bold">Published notices</h2>
         {loadError ? (
           <p className="text-sm text-error" role="alert">
             {loadError}
@@ -171,6 +236,25 @@ const AdminSchoolNoticeBoard = () => {
               <p className="mt-2 whitespace-pre-wrap break-words text-sm text-base-content/80">
                 {notice.message}
               </p>
+              <div className="mt-4 flex justify-end gap-2 border-t border-base-300 pt-3">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => handleEdit(notice)}
+                >
+                  <FaEdit aria-hidden="true" />
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm text-error"
+                  onClick={() => handleDelete(notice)}
+                  disabled={deletingId === notice._id}
+                >
+                  <FaTrash aria-hidden="true" />
+                  {deletingId === notice._id ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </article>
           ))
         )}

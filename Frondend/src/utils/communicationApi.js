@@ -39,6 +39,28 @@ const postProtected = async (path, payload, fallbackMessage) => {
   }
 };
 
+const putProtected = async (path, payload, fallbackMessage) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}${path}`,
+      payload,
+      getAuthConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, fallbackMessage), { cause: error });
+  }
+};
+
+const deleteProtected = async (path, fallbackMessage) => {
+  try {
+    const response = await axios.delete(`${API_URL}${path}`, getAuthConfig());
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, fallbackMessage), { cause: error });
+  }
+};
+
 export const submitCommunication = (submission) =>
   postProtected(
     "/communications/submissions",
@@ -59,6 +81,19 @@ export const createAnnouncement = (announcement) =>
     "Unable to send the announcement.",
   );
 
+export const updateAnnouncement = (id, announcement) =>
+  putProtected(
+    `/communications/announcements/${encodeURIComponent(id)}`,
+    announcement,
+    "Unable to update the announcement.",
+  );
+
+export const deleteAnnouncement = (id) =>
+  deleteProtected(
+    `/communications/announcements/${encodeURIComponent(id)}`,
+    "Unable to delete the announcement.",
+  );
+
 export const getPublicNews = async () => {
   try {
     const response = await axios.get(`${API_URL}/communications/news`);
@@ -70,6 +105,9 @@ export const getPublicNews = async () => {
     );
   }
 };
+
+export const getAdminNews = () =>
+  getProtected("/communications/news/admin", "Unable to retrieve news articles.");
 
 export const getPublicSchoolOverview = async () => {
   try {
@@ -104,11 +142,43 @@ export const createSchoolNotice = (notice) =>
     "Unable to publish the school notice.",
   );
 
+export const getAdminSchoolNotices = () =>
+  getProtected(
+    "/communications/notices/admin",
+    "Unable to retrieve school notices.",
+  );
+
+export const updateSchoolNotice = (id, notice) =>
+  putProtected(
+    `/communications/notices/${encodeURIComponent(id)}`,
+    notice,
+    "Unable to update the school notice.",
+  );
+
+export const deleteSchoolNotice = (id) =>
+  deleteProtected(
+    `/communications/notices/${encodeURIComponent(id)}`,
+    "Unable to delete the school notice.",
+  );
+
 export const createNewsArticle = (article) =>
   postProtected(
     "/communications/news",
     article,
     "Unable to publish news.",
+  );
+
+export const updateNewsArticle = (id, article) =>
+  putProtected(
+    `/communications/news/${encodeURIComponent(id)}`,
+    article,
+    "Unable to update the news article.",
+  );
+
+export const deleteNewsArticle = (id) =>
+  deleteProtected(
+    `/communications/news/${encodeURIComponent(id)}`,
+    "Unable to delete the news article.",
   );
 
 export const getAdminSubmissions = () =>

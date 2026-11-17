@@ -19,6 +19,7 @@ const newsArticleSchema = new mongoose.Schema(
     imageUrl: {
       type: String,
       trim: true,
+      maxlength: 1_500_000,
     },
   },
   { timestamps: true },
