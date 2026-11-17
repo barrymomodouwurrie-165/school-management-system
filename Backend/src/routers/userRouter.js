@@ -335,7 +335,14 @@ userRouter.get("/admin/dashboard-overview", async (req, res) => {
         .lean(),
       StudentUser.find({
         status: "Active",
-        leadership_position: { $in: ["Head Boy", "Head Girl"] },
+        leadership_position: {
+          $in: [
+            "Head Boy",
+            "Head Girl",
+            "Deputy Head Boy",
+            "Deputy Head Girl",
+          ],
+        },
       })
         .select("_id first_name last_name class leadership_position")
         .sort({ leadership_position: 1, last_name: 1, first_name: 1 })
