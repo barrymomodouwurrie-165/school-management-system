@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  FaBars,
   FaEdit,
   FaNewspaper,
   FaPaperPlane,
   FaTrash,
 } from "react-icons/fa";
-import { Link } from "react-router";
 import {
   createNewsArticle,
   deleteNewsArticle,
@@ -23,7 +21,7 @@ const today = () => {
   return date.toISOString().slice(0, 10);
 };
 
-function NewsComposePage({ isOpen, setIsOpen }) {
+function NewsComposePage() {
   const [headline, setHeadline] = useState("");
   const [story, setStory] = useState("");
   const [publicationDate, setPublicationDate] = useState(today);
@@ -195,12 +193,6 @@ function NewsComposePage({ isOpen, setIsOpen }) {
             Share school news and updates with the public
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
 
       <section className="overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-md">

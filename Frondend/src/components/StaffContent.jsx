@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
-import { FaBars } from "react-icons/fa";
 import StaffContentCard from "./StaffContentCard";
 import StaffEditForm from "./StaffEditForm";
 import StaffProfilePage from "./StaffProfilePage";
@@ -11,8 +9,6 @@ const getInitials = (staff) =>
   `${staff.first_name?.[0] ?? ""}${staff.last_name?.[0] ?? ""}`.toUpperCase();
 
 const StaffContent = ({
-  isOpen,
-  setIsOpen,
   setAssign,
   setStaffName,
   setStaffId,
@@ -113,12 +109,6 @@ const StaffContent = ({
               : `${visibleStaff.length} of ${staff.length} staff members shown`}
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
       <div className="flex items-center">
         <div className="mr-2 max-w-[500px] flex-1">

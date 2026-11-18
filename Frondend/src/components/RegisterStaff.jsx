@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { FaBars } from "react-icons/fa";
-import { Link } from "react-router";
 import {
   getAcademicSubjects,
   getAdminStaff,
@@ -75,7 +73,7 @@ const STAFF_FIELDS = [
   },
 ];
 
-const RegisterStaff = ({ isOpen, setIsOpen }) => {
+const RegisterStaff = () => {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjectOptions, setSubjectOptions] = useState([]);
@@ -171,12 +169,6 @@ const RegisterStaff = ({ isOpen, setIsOpen }) => {
             Add a staff account and sign-in credentials
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
 
       <form

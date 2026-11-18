@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaBars, FaPaperPlane } from "react-icons/fa";
-import { Link } from "react-router";
+import { FaPaperPlane } from "react-icons/fa";
 import {
   createAnnouncement,
   deleteAnnouncement,
@@ -9,7 +8,7 @@ import {
 } from "../utils/communicationApi";
 import SentMessages from "./SentMessages";
 
-const CommunicationsContent = ({ isOpen, setIsOpen }) => {
+const CommunicationsContent = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [recipient, setRecipient] = useState("");
@@ -127,12 +126,6 @@ const CommunicationsContent = ({ isOpen, setIsOpen }) => {
             Send announcements to guardians, staff and students
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <div className="rounded-md shadow-md p-2 self-start">

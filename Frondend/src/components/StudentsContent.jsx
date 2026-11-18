@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
-import { FaBars } from "react-icons/fa";
 import StudentData from "./StudentData";
 import StudentEditForm from "./StudentEditForm";
 import {
@@ -8,7 +6,7 @@ import {
   provisionStudentGuardianAccess,
 } from "../utils/adminApi";
 
-const StudentsContent = ({ isOpen, setIsOpen, initialSearch = "" }) => {
+const StudentsContent = ({ initialSearch = "" }) => {
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState(initialSearch);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,12 +127,6 @@ const StudentsContent = ({ isOpen, setIsOpen, initialSearch = "" }) => {
               : `${visibleStudents.length} of ${students.length} students shown`}
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
 
       <div className="flex items-center">

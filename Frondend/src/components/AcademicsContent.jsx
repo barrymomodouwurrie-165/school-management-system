@@ -4,10 +4,8 @@ import ClassesContent from "./ClassesContent";
 import SubjectsContent from "./SubjectsContent";
 import ExamsContent from "./ExamsContent";
 import AdminResults from "./AdminResults";
-import { Link } from "react-router";
-import { FaBars } from "react-icons/fa";
 
-const AcademicsContent = ({ isOpen, setIsOpen, onViewClass }) => {
+const AcademicsContent = ({ onViewClass }) => {
   const [addButton, setAddButton] = useState("");
   const [isActive, setIsActive] = useState("classes");
 
@@ -59,14 +57,6 @@ const AcademicsContent = ({ isOpen, setIsOpen, onViewClass }) => {
             )}
           </span>
         </button>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
       <div className="my-4 grid grid-cols-2 sm:grid-cols-4">
         <button

@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { FaBars } from "react-icons/fa";
-import { Link } from "react-router";
 import { registerStudent } from "../utils/adminApi";
 import AFRICAN_COUNTRIES from "../utils/africanCountries";
 
@@ -61,7 +59,7 @@ const STUDENT_FIELDS = [
   { name: "guardian_address", label: "Guardian address", fullWidth: true },
 ];
 
-const RegisterStudent = ({ isOpen, setIsOpen }) => {
+const RegisterStudent = () => {
   const [selectedClass, setSelectedClass] = useState("");
   const [status, setStatus] = useState({ type: "", message: "" });
   const [credentials, setCredentials] = useState(null);
@@ -142,12 +140,6 @@ const RegisterStudent = ({ isOpen, setIsOpen }) => {
             Enrol a student and create their portal credentials
           </p>
         </div>
-        <Link
-          className="btn btn-ghost md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <FaBars size={24} />
-        </Link>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl p-4">
