@@ -57,6 +57,22 @@ export const resetAdminStaffPassword = async (staffId, newPassword) => {
   }
 };
 
+export const resetAdminStudentPassword = async (studentId, newPassword) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/students/${encodeURIComponent(studentId)}/password`,
+      { newPassword },
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to renew the student password."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAdminStudents = async () => {
   try {
     const response = await axios.get(

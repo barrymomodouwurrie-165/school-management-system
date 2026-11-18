@@ -961,6 +961,51 @@ userRouter.get("/students", async (req, res) => {
   }
 });
 
+userRouter.put("/students/:studentId/password", async (req, res) => {
+  if (!isAdminRequest(req, res)) return;
+
+  const studentId =
+    typeof req.params.studentId === "string" ? req.params.studentId.trim() : "";
+  const { newPassword } = req.body ?? {};
+  if (!studentId) {
+    return res.status(400).json({ message: "Student ID is required." });
+  }
+  if (
+    typeof newPassword !== "string" ||
+    newPassword.length < 9 ||
+    newPassword.length > 128
+  ) {
+    return res.status(400).json({
+      message: "Password must be between 9 and 128 characters.",
+    });
+  }
+
+  try {
+    const student = await StudentUser.findOne({ student_id: studentId }).select(
+      "+refreshTokenHash",
+    );
+    if (!student) {
+      return res.status(404).json({ message: "Student was not found." });
+    }
+
+    student.password = newPassword;
+    student.refreshTokenHash = null;
+    await student.save();
+
+    return res.status(200).json({
+      message: `Password renewed for student ID ${student.student_id}.`,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Student password renewal failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to renew the student password." });
+  }
+});
+
 userRouter.put("/students/:id", async (req, res) => {
   if (!isAdminRequest(req, res)) return;
   if (!mongoose.isValidObjectId(req.params.id)) {

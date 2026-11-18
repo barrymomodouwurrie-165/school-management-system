@@ -14,7 +14,7 @@ const SENIOR_PROGRAMS = [
   "Technical",
 ];
 
-const ClassesContent = ({ addButton, setAddButton }) => {
+const ClassesContent = ({ addButton, setAddButton, onViewClass }) => {
   const [classrooms, setClassrooms] = useState([]);
   const [section, setSection] = useState("Junior");
   const [grade, setGrade] = useState("");
@@ -220,6 +220,7 @@ const ClassesContent = ({ addButton, setAddButton }) => {
                 <th>Class teacher</th>
                 <th>Students</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -234,6 +235,15 @@ const ClassesContent = ({ addButton, setAddButton }) => {
                   </td>
                   <td>{classroom.totalStudents}</td>
                   <td>{classroom.status}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-xs"
+                      onClick={() => onViewClass(classroom)}
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

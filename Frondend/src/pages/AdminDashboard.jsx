@@ -7,6 +7,8 @@ import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
 import AcademicsContent from "../components/AcademicsContent";
+import ClassStudentsPage from "../components/ClassStudentsPage";
+import StudentPasswordResetPage from "../components/StudentPasswordResetPage";
 import AdminSubmissions from "../components/AdminSubmissions";
 import CommunicationsContent from "../components/CommunicationsContent";
 import NewsComposePage from "../components/NewsComposePage";
@@ -40,6 +42,8 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
   const [pageHistory, setPageHistory] = useState([]);
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [staffSearchQuery, setStaffSearchQuery] = useState("");
+  const [selectedClassroom, setSelectedClassroom] = useState(null);
+  const [studentForPasswordReset, setStudentForPasswordReset] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isClick, setIsClick] = useState(false);
   const [assign, setAssign] = useState(false);
@@ -76,6 +80,8 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
     students: StudentsContent,
     staff: StaffContent,
     academics: AcademicsContent,
+    "class-students": ClassStudentsPage,
+    "student-password-reset": StudentPasswordResetPage,
     submissions: AdminSubmissions,
     "private-message": CommunicationsContent,
     "public-news": NewsComposePage,
@@ -136,7 +142,12 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
   const activePageLabel = NAV_PAGES.flatMap((item) => [
     item,
     ...(item.children || []),
-  ]).find((item) => item.id === activePage)?.label;
+  ]).find((item) => item.id === activePage)?.label ||
+    (activePage === "class-students"
+      ? "Class students"
+      : activePage === "student-password-reset"
+        ? "Renew student password"
+        : "");
   return (
     <div
       className={`min-h-screen overflow-y-auto scrollbar-hide md:pl-[220px] ${
@@ -289,6 +300,17 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
             setAdminProfile(updatedProfile);
             setProfileError("");
           }}
+          classroom={selectedClassroom}
+          student={studentForPasswordReset}
+          onViewClass={(classroom) => {
+            setSelectedClassroom(classroom);
+            navigateToPage("class-students");
+          }}
+          onRenewStudentPassword={(student) => {
+            setStudentForPasswordReset(student);
+            navigateToPage("student-password-reset");
+          }}
+          onBack={navigateBack}
           initialSearch={
             activePage === "students"
               ? studentSearchQuery

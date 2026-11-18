@@ -7,7 +7,7 @@ import AdminResults from "./AdminResults";
 import { Link } from "react-router";
 import { FaBars } from "react-icons/fa";
 
-const AcademicsContent = ({ isOpen, setIsOpen }) => {
+const AcademicsContent = ({ isOpen, setIsOpen, onViewClass }) => {
   const [addButton, setAddButton] = useState("");
   const [isActive, setIsActive] = useState("classes");
 
@@ -107,7 +107,11 @@ const AcademicsContent = ({ isOpen, setIsOpen }) => {
         </button>
       </div>
       {isActive === "classes" ? (
-        <ClassesContent addButton={addButton} setAddButton={setAddButton} />
+        <ClassesContent
+          addButton={addButton}
+          setAddButton={setAddButton}
+          onViewClass={onViewClass}
+        />
       ) : isActive === "subjects" ? (
         <SubjectsContent addButton={addButton} setAddButton={setAddButton} />
       ) : isActive === "exams" ? (
