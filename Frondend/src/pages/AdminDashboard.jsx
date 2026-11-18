@@ -6,6 +6,7 @@ import RegisterStaff from "../components/RegisterStaff";
 import RegisterStudent from "../components/RegisterStudent";
 import StudentsContent from "../components/StudentsContent";
 import StaffContent from "../components/StaffContent";
+import StaffPasswordResetForm from "../components/StaffPasswordResetForm";
 import AcademicsContent from "../components/AcademicsContent";
 import ClassStudentsPage from "../components/ClassStudentsPage";
 import StudentPasswordResetPage from "../components/StudentPasswordResetPage";
@@ -79,6 +80,7 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
     "register-student": RegisterStudent,
     students: StudentsContent,
     staff: StaffContent,
+    "staff-password-reset": StaffPasswordResetForm,
     academics: AcademicsContent,
     "class-students": ClassStudentsPage,
     "student-password-reset": StudentPasswordResetPage,
@@ -149,6 +151,8 @@ const AdminDashboard = ({ theme, toggleTheme }) => {
       ? "Class students"
       : activePage === "student-password-reset"
         ? "Renew student password"
+        : activePage === "staff-password-reset"
+          ? "Renew staff password"
         : "");
   return (
     <div

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import StaffContentCard from "./StaffContentCard";
 import StaffEditForm from "./StaffEditForm";
 import StaffProfilePage from "./StaffProfilePage";
-import StaffPasswordResetForm from "./StaffPasswordResetForm";
 import { getAdminStaff } from "../utils/adminApi";
 
 const getInitials = (staff) =>
@@ -12,6 +11,7 @@ const StaffContent = ({
   setAssign,
   setStaffName,
   setStaffId,
+  onNavigate,
   initialSearch = "",
 }) => {
   const [staff, setStaff] = useState([]);
@@ -140,7 +140,21 @@ const StaffContent = ({
           {successMessage}
         </p>
       )}
-      <StaffPasswordResetForm />
+      <section className="my-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+        <div>
+          <h3 className="font-bold">Renew a staff password</h3>
+          <p className="text-sm text-base-content/70">
+            Open the password renewal form for a staff member.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => onNavigate("staff-password-reset")}
+        >
+          Renew password
+        </button>
+      </section>
       {isLoading ? (
         <p role="status" className="py-8 text-center">
           Loading staff records...

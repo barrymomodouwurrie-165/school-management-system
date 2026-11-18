@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { resetAdminStaffPassword } from "../utils/adminApi";
 
-const StaffPasswordResetForm = () => {
+const StaffPasswordResetForm = ({ onBack }) => {
   const [staffId, setStaffId] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,12 +37,27 @@ const StaffPasswordResetForm = () => {
   };
 
   return (
-    <section className="my-4 rounded-lg border p-4">
-      <h3 className="font-bold">Renew staff password</h3>
-      <p className="mb-3 text-sm text-base-content/70">
-        Enter the staff ID and choose a new password for the staff member.
-      </p>
-      <form onSubmit={handleSubmit}>
+    <main className="mx-auto max-w-4xl p-4">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">Renew staff password</h1>
+          <p className="text-sm text-base-content/70">
+            Enter the staff ID and choose a new password for the staff member.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={onBack}
+          disabled={isSubmitting}
+        >
+          Back to Manage Staff
+        </button>
+      </header>
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-lg border p-4"
+      >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="form-control">
             <span className="label-text mb-1 font-semibold">Staff ID</span>
@@ -104,7 +119,7 @@ const StaffPasswordResetForm = () => {
           </button>
         </div>
       </form>
-    </section>
+    </main>
   );
 };
 
