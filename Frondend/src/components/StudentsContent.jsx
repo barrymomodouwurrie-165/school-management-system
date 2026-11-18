@@ -197,8 +197,8 @@ const StudentsContent = ({ isOpen, setIsOpen, initialSearch = "" }) => {
           Loading student records...
         </p>
       ) : studentRows.length ? (
-        <div className="my-4 rounded-lg shadow-md">
-          <div className="grid grid-cols-6 gap-4 px-2 py-2 text-xs text-base-content/60 md:gap-0 md:text-base">
+        <div className="my-4 overflow-x-auto rounded-lg shadow-md">
+          <div className="grid min-w-[790px] grid-cols-[minmax(150px,1.2fr)_minmax(110px,0.8fr)_minmax(110px,0.8fr)_minmax(170px,1.4fr)_minmax(120px,0.8fr)_minmax(130px,1fr)] gap-4 px-2 py-2 text-base text-base-content/60">
             <span>Student</span>
             <span>Class</span>
             <span>Section</span>
