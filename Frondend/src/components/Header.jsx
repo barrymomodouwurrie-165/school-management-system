@@ -10,7 +10,7 @@ const Header = () => {
       <div className="hero-animate overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-white via-primary/5 to-white p-6 shadow-[0_20px_60px_rgba(37,99,235,0.10)] md:p-10">
         <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
           <div className="flex flex-col items-center text-center md:items-start md:text-left">
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/70 bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
               Since 1998
             </span>
 
