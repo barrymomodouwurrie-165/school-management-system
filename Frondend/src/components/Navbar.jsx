@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { label: "About Us", href: "/about-us" },
   { label: "Academics", href: "#academics" },
   { label: "Admissions", href: "#contact" },
-  { label: "News", href: "#news" },
+  { label: "News", href: "/news" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -17,7 +17,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   const { pathname } = useLocation();
 
   const getItemHref = (href) =>
-    pathname === "/" || href === "/about-us" ? href : `/${href}`;
+    pathname === "/" || href.startsWith("/") ? href : `/${href}`;
 
   return (
     <div className="w-full px-4 pt-4">

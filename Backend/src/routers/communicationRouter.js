@@ -473,11 +473,25 @@ communicationRouter.delete("/news/:id", async (req, res) => {
   }
 });
 
-communicationRouter.get("/news", async (_req, res) => {
+communicationRouter.get("/news", async (req, res) => {
+  const requestedLimit =
+    req.query.limit === undefined ? null : Number(req.query.limit);
+  if (
+    requestedLimit !== null &&
+    (!Number.isInteger(requestedLimit) || requestedLimit < 1)
+  ) {
+    return res.status(400).json({ message: "News limit must be a positive integer." });
+  }
+
   try {
-    const articles = await NewsArticle.find()
-      .sort({ publicationDate: -1 })
-      .limit(5);
+    let articlesQuery = NewsArticle.find().sort({
+      publicationDate: -1,
+      createdAt: -1,
+    });
+    if (requestedLimit !== null) {
+      articlesQuery = articlesQuery.limit(requestedLimit);
+    }
+    const articles = await articlesQuery.lean();
     return res.status(200).json(articles);
   } catch (error) {
     console.error("News article retrieval failed:", error.message);

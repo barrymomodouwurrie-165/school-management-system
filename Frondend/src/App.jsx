@@ -1,6 +1,7 @@
 import { Routes, Route, useNavigate } from "react-router";
 import LandingPage from "./pages/LandingPage";
 import AboutUsPage from "./pages/AboutUsPage";
+import NewsPage from "./pages/NewsPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -44,6 +45,14 @@ function App() {
         <Route
           path="/about-us"
           element={<AboutUsPage theme={theme} toggleTheme={toggleTheme} />}
+        />
+        <Route
+          path="/news"
+          element={<NewsPage theme={theme} toggleTheme={toggleTheme} />}
+        />
+        <Route
+          path="/news/:articleId"
+          element={<NewsPage theme={theme} toggleTheme={toggleTheme} />}
         />
         <Route
           path="/login"

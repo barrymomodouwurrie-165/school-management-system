@@ -94,9 +94,11 @@ export const deleteAnnouncement = (id) =>
     "Unable to delete the announcement.",
   );
 
-export const getPublicNews = async () => {
+export const getPublicNews = async ({ limit } = {}) => {
   try {
-    const response = await axios.get(`${API_URL}/communications/news`);
+    const response = await axios.get(`${API_URL}/communications/news`, {
+      params: limit ? { limit } : undefined,
+    });
     return response.data;
   } catch (error) {
     throw new Error(
