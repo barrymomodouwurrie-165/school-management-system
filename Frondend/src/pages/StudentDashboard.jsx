@@ -27,6 +27,7 @@ import StudentProfilePage from "../components/StudentSideBarComponents/StudentPr
 import MySubjects from "../components/StudentSideBarComponents/MySubjects";
 import StudentCalendarPage from "./StudentCalendarPage";
 import {
+  changeStudentPassword,
   getStudentAttendance,
   getStudentAcademicSummary,
   getStudentProfile,
@@ -62,6 +63,14 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
   });
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState("");
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordChangeError, setPasswordChangeError] = useState("");
+  const [passwordChangeNotice, setPasswordChangeNotice] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -89,6 +98,10 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
   }, []);
 
   useEffect(() => {
+    if (isProfileLoading || !profile || profile.mustChangePassword) {
+      return undefined;
+    }
+
     let active = true;
     Promise.allSettled([
       getStudentAcademicSummary(),
@@ -128,7 +141,56 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isProfileLoading, profile]);
+
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    setPasswordChangeError("");
+    setPasswordChangeNotice("");
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setPasswordChangeError("The new password and confirmation do not match.");
+      return;
+    }
+    if (
+      passwords.newPassword.length < 9 ||
+      passwords.newPassword.length > 128
+    ) {
+      setPasswordChangeError(
+        "Your new password must be between 9 and 128 characters.",
+      );
+      return;
+    }
+    if (passwords.newPassword === passwords.currentPassword) {
+      setPasswordChangeError(
+        "Choose a new password different from your temporary password.",
+      );
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const result = await changeStudentPassword({
+        currentPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword,
+      });
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setPasswordChangeNotice(
+        result.message || "Password updated successfully.",
+      );
+      setProfile((current) => ({ ...current, mustChangePassword: false }));
+    } catch (requestError) {
+      setPasswordChangeError(
+        requestError.message || "Unable to update your password.",
+      );
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const PAGES = {
     announcements: Announcement,
@@ -197,6 +259,130 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     },
   ];
 
+  if (isProfileLoading) {
+    return (
+      <main
+        className={`flex min-h-screen items-center justify-center p-4 ${
+          theme === "dark"
+            ? "bg-slate-950 text-slate-100"
+            : "bg-slate-50 text-slate-800"
+        }`}
+      >
+        <p role="status">Loading your student account...</p>
+      </main>
+    );
+  }
+
+  if (profile?.mustChangePassword) {
+    const isDark = theme === "dark";
+    return (
+      <main
+        className={`min-h-screen px-4 py-8 ${
+          isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-800"
+        }`}
+      >
+        <header className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+          <div>
+            <p className="font-bold text-primary">EDUCORE SCHOOL PORTAL</p>
+            <p className="text-sm opacity-70">Student Portal</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="btn btn-sm"
+            >
+              {theme === "corporate" ? "Dark mode" : "Light mode"}
+            </button>
+            <LogoutButton className="btn btn-ghost btn-sm" />
+          </div>
+        </header>
+
+        <section
+          className={`mx-auto mt-10 max-w-xl rounded-2xl border p-6 shadow-xl sm:p-8 ${
+            isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
+          }`}
+        >
+          <h1 className="text-2xl font-bold">Set your new password</h1>
+          <p className="mb-5 mt-2 text-sm opacity-70">
+            Before opening your student portal, replace the temporary password
+            provided by the school with a password only you know.
+          </p>
+          {passwordChangeError && (
+            <p role="alert" className="alert alert-error mb-4">
+              {passwordChangeError}
+            </p>
+          )}
+          <form className="space-y-4" onSubmit={handleChangePassword}>
+            <label className="form-control">
+              <span className="label-text mb-1 font-semibold">
+                Temporary password
+              </span>
+              <input
+                type="password"
+                autoComplete="current-password"
+                className="input input-bordered"
+                value={passwords.currentPassword}
+                onChange={(event) =>
+                  setPasswords((current) => ({
+                    ...current,
+                    currentPassword: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1 font-semibold">New password</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                minLength={9}
+                maxLength={128}
+                className="input input-bordered"
+                value={passwords.newPassword}
+                onChange={(event) =>
+                  setPasswords((current) => ({
+                    ...current,
+                    newPassword: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text mb-1 font-semibold">
+                Confirm new password
+              </span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                minLength={9}
+                maxLength={128}
+                className="input input-bordered"
+                value={passwords.confirmPassword}
+                onChange={(event) =>
+                  setPasswords((current) => ({
+                    ...current,
+                    confirmPassword: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={isChangingPassword}
+              className="btn btn-primary w-full"
+            >
+              {isChangingPassword ? "Updating password..." : "Update password"}
+            </button>
+          </form>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <div
       className={`min-h-screen py-4 md:pl-[220px] ${
@@ -253,6 +439,11 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         </button>
       </nav>
       <div className="max-w-4xl mx-auto p-4">
+        {passwordChangeNotice && (
+          <p role="status" className="alert alert-success mb-4">
+            {passwordChangeNotice}
+          </p>
+        )}
         <div className="mb-4 flex items-center justify-between">
           <p className="developer-credit text-sm text-base-content/70">
             Designed and Developed by BarryDev-HUB

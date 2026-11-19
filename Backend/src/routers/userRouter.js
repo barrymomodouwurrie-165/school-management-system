@@ -626,7 +626,7 @@ userRouter.get("/student/profile", async (req, res) => {
   try {
     const student = await StudentUser.findById(claims.id)
       .select(
-        "student_id first_name last_name gender date_of_birth nationality phone_number ethnicity religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status",
+        "student_id first_name last_name gender date_of_birth nationality phone_number ethnicity religion previous_school section class enrollment_date guardian_name guardian_phone guardian_email guardian_address status mustChangePassword",
       )
       .lean();
     if (!student) {
@@ -652,6 +652,7 @@ userRouter.get("/student/profile", async (req, res) => {
       className: student.class,
       enrollmentDate: student.enrollment_date,
       status: student.status,
+      mustChangePassword: Boolean(student.mustChangePassword),
       gender: student.gender,
       dateOfBirth: student.date_of_birth,
       nationality: student.nationality,
@@ -678,6 +679,63 @@ userRouter.get("/student/profile", async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to retrieve student profile." });
+  }
+});
+
+userRouter.post("/student/change-password", async (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "A valid access token is required." });
+  }
+
+  if (claims.role !== "student" || typeof claims.id !== "string") {
+    return res
+      .status(403)
+      .json({ message: "Only students can change their password." });
+  }
+
+  const { currentPassword, newPassword } = req.body ?? {};
+  if (
+    typeof currentPassword !== "string" ||
+    typeof newPassword !== "string" ||
+    newPassword.length < 9 ||
+    newPassword.length > 128
+  ) {
+    return res.status(400).json({
+      message: "Provide your temporary password and a new password of 9 to 128 characters.",
+    });
+  }
+  if (currentPassword === newPassword) {
+    return res.status(400).json({
+      message: "Choose a new password different from your temporary password.",
+    });
+  }
+
+  try {
+    const student = await StudentUser.findById(claims.id).select("+password");
+    if (!student) {
+      return res.status(404).json({ message: "Student account was not found." });
+    }
+    if (!(await bcrypt.compare(currentPassword, student.password))) {
+      return res.status(401).json({ message: "Current password is incorrect." });
+    }
+
+    student.password = newPassword;
+    student.mustChangePassword = false;
+    await student.save();
+    return res.status(200).json({ message: "Password updated successfully." });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Student password change failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to update the student password." });
   }
 });
 
@@ -989,6 +1047,7 @@ userRouter.put("/students/:studentId/password", async (req, res) => {
     }
 
     student.password = newPassword;
+    student.mustChangePassword = true;
     student.refreshTokenHash = null;
     await student.save();
 

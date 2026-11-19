@@ -2,6 +2,29 @@ import axios from "./apiClient.js";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
+export const changeStudentPassword = async (passwords) => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to change your password.");
+  }
+
+  try {
+    const response = await axios.post(
+      `${API_URL}/users/student/change-password`,
+      passwords,
+      { headers: { Authorization: ["Bearer", accessToken].join(" ") } },
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to update your password.",
+      { cause: error },
+    );
+  }
+};
+
 export const getStudentProfile = async () => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {

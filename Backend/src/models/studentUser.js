@@ -38,6 +38,7 @@ const studentSchema = new mongoose.Schema(
     guardian_email: { type: String },
     guardian_address: { type: String, required: true },
     role: { type: String, enum: ["student"], default: "student" },
+    mustChangePassword: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["Active", "Suspended", "Transferred"],

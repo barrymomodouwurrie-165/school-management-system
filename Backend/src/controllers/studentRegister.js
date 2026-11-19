@@ -156,6 +156,7 @@ const studentRegister = async (req, res) => {
       student_id: username,
       username,
       password,
+      mustChangePassword: true,
       status: "Active",
     });
     let guardianAccess;
