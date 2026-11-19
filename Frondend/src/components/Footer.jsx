@@ -29,7 +29,7 @@ const Footer = () => {
           <h2 className="font-bold text-primary">Quick links</h2>
           <a href="/#contact">Admissions information</a>
           <a href="/#academics">Academics</a>
-          <a href="/#about">About Us</a>
+          <Link to="/about-us">About Us</Link>
         </nav>
         <div className="flex flex-col items-start gap-2">
           <h2 className="font-bold text-primary">Portal</h2>

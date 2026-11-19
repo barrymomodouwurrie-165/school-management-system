@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router";
 import logo from "../assets/logo.jpg";
 import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa";
 
 const NAV_ITEMS = [
   { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
+  { label: "About Us", href: "/about-us" },
   { label: "Academics", href: "#academics" },
   { label: "Admissions", href: "#contact" },
   { label: "News", href: "#news" },
@@ -13,6 +14,10 @@ const NAV_ITEMS = [
 
 const Navbar = ({ theme, toggleTheme }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  const getItemHref = (href) =>
+    pathname === "/" || href === "/about-us" ? href : `/${href}`;
 
   return (
     <div className="w-full px-4 pt-4">
@@ -43,13 +48,13 @@ const Navbar = ({ theme, toggleTheme }) => {
                 className="hidden items-center gap-1 text-primary md:flex"
               >
                 {NAV_ITEMS.map((item) => (
-                  <a
+                  <Link
                     key={item.label}
-                    href={item.href}
+                    to={getItemHref(item.href)}
                     className="btn btn-ghost btn-sm rounded-full px-3 text-sm font-medium transition-all duration-300 hover:bg-primary/5 hover:shadow-sm"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 ))}
               </nav>
 
@@ -91,14 +96,14 @@ const Navbar = ({ theme, toggleTheme }) => {
               className="mt-2 grid gap-1 border-t border-primary/10 pt-2 md:hidden"
             >
               {NAV_ITEMS.map((item) => (
-                <a
+                <Link
                   key={item.label}
-                  href={item.href}
+                  to={getItemHref(item.href)}
                   onClick={() => setIsMenuOpen(false)}
                   className="btn btn-ghost btn-sm justify-start rounded-lg text-primary"
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
             </nav>
           )}
