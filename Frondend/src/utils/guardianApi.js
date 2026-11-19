@@ -28,6 +28,12 @@ export const getGuardianPortal = () =>
     "Unable to retrieve your child's progress.",
   );
 
+export const getGuardianCalendarEvents = () =>
+  getPortalResponse(
+    axios.get(`${API_URL}/calendar/events/guardian`, getAuthConfig()),
+    "Unable to retrieve upcoming school events.",
+  );
+
 export const changeGuardianPassword = (passwords) =>
   getPortalResponse(
     axios.post(

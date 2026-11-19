@@ -272,6 +272,68 @@ export const createAcademicClass = async (classroom) => {
   }
 };
 
+export const getAdminCalendarEvents = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/calendar/events`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve calendar events."),
+      { cause: error },
+    );
+  }
+};
+
+export const createAdminCalendarEvent = async (event) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/calendar/events`,
+      event,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to publish the calendar event."),
+      { cause: error },
+    );
+  }
+};
+
+export const updateAdminCalendarEvent = async (eventId, event) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/calendar/events/${encodeURIComponent(eventId)}`,
+      event,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to update the calendar event."),
+      { cause: error },
+    );
+  }
+};
+
+export const deleteAdminCalendarEvent = async (eventId) => {
+  try {
+    const response = await axios.delete(
+      `${API_URL}/calendar/events/${encodeURIComponent(eventId)}`,
+      getAdminConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to delete the calendar event."),
+      { cause: error },
+    );
+  }
+};
+
 export const getAcademicSubjects = async () => {
   try {
     const response = await axios.get(

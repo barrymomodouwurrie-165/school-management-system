@@ -5,10 +5,12 @@ import Announcement from "../components/Announcement";
 import GuardianContactForm from "../components/GuardianContactForm";
 import GuardianDashboardHeader from "../components/GuardianDashboardHeader";
 import GuardianStudentCard from "../components/GuardianStudentCard";
+import UpcomingSchoolEvents from "../components/UpcomingSchoolEvents";
 import {
   acknowledgeGuardianAlert,
   changeGuardianPassword,
   contactSchool,
+  getGuardianCalendarEvents,
   getGuardianPortal,
 } from "../utils/guardianApi";
 import { getAnnouncements } from "../utils/communicationApi";
@@ -21,6 +23,9 @@ const GuardianDashboard = ({ theme, toggleTheme }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [unreadAnnouncementCount, setUnreadAnnouncementCount] = useState(0);
   const [announcementError, setAnnouncementError] = useState("");
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [calendarEventsLoading, setCalendarEventsLoading] = useState(true);
+  const [calendarEventsError, setCalendarEventsError] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [passwords, setPasswords] = useState({
@@ -41,6 +46,7 @@ const GuardianDashboard = ({ theme, toggleTheme }) => {
     try {
       const data = await getGuardianPortal();
       setError("");
+      setCalendarEventsLoading(true);
       setPortal(data);
       if (data.children?.length) {
         setContact((current) => ({
@@ -56,12 +62,39 @@ const GuardianDashboard = ({ theme, toggleTheme }) => {
   }, []);
 
   useEffect(() => {
+    if (!portal || portal.mustChangePassword) return undefined;
+
+    let active = true;
+    getGuardianCalendarEvents()
+      .then((events) => {
+        if (!active) return;
+        setCalendarEvents(events);
+        setCalendarEventsError("");
+      })
+      .catch((requestError) => {
+        if (active) {
+          setCalendarEventsError(
+            requestError.message || "Unable to load upcoming school events.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setCalendarEventsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [portal]);
+
+  useEffect(() => {
     let active = true;
     Promise.resolve()
       .then(() => getGuardianPortal())
       .then((data) => {
         if (!active) return;
         setError("");
+        setCalendarEventsLoading(true);
         setPortal(data);
         if (data.children?.length) {
           setContact((current) => ({
@@ -381,6 +414,14 @@ const GuardianDashboard = ({ theme, toggleTheme }) => {
                 </p>
               </div>
             </section>
+
+            <UpcomingSchoolEvents
+              events={calendarEvents}
+              isLoading={calendarEventsLoading}
+              error={calendarEventsError}
+              surfaceClass={surfaceClass}
+              mutedClass={mutedClass}
+            />
 
             {portal?.children?.length ? (
               <section className="grid items-start gap-5 lg:grid-cols-2">

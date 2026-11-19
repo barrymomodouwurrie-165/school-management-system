@@ -25,6 +25,7 @@ import SendSuggestion from "../components/StudentSideBarComponents/SendSuggestio
 import SendComplaint from "../components/StudentSideBarComponents/SendComplaint";
 import StudentProfilePage from "../components/StudentSideBarComponents/StudentProfilePage";
 import MySubjects from "../components/StudentSideBarComponents/MySubjects";
+import StudentCalendarPage from "./StudentCalendarPage";
 import {
   getStudentAttendance,
   getStudentAcademicSummary,
@@ -136,6 +137,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
     ai: AiAssistance,
     "check-result": ResultCheck,
     "exam-details": StudentExamDetails,
+    "school-calendar": StudentCalendarPage,
     "report-student": ReportStudent,
     suggestion: SendSuggestion,
     complaint: SendComplaint,
@@ -178,6 +180,7 @@ const StudentDashboard = ({ theme, toggleTheme }) => {
         { id: "my-subjects", label: "My Subjects" },
         { id: "check-result", label: "Check Result" },
         { id: "exam-details", label: "Exam Details" },
+        { id: "school-calendar", label: "School Calendar" },
       ],
     },
     { id: "ai", label: "AI Study Coach", icon: FaRobot },

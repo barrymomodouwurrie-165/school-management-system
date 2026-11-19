@@ -153,6 +153,27 @@ export const getStudentExams = async () => {
   }
 };
 
+export const getStudentCalendarEvents = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    throw new Error("Please sign in again to view the school calendar.");
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/calendar/events/student`, {
+      headers: { Authorization: ["Bearer", accessToken].join(" ") },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to retrieve school events.",
+      { cause: error },
+    );
+  }
+};
+
 export const getStudentResultOptions = async () => {
   const accessToken = localStorage.getItem("accessToken");
   if (!accessToken) {
