@@ -14,6 +14,7 @@ import { RiArrowGoBackLine } from "react-icons/ri";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import axios from "../utils/apiClient.js";
+// import Logo from "../assets/logo.jpg";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -91,9 +92,15 @@ const LoginPage = ({ theme, toggleTheme }) => {
         </button>
       </div>
       <div className="max-w-xl mx-auto px-4 py-1">
-        <div className=" max-w-[20rem] mx-auto py-1 mb-2 flex items-center justify-center gap-2 bg-primary/90 rounded-lg border border-primary">
-          <FaGraduationCap size={24} />
-          <span className="font-bold">EDUCORE SCHOOL PORTAL</span>
+        <div className=" max-w-[60rem] mx-auto mb-2 flex items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">
+          {/* <img
+            src={Logo}
+            alt="School logo"
+            className="h-12 w-12 rounded-full object-cover"
+          /> */}
+          <span className="font-bold">
+            LAMONADE JUNIOR AND SENIOR SECONDARY SCHOOL
+          </span>
         </div>
         <div className="card bg-white max-w-md mx-auto border-t-2 border-primary rounded-lg shadow-lg">
           <div className="px-3 py-3">
@@ -204,9 +211,7 @@ const LoginPage = ({ theme, toggleTheme }) => {
                   />
                 </div>
               </div>
-              <Link className="flex justify-end text-primary">
-                Forgot Password?
-              </Link>
+             
               {error && (
                 <p role="alert" className="mt-2 text-sm text-error">
                   {error}
@@ -245,8 +250,8 @@ const LoginPage = ({ theme, toggleTheme }) => {
         <footer className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-primary/50 px-4 py-3 text-center text-xs md:flex-row md:items-center md:justify-between md:text-left md:text-sm">
           <div className="text-base-content/70">
             <span>
-              &copy;2026 Barry's Junior and Secondary School Management. all
-              rights reserved.
+              &copy;2026 LAMONADE JUNIOR AND SENIOR SECONDARY SCHOOL Management.
+              all rights reserved.
             </span>
           </div>
           <nav

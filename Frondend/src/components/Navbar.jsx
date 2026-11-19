@@ -37,7 +37,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                   Designed and Developed by BarryDev-HUB
                 </p>
                 <span className="block text-sm font-bold leading-tight text-slate-800 sm:text-base">
-                  Barry's Junior and Secondary School
+                  LAMONADE JUNIOR AND SENIOR SECONDARY SCHOOL
                 </span>
               </div>
             </div>
