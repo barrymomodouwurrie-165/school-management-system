@@ -217,3 +217,18 @@ export const getTeacherExams = async () => {
     );
   }
 };
+
+export const getTeacherCalendarEvents = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/calendar/events/teacher`,
+      getTeacherConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Unable to retrieve upcoming school events."),
+      { cause: error },
+    );
+  }
+};

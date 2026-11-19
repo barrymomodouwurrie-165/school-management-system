@@ -12,6 +12,7 @@ import CheckStudentAttendance from "../components/TeacherComponents/CheckStudent
 import MyStudents from "../components/TeacherComponents/MyStudents";
 import MyClassSubjects from "../components/TeacherComponents/MyClassSubjects";
 import StudentSuccessRadar from "../components/TeacherComponents/StudentSuccessRadar";
+import TeacherCalendarPage from "./TeacherCalendarPage";
 import { MdExitToApp } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { getTeacherProfile } from "../utils/teacherApi";
@@ -27,6 +28,7 @@ import {
   FaChartLine,
   FaUserCircle,
   FaBars,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
 const TeacherDashboard = ({ theme, toggleTheme }) => {
@@ -66,6 +68,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
     "success-radar": StudentSuccessRadar,
     "my-class-subjects": MyClassSubjects,
     "exam-details": ExamsContent,
+    "school-calendar": TeacherCalendarPage,
     "report-student": ReportStudent,
     "send-suggestion": SendSuggestion,
   };
@@ -93,6 +96,7 @@ const TeacherDashboard = ({ theme, toggleTheme }) => {
         { id: "success-radar", label: "Student Success Radar", logo: FaChartLine },
         { id: "my-class-subjects", label: "My Class Subjects" },
         { id: "exam-details", label: "Exam Details" },
+        { id: "school-calendar", label: "School Calendar", logo: FaCalendarAlt },
       ],
     },
     {

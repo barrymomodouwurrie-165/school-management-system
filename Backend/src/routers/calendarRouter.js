@@ -188,6 +188,18 @@ calendarRouter.get("/events/student", async (req, res) => {
   }
 });
 
+calendarRouter.get("/events/teacher", async (req, res) => {
+  if (!getClaimsForRole(req, res, "teacher")) return;
+  try {
+    return res.status(200).json(await getUpcomingEvents());
+  } catch (error) {
+    console.error("Teacher calendar event retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve upcoming school events." });
+  }
+});
+
 calendarRouter.get("/events/guardian", async (req, res) => {
   if (!getClaimsForRole(req, res, "guardian")) return;
   try {
