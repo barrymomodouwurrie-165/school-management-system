@@ -52,6 +52,19 @@ const putProtected = async (path, payload, fallbackMessage) => {
   }
 };
 
+const patchProtected = async (path, payload, fallbackMessage) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}${path}`,
+      payload,
+      getAuthConfig(),
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, fallbackMessage), { cause: error });
+  }
+};
+
 const deleteProtected = async (path, fallbackMessage) => {
   try {
     const response = await axios.delete(`${API_URL}${path}`, getAuthConfig());
@@ -187,4 +200,17 @@ export const getAdminSubmissions = () =>
   getProtected(
     "/communications/submissions",
     "Unable to retrieve submissions.",
+  );
+
+export const getAdminSubmissionAssignees = () =>
+  getProtected(
+    "/communications/submissions/assignees",
+    "Unable to retrieve submission owners.",
+  );
+
+export const updateAdminSubmission = (type, id, updates) =>
+  patchProtected(
+    `/communications/submissions/${encodeURIComponent(type)}/${encodeURIComponent(id)}`,
+    updates,
+    "Unable to update the submission workflow.",
   );

@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import { createSubmissionWorkflowFields } from "./submissionWorkflowFields.js";
 
 const studentReportSchema = new mongoose.Schema(
   {
+    ...createSubmissionWorkflowFields(),
     reportedStudent: {
       type: String,
       required: true,

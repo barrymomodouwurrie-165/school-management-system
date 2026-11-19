@@ -1,9 +1,11 @@
 import express from "express";
+import mongoose from "mongoose";
 import Announcement from "../models/announcement.js";
 import NewsArticle from "../models/newsArticle.js";
 import FeedbackSubmission from "../models/feedbackSubmission.js";
 import StudentReport from "../models/studentReport.js";
 import { isAuthentic } from "../models/tokens.js";
+import AdminUser from "../models/adminUser.js";
 import StudentUser from "../models/studentUser.js";
 import StaffUser from "../models/staffUser.js";
 import ClassRoom from "../models/classRoom.js";
@@ -12,6 +14,62 @@ import SchoolNotice from "../models/schoolNotice.js";
 
 const communicationRouter = express.Router();
 const MAX_INLINE_NEWS_IMAGE_LENGTH = 1_500_000;
+const SUBMISSION_STATUSES = ["open", "in-progress", "resolved"];
+
+const getAdminClaims = (req, res) => {
+  let claims;
+  try {
+    claims = isAuthentic(req);
+  } catch {
+    res.status(401).json({ message: "A valid access token is required." });
+    return null;
+  }
+
+  if (
+    claims.role !== "admin" ||
+    typeof claims.id !== "string" ||
+    typeof claims.username !== "string"
+  ) {
+    res.status(403).json({ message: "Only admins can manage submissions." });
+    return null;
+  }
+
+  return claims;
+};
+
+const getSubmissionModel = (type) => {
+  if (type === "student-report") return StudentReport;
+  if (type === "suggestion" || type === "complaint") {
+    return FeedbackSubmission;
+  }
+  return null;
+};
+
+const normalizeSubmissionWorkflow = (submission) => ({
+  ...submission,
+  status: submission.status || "open",
+  assignedTo: submission.assignedTo?.userId ? submission.assignedTo : null,
+  internalNotes: submission.internalNotes || [],
+  resolutionHistory: submission.resolutionHistory || [],
+});
+
+const serializeAdminSubmission = (submission) => {
+  const visibleSubmission = normalizeSubmissionWorkflow(submission);
+  if (visibleSubmission.anonymous) {
+    delete visibleSubmission.submittedById;
+    delete visibleSubmission.submittedByName;
+  }
+  return visibleSubmission;
+};
+
+const hideAdminWorkflow = (submission) => {
+  const publicSubmission = { ...submission };
+  delete publicSubmission.status;
+  delete publicSubmission.assignedTo;
+  delete publicSubmission.internalNotes;
+  delete publicSubmission.resolutionHistory;
+  return publicSubmission;
+};
 
 const getPublisher = (req, res) => {
   let claims;
@@ -96,7 +154,7 @@ communicationRouter.post("/submissions", async (req, res) => {
           body.requestCounselor ?? body.involveCounselor === "Yes",
       });
 
-      return res.status(201).json(report);
+      return res.status(201).json(hideAdminWorkflow(report.toObject()));
     }
 
     if (body.type === "suggestion" || body.type === "complaint") {
@@ -110,7 +168,7 @@ communicationRouter.post("/submissions", async (req, res) => {
         confidential: body.confidential ?? false,
       });
 
-      return res.status(201).json(submission);
+      return res.status(201).json(hideAdminWorkflow(submission.toObject()));
     }
 
     return res
@@ -150,15 +208,10 @@ communicationRouter.get("/submissions", async (req, res) => {
       FeedbackSubmission.find().sort({ createdAt: -1 }).lean(),
     ]);
 
-    const visibleFeedback = feedback.map((submission) => {
-      if (!submission.anonymous) return submission;
-      const anonymousSubmission = { ...submission };
-      delete anonymousSubmission.submittedById;
-      delete anonymousSubmission.submittedByName;
-      return anonymousSubmission;
+    return res.status(200).json({
+      reports: reports.map(normalizeSubmissionWorkflow),
+      feedback: feedback.map(serializeAdminSubmission),
     });
-
-    return res.status(200).json({ reports, feedback: visibleFeedback });
   } catch (error) {
     console.error("Submission retrieval failed:", error.message);
     return res
@@ -166,6 +219,163 @@ communicationRouter.get("/submissions", async (req, res) => {
       .json({ message: "Unable to retrieve submissions right now." });
   }
 });
+
+communicationRouter.get("/submissions/assignees", async (req, res) => {
+  if (!getAdminClaims(req, res)) return;
+
+  try {
+    const admins = await AdminUser.find()
+      .select("_id fullName username")
+      .sort({ username: 1 })
+      .lean();
+    return res.status(200).json(
+      admins.map((admin) => ({
+        id: String(admin._id),
+        name: admin.fullName || admin.username,
+        username: admin.username,
+      })),
+    );
+  } catch (error) {
+    console.error("Submission assignee retrieval failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve submission owners." });
+  }
+});
+
+communicationRouter.patch(
+  "/submissions/:type/:submissionId",
+  async (req, res) => {
+    const claims = getAdminClaims(req, res);
+    if (!claims) return;
+
+    const SubmissionModel = getSubmissionModel(req.params.type);
+    if (!SubmissionModel) {
+      return res.status(400).json({ message: "Invalid submission type." });
+    }
+    if (!mongoose.isValidObjectId(req.params.submissionId)) {
+      return res.status(400).json({ message: "A valid submission is required." });
+    }
+
+    const body =
+      req.body && typeof req.body === "object" && !Array.isArray(req.body)
+        ? req.body
+        : {};
+    const hasStatus = Object.hasOwn(body, "status");
+    const hasAssignee = Object.hasOwn(body, "assignedToId");
+    const hasInternalNote = Object.hasOwn(body, "internalNote");
+    const hasResolutionNote = Object.hasOwn(body, "resolutionNote");
+
+    if (!hasStatus && !hasAssignee && !hasInternalNote) {
+      return res.status(400).json({ message: "Provide a workflow update." });
+    }
+    if (hasStatus && !SUBMISSION_STATUSES.includes(body.status)) {
+      return res.status(400).json({ message: "Select a valid submission status." });
+    }
+    if (
+      hasAssignee &&
+      body.assignedToId !== null &&
+      (typeof body.assignedToId !== "string" ||
+        !mongoose.isValidObjectId(body.assignedToId))
+    ) {
+      return res.status(400).json({ message: "Select a valid submission owner." });
+    }
+    if (
+      hasInternalNote &&
+      (typeof body.internalNote !== "string" ||
+        !body.internalNote.trim() ||
+        body.internalNote.trim().length > 3000)
+    ) {
+      return res.status(400).json({
+        message: "Internal notes must contain 1 to 3000 characters.",
+      });
+    }
+    if (
+      hasResolutionNote &&
+      (!hasStatus ||
+        typeof body.resolutionNote !== "string" ||
+        body.resolutionNote.trim().length > 3000)
+    ) {
+      return res.status(400).json({
+        message: "A resolution note of up to 3000 characters must accompany a status update.",
+      });
+    }
+
+    try {
+      const submission = await SubmissionModel.findById(
+        req.params.submissionId,
+      );
+      if (!submission) {
+        return res.status(404).json({ message: "Submission was not found." });
+      }
+
+      const currentStatus = submission.status || "open";
+      const nextStatus = hasStatus ? body.status : currentStatus;
+      const statusChanged = nextStatus !== currentStatus;
+      if (
+        statusChanged &&
+        nextStatus === "resolved" &&
+        !body.resolutionNote?.trim()
+      ) {
+        return res.status(400).json({
+          message: "Add a resolution summary before marking this submission resolved.",
+        });
+      }
+      if (hasResolutionNote && !statusChanged) {
+        return res.status(400).json({
+          message: "A resolution summary can only be added when changing status.",
+        });
+      }
+
+      let assignedTo = null;
+      if (hasAssignee && body.assignedToId) {
+        const admin = await AdminUser.findById(body.assignedToId)
+          .select("_id fullName username")
+          .lean();
+        if (!admin) {
+          return res.status(404).json({ message: "Submission owner was not found." });
+        }
+        assignedTo = {
+          userId: String(admin._id),
+          name: admin.fullName || admin.username,
+        };
+      }
+
+      if (statusChanged) {
+        submission.resolutionHistory.push({
+          fromStatus: currentStatus,
+          toStatus: nextStatus,
+          note: body.resolutionNote?.trim() || "",
+          changedById: claims.id,
+          changedByName: claims.username,
+        });
+        submission.status = nextStatus;
+      }
+      if (hasAssignee) submission.assignedTo = assignedTo;
+      if (hasInternalNote) {
+        submission.internalNotes.push({
+          note: body.internalNote.trim(),
+          authorId: claims.id,
+          authorName: claims.username,
+        });
+      }
+
+      await submission.save();
+      return res.status(200).json({
+        message: "Submission workflow updated.",
+        submission: serializeAdminSubmission(submission.toObject()),
+      });
+    } catch (error) {
+      if (error.name === "ValidationError" || error.name === "CastError") {
+        return res.status(400).json({ message: error.message });
+      }
+      console.error("Submission workflow update failed:", error.message);
+      return res
+        .status(500)
+        .json({ message: "Unable to update the submission workflow." });
+    }
+  },
+);
 
 communicationRouter.get("/submissions/mine", async (req, res) => {
   const submitter = getSubmissionUser(req, res);
@@ -181,7 +391,10 @@ communicationRouter.get("/submissions/mine", async (req, res) => {
         .lean(),
     ]);
 
-    return res.status(200).json({ reports, feedback });
+    return res.status(200).json({
+      reports: reports.map(hideAdminWorkflow),
+      feedback: feedback.map(hideAdminWorkflow),
+    });
   } catch (error) {
     console.error("Personal submission retrieval failed:", error.message);
     return res

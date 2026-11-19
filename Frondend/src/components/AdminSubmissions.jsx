@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaSyncAlt } from "react-icons/fa";
-import { getAdminSubmissions } from "../utils/communicationApi";
+import AdminSubmissionCard from "./AdminSubmissionCard";
+import {
+  getAdminSubmissionAssignees,
+  getAdminSubmissions,
+  updateAdminSubmission,
+} from "../utils/communicationApi";
 
 const FILTERS = [
   { id: "all", label: "All submissions" },
@@ -9,24 +14,33 @@ const FILTERS = [
   { id: "complaint", label: "Complaints" },
 ];
 
-const formatDate = (date) => {
-  const parsedDate = new Date(date);
-  return Number.isNaN(parsedDate.getTime())
-    ? "Date unavailable"
-    : parsedDate.toLocaleString();
-};
+const STATUS_FILTERS = [
+  { id: "all", label: "All statuses" },
+  { id: "open", label: "Open" },
+  { id: "in-progress", label: "In progress" },
+  { id: "resolved", label: "Resolved" },
+];
 
 const AdminSubmissions = () => {
   const [submissions, setSubmissions] = useState({ reports: [], feedback: [] });
+  const [assignees, setAssignees] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchAdminData = useCallback(
+    () => Promise.all([getAdminSubmissions(), getAdminSubmissionAssignees()]),
+    [],
+  );
 
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
     setStatus({ type: "", message: "" });
     try {
-      setSubmissions(await getAdminSubmissions());
+      const [data, owners] = await fetchAdminData();
+      setSubmissions(data);
+      setAssignees(owners);
     } catch (error) {
       setStatus({
         type: "error",
@@ -35,14 +49,16 @@ const AdminSubmissions = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchAdminData]);
 
   useEffect(() => {
     let isActive = true;
 
-    getAdminSubmissions()
-      .then((data) => {
-        if (isActive) setSubmissions(data);
+    fetchAdminData()
+      .then(([data, owners]) => {
+        if (!isActive) return;
+        setSubmissions(data);
+        setAssignees(owners);
       })
       .catch((error) => {
         if (isActive) {
@@ -59,7 +75,7 @@ const AdminSubmissions = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [fetchAdminData]);
 
   const allSubmissions = useMemo(
     () => [
@@ -74,6 +90,7 @@ const AdminSubmissions = () => {
         ...item,
         submissionType: item.type,
         title: item.subject,
+        details: item.details,
         submittedAt: item.createdAt,
       })),
     ].sort(
@@ -84,10 +101,30 @@ const AdminSubmissions = () => {
     [submissions],
   );
 
-  const visibleSubmissions =
-    filter === "all"
-      ? allSubmissions
-      : allSubmissions.filter((item) => item.submissionType === filter);
+  const visibleSubmissions = allSubmissions.filter(
+    (item) =>
+      (filter === "all" || item.submissionType === filter) &&
+      (statusFilter === "all" || (item.status || "open") === statusFilter),
+  );
+
+  const handleSaveWorkflow = async (item, updates) => {
+    const result = await updateAdminSubmission(
+      item.submissionType,
+      item._id,
+      updates,
+    );
+    setSubmissions((current) => {
+      const collection =
+        item.submissionType === "student-report" ? "reports" : "feedback";
+      return {
+        ...current,
+        [collection]: current[collection].map((submission) =>
+          submission._id === item._id ? result.submission : submission,
+        ),
+      };
+    });
+    setStatus({ type: "success", message: result.message });
+  };
 
   return (
     <section className="mx-auto max-w-6xl p-4 pt-8">
@@ -124,11 +161,28 @@ const AdminSubmissions = () => {
         ))}
       </div>
 
+      <label className="mb-4 flex max-w-xs flex-col gap-1">
+        <span className="text-sm font-medium">Filter by status</span>
+        <select
+          className="select select-bordered select-sm"
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+        >
+          {STATUS_FILTERS.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
       {status.message && (
         <p
-          role="alert"
+          role={status.type === "error" ? "alert" : "status"}
           className={`mb-4 rounded-md p-3 text-sm ${
-            status.type === "error" ? "bg-error/10 text-error" : ""
+            status.type === "error"
+              ? "bg-error/10 text-error"
+              : "bg-success/10 text-success"
           }`}
         >
           {status.message}
@@ -141,60 +195,17 @@ const AdminSubmissions = () => {
         </p>
       ) : visibleSubmissions.length === 0 ? (
         <div className="rounded-lg border border-base-300 p-8 text-center text-base-content/70">
-          No submissions to show.
+          No submissions match these filters.
         </div>
       ) : (
         <div className="grid gap-4">
           {visibleSubmissions.map((item) => (
-            <article
-              key={`${item.submissionType}-${item._id}`}
-              className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <span className="badge badge-primary badge-outline mb-2 capitalize">
-                    {item.submissionType.replace("-", " ")}
-                  </span>
-                  <h2 className="text-lg font-semibold">{item.title}</h2>
-                </div>
-                <time
-                  className="text-sm text-base-content/60"
-                  dateTime={item.submittedAt}
-                >
-                  {formatDate(item.submittedAt)}
-                </time>
-              </div>
-
-              <p className="mt-3 whitespace-pre-wrap text-sm">{item.details}</p>
-
-              <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-base-300 pt-3 text-sm">
-                <div>
-                  <dt className="inline font-medium">From: </dt>
-                  <dd className="inline capitalize">
-                    {item.anonymous
-                      ? "Anonymous"
-                      : `${item.submittedByName} (${item.submittedByRole})`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="inline font-medium">Category: </dt>
-                  <dd className="inline capitalize">{item.category}</dd>
-                </div>
-                {item.urgency && (
-                  <div>
-                    <dt className="inline font-medium">Urgency: </dt>
-                    <dd className="inline capitalize">
-                      {item.urgency.replaceAll("-", " ")}
-                    </dd>
-                  </div>
-                )}
-                {item.notifyGuardian && (
-                  <div>Parent/guardian notification recommended</div>
-                )}
-                {item.requestCounselor && <div>Counselor support requested</div>}
-                {item.confidential && <div>Confidential handling requested</div>}
-              </dl>
-            </article>
+            <AdminSubmissionCard
+              key={`${item.submissionType}-${item._id}-${item.updatedAt || item.createdAt}`}
+              item={item}
+              assignees={assignees}
+              onSave={handleSaveWorkflow}
+            />
           ))}
         </div>
       )}

@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import { createSubmissionWorkflowFields } from "./submissionWorkflowFields.js";
 
 const feedbackSubmissionSchema = new mongoose.Schema(
   {
+    ...createSubmissionWorkflowFields(),
     type: {
       type: String,
       enum: ["suggestion", "complaint"],
