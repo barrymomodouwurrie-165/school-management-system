@@ -7,6 +7,7 @@ const Mainboday = () => {
       <div className="mx-auto max-w-6xl">
         <div
           id="about"
+          data-scroll-reveal
           className="mb-6 flex scroll-mt-36 items-end justify-between gap-4"
         >
           <div>
@@ -47,8 +48,9 @@ const Mainboday = () => {
           ].map((item, index) => (
             <div
               key={item.title}
-              className="card-animate rounded-[1.5rem] border border-primary/10 bg-primary/5 p-5 shadow-[0_16px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:bg-primary/10 hover:shadow-[0_24px_40px_rgba(37,99,235,0.12)]"
-              style={{ animationDelay: `${index * 120}ms` }}
+              data-scroll-reveal
+              className="rounded-[1.5rem] border border-primary/10 bg-primary/5 p-5 shadow-[0_16px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:bg-primary/10 hover:shadow-[0_24px_40px_rgba(37,99,235,0.12)]"
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm ring-1 ring-primary/10">
                 <item.icon size={22} />

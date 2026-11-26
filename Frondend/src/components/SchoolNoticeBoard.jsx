@@ -28,6 +28,7 @@ const SchoolNoticeBoard = () => {
   return (
     <section
       aria-labelledby="school-notice-heading"
+      data-scroll-reveal
       className="mx-auto max-w-6xl px-4 pt-8 md:px-8"
     >
       <div className="overflow-hidden rounded-3xl border border-primary/15 bg-base-100 shadow-xl shadow-primary/5">

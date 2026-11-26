@@ -28,6 +28,7 @@ const LandingAdminProfile = () => {
   return (
     <section
       aria-labelledby="landing-admin-profile-heading"
+      data-scroll-reveal
       className="w-full px-6 py-12 sm:px-8"
     >
       <div className="w-full py-4">

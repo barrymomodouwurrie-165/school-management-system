@@ -4,7 +4,11 @@ import { FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer id="contact" className="w-full scroll-mt-36 px-4 py-4">
+    <footer
+      id="contact"
+      data-scroll-reveal
+      className="w-full scroll-mt-36 px-4 py-4"
+    >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 border-t border-primary/50 px-2 py-6 sm:grid-cols-2 sm:px-4 md:grid-cols-3">
         <div className="flex flex-col gap-2">
           <h2 className="font-bold text-primary">Contact</h2>

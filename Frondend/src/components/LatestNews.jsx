@@ -38,7 +38,11 @@ const LatestNews = () => {
   }, []);
 
   return (
-    <section id="news" className="w-full scroll-mt-36 px-4 py-8 sm:px-6">
+    <section
+      id="news"
+      data-scroll-reveal
+      className="w-full scroll-mt-36 px-4 py-8 sm:px-6"
+    >
       <div className="mx-auto max-w-6xl">
         <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>

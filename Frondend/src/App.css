@@ -19,10 +19,6 @@
   }
 }
 
-.hero-animate {
-  animation: fadeUp 0.8s ease-out both;
-}
-
 .developer-credit {
   animation: fadeUp 0.8s ease-out both;
 }
@@ -33,16 +29,36 @@
   }
 }
 
-.card-animate {
-  animation: fadeUp 0.8s ease-out both;
+.scroll-reveal-ready [data-scroll-reveal] {
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease;
 }
 
-.card-animate:nth-child(odd) {
-  animation-delay: 0.1s;
+.scroll-reveal-ready [data-scroll-reveal]:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.scroll-reveal-ready [data-scroll-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hero-animate > div {
   animation: softFloat 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal-ready [data-scroll-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-animate > div {
+    animation: none;
+  }
 }
 
 .result-mark-table {

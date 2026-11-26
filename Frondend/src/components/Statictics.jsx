@@ -41,8 +41,9 @@ const Statictics = () => {
         {STATISTICS.map((item, index) => (
           <div
             key={item.key}
-            className="card-animate rounded-2xl border border-primary/10 bg-base-100 p-4 text-center shadow-[0_12px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(37,99,235,0.10)] md:p-7"
-            style={{ animationDelay: `${index * 120}ms` }}
+            data-scroll-reveal
+            className="rounded-2xl border border-primary/10 bg-base-100 p-4 text-center shadow-[0_12px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(37,99,235,0.10)] md:p-7"
+            style={{ transitionDelay: `${index * 100}ms` }}
           >
             <span className="block text-sm font-semibold uppercase tracking-[0.12em] text-primary">
               {item.label}
